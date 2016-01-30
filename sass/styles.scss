@@ -1,3 +1,23 @@
-.test-style {
-	background-color: red;
+$foreground-color: #424242;
+$background-color: #E2E2E2;
+
+* {
+	font-family: 'Metrophobic', Arial, serif;
+	font-weight: 400;
+}
+
+html {
+	min-height: 100%;
+}
+
+body {
+	text-align: center;
+	min-height: 100%;
+	background: linear-gradient($background-color, lighten($background-color, 10%));
+	color: $foreground-color;
+}
+
+#viewport {
+	border: 1px solid $foreground-color;
+	box-shadow: 10px 10px 50px black;
 }
