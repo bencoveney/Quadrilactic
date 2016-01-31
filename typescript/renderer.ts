@@ -1,3 +1,5 @@
+/// <reference path="block.ts" />
+
 class Renderer {
 	// Rendering references
 	private canvas: HTMLCanvasElement;
@@ -5,8 +7,7 @@ class Renderer {
 
 	// State
 	private isRunning: boolean;
-	private x: number = 50;
-	private y: number = 120;
+	private block: Block;
 	private intervalId: number;
 
 	// Constants
@@ -16,6 +17,7 @@ class Renderer {
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
+		this.block = new Block(30, 30, 30, 30, "#FF0000");
 	}
 
 	public Start() {
@@ -38,8 +40,7 @@ class Renderer {
 		this.Clear();
 		this.Draw();
 
-		this.x += Renderer.dx;
-		this.y += Renderer.dy;
+		this.block.ChangePosition(Renderer.dx, Renderer.dy);
 	}
 	
 	private Clear() {
@@ -47,32 +48,6 @@ class Renderer {
 	}
 	
 	private Draw() {
-		// Filled Rectangle
-		this.context.beginPath();
-		this.context.rect(10, 20, 30, 40);
-		this.context.fillStyle = "#FF0000";
-		this.context.fill();
-		this.context.closePath();
-
-		// Filled Circle
-		this.context.beginPath();
-		this.context.arc(110, 120, 30, 0, Math.PI * 2, false);
-		this.context.fillStyle = "#00FF00";
-		this.context.fill();
-		this.context.closePath();
-
-		// Stroked Rectangle
-		this.context.beginPath();
-		this.context.rect(100, 20, 30, 40);
-		this.context.strokeStyle = "rgba(0,0,255, 0.5)";
-		this.context.stroke();
-		this.context.closePath();
-
-		// Stroked Circle (Positioned)
-		this.context.beginPath();
-		this.context.arc(this.x, this.y, 30, 0, Math.PI * 2, false);
-		this.context.strokeStyle = "black";
-		this.context.stroke();
-		this.context.closePath();
+		this.block.Render(this.context);
 	}
 }
