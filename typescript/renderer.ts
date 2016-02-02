@@ -10,14 +10,10 @@ class Renderer {
 	private block: Block;
 	private intervalId: number;
 
-	// Constants
-	private static dx = 1;
-	private static dy = 1;
-
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
-		this.block = new Block(30, 30, 30, 30, "#FF0000");
+		this.block = new Block(30, 300, -2, -2, 30, 30, "#FF0000");
 	}
 
 	public Start() {
@@ -40,7 +36,7 @@ class Renderer {
 		this.Clear();
 		this.Draw();
 
-		this.block.ChangePosition(Renderer.dx, Renderer.dy);
+		this.block.Tick(this.canvas.height, this.canvas.width);
 	}
 	
 	private Clear() {
