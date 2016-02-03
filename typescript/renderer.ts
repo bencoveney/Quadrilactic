@@ -1,18 +1,26 @@
 /// <reference path="block.ts" />
+/// <reference path="controller.ts" />
 
 class Renderer {
+	private static millisecondsPerTick = 13;
+	
 	// Rendering references
 	private canvas: HTMLCanvasElement;
 	private context: CanvasRenderingContext2D;
+
+	private controller: Controller;
 
 	// State
 	private isRunning: boolean;
 	private block: Block;
 	private intervalId: number;
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
+
+		this.controller = controller;
+
 		this.block = new Block(30, 300, -2, -2, 30, 30, "#FF0000");
 	}
 
@@ -24,7 +32,7 @@ class Renderer {
 
 		this.intervalId = setInterval(() => {
 			this.Tick();
-		}, 10);
+		}, Renderer.millisecondsPerTick);
 	}
 	
 	public Stop() {
@@ -36,7 +44,7 @@ class Renderer {
 		this.Clear();
 		this.Draw();
 
-		this.block.Tick(this.canvas.height, this.canvas.width);
+		this.block.Tick(this.canvas.height, this.canvas.width, this.controller);
 	}
 	
 	private Clear() {
