@@ -1,8 +1,8 @@
 /// <reference path="controller.ts" />
-/// <reference path="block.ts" />
+/// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
 
-class Player extends Block {
+class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease = -8;
 	private static degrees = Math.PI / 180;
 	private static jumpRotationSlowDown = 0.25;
@@ -14,8 +14,15 @@ class Player extends Block {
 	private jumpRotationSpeed: number;
 	private controller: Controller;
 	
-	public constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller) {
-		super(worldPosition, dimensions, color);
+	public constructor(
+		worldPosition: MovingPoint,
+		dimensions: Point,
+		color: string,
+		controller: Controller,
+		gravity?: number,
+		boundary?: Point)
+	{
+		super(worldPosition, dimensions, color, gravity, boundary);
 		
 		this.onBounce = this.Bounce;
 		
@@ -23,7 +30,8 @@ class Player extends Block {
 		this.isJumping = false;
 	}
 	
-	public Tick(worldDimensions: Point) {
+	public Tick() {
+		super.Tick();
 		
 		// Perform the jump
 		if(!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"]))
@@ -53,8 +61,6 @@ class Player extends Block {
 		{
 			this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
 		}
-		
-		super.Tick(worldDimensions);
 	}
 	
 	public Bounce() {

@@ -3,7 +3,6 @@
 
 class Block {
 	// Constants
-	private static gravity = 0.2;
 	private static verticalSpeedLimit = 12;
 	private static horizontalSpeedLimit = 5;
 	private static horizontalSpeedSlowDown = 0.1;
@@ -12,7 +11,6 @@ class Block {
 	private worldPosition: MovingPoint;
 	private dimensions: Point;
 	private internalColor: string;
-	private onBounceCallback: () => void;
 
 	// Position properties
 	get xPosition(): number {
@@ -74,13 +72,6 @@ class Block {
 		return this.top + (this.height / 2);
 	}
 	
-	get onBounce() : () => void {
-		return this.onBounceCallback;
-	}
-	set onBounce(newValue: () => void) {
-		this.onBounceCallback = newValue;
-	}
-	
 	// Direction properties
 	get direction(): string {
 		return this.xSpeed >= 0 ? "right" : "left";
@@ -95,49 +86,16 @@ class Block {
 		this.internalColor = color;
 	}
 	
-	public Tick(worldDimensions: Point){
+	public Tick(){
 		// Move "forward"
 		this.xPosition += this.xSpeed;
 		this.yPosition += this.ySpeed;
-		
-		// If off the bottom, bounce up
-		if(this.bottom > worldDimensions.y)
-		{
-			// Clamp on screen, invert vertical speed.
-			// Prevent loss of height on bounce.
-			// This is less important for horizontals.
-			let distanceOffBottom = this.bottom - worldDimensions.y;
-			this.yPosition = worldDimensions.y - this.height - distanceOffBottom;
-			this.ySpeed = -Math.abs(this.ySpeed);
-			
-			// Allow insertion of bouncing code
-			this.onBounceCallback();
-		}
-		
-		// If off the right, bounce left
-		if(this.right > worldDimensions.x)
-		{
-			// Clamp on screen, invert horizontal speed
-			this.xPosition = worldDimensions.x - this.width;
-			this.xSpeed = -Math.abs(this.xSpeed);
-		}
-		
-		// If off the left, bounce right
-		if(this.left < 0)
-		{
-			// Clamp on screen, invert horizontal speed
-			this.xPosition = 0;
-			this.xSpeed = Math.abs(this.xSpeed); 
-		}
 		
 		// Clamp the speed to the speed limit
 		this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
 		this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
 		this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
 		this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
-		
-		// Apply acceleration due to gravity
-		this.ySpeed += Block.gravity;
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D) {

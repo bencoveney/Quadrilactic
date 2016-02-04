@@ -13,6 +13,7 @@ class Renderer {
 	// State
 	private isRunning: boolean;
 	private player: Player;
+	private platform: PhysicsBlock;
 	private intervalId: number;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
@@ -29,8 +30,25 @@ class Renderer {
 			x: 30,
 			y: 30
 		};
-
-		this.player = new Player(blockPosition, blockDimensions, "#FF0000", controller);
+		this.player = new Player(blockPosition, blockDimensions, "#FF0000", controller, undefined, {
+			x: this.canvas.width,
+			y: this.canvas.height - Renderer.floorHeight
+		});
+		
+		let platformPosition: MovingPoint = {
+			x: 30,
+			y: 500,
+			dX: -2,
+			dY: -2
+		};
+		let platformDimensions: Point = {
+			x: 60,
+			y: 20
+		}
+		this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#00FF00", -0.2, {
+			x: this.canvas.width,
+			y: this.canvas.height
+		});
 	}
 
 	public Start() {
@@ -53,10 +71,9 @@ class Renderer {
 		this.Clear();
 		this.Draw();
 
-		this.player.Tick({
-			x: this.canvas.width,
-			y: this.canvas.height - Renderer.floorHeight
-		});
+		this.player.Tick();
+		
+		this.platform.Tick();
 	}
 	
 	private Clear() {
@@ -65,5 +82,6 @@ class Renderer {
 	
 	private Draw() {
 		this.player.Render(this.context);
+		this.platform.Render(this.context);
 	}
 }
