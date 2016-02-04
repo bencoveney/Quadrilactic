@@ -1,80 +1,72 @@
 /// <reference path="controller.ts" />
+/// <reference path="point.ts" />
 
 class Block {
 	// Constants
 	private static gravity = 0.2;
 	private static verticalSpeedLimit = 12;
 	private static horizontalSpeedLimit = 5;
-	private static jumpSpeedIncrease = -8;
-	private static degrees = Math.PI / 180;
-	private static jumpRotationSlowDown = 0.25;
-	private static initialJumpRotationSpeed = 15;
-	private static horizontalSpeedIncrease = 0.5;
 	private static horizontalSpeedSlowDown = 0.1;
-	
-	private internalXPosition: number;
+
+	// Private members
+	private worldPosition: MovingPoint;
+	private dimensions: Point;
+	private internalColor: string;
+	private onBounceCallback: () => void;
+
+	// Position properties
 	get xPosition(): number {
-		return this.internalXPosition;
+		return this.worldPosition.x;
 	}
 	set xPosition(newValue: number) {
-		this.internalXPosition = newValue;
+		this.worldPosition.x = newValue;
 	}
-
-	private internalYPosition: number;
 	get yPosition(): number {
-		return this.internalYPosition;
+		return this.worldPosition.y;
 	}
 	set yPosition(newValue: number) {
-		this.internalYPosition = newValue;
-	}
-	
-	private internalXSpeed: number;
-	get xSpeed(): number {
-		return this.internalXSpeed;
-	}
-	set xSpeed(newValue: number) {
-		this.internalXSpeed = newValue;
-	}
-	
-	private internalYSpeed: number;
-	get ySpeed(): number {
-		return this.internalYSpeed;
-	}
-	set ySpeed(newValue: number) {
-		this.internalYSpeed = newValue;
-	}
-	
-	private internalWidth: number;
-	get width(): number {
-		return this.internalWidth;
+		this.worldPosition.y = newValue;
 	}
 
-	private internalHeight: number;
-	get height(): number {
-		return this.internalHeight;
+	get xSpeed(): number {
+		return this.worldPosition.dX;
+	}
+	set xSpeed(newValue: number) {
+		this.worldPosition.dX = newValue;
+	}
+	get ySpeed(): number {
+		return this.worldPosition.dY;
+	}
+	set ySpeed(newValue: number) {
+		this.worldPosition.dY = newValue;
 	}
 	
-	private internalColor: string;
-	get color(): string {
+	get width(): number {
+		return this.dimensions.x;
+	}
+	get height(): number {
+		return this.dimensions.y;
+	}
+
+	get fillColor(): string {
 		return this.internalColor;
 	}
-	set color(newValue: string) {
+	set fillColor(newValue: string) {
 		this.internalColor = newValue;
 	}
 	
-	get top(): number {
-		return this.internalYPosition;
-	}
-	get bottom(): number {
-		return this.internalYPosition + this.internalHeight;
-	}
 	get left(): number {
-		return this.internalXPosition;
+		return this.worldPosition.x;
 	}
 	get right(): number {
-		return this.internalXPosition + this.internalWidth;
+		return this.worldPosition.x + this.dimensions.x;
 	}
-	
+	get top(): number {
+		return this.worldPosition.y;
+	}
+	get bottom(): number {
+		return this.worldPosition.y + this.dimensions.y;
+	}
 	get centerXPosition(): number {
 		return this.left + (this.width / 2);
 	}
@@ -82,59 +74,51 @@ class Block {
 		return this.top + (this.height / 2);
 	}
 	
+	get onBounce() : () => void {
+		return this.onBounceCallback;
+	}
+	set onBounce(newValue: () => void) {
+		this.onBounceCallback = newValue;
+	}
+	
+	// Direction properties
 	get direction(): string {
 		return this.xSpeed >= 0 ? "right" : "left";
 	}
-	
-	private isJumping: boolean;
-	private jumpRotationAmount: number;
-	private jumpRotationSpeed: number
 
 	// Constants
 	private static strokeColor: string = "#000000";
 
-	public constructor(xPosition: number, yPosition: number, xSpeed: number, ySpeed: number, width: number, height: number, color: string) {
-		this.internalXPosition = xPosition;
-		this.internalYPosition = yPosition;
-		this.internalXSpeed = xSpeed;
-		this.internalYSpeed = ySpeed;
-		this.internalWidth = width;
-		this.internalHeight = height;
+	public constructor(worldPosition: MovingPoint, dimensions: Point, color: string) {
+		this.worldPosition = worldPosition;
+		this.dimensions = dimensions;
 		this.internalColor = color;
-		this.isJumping = false;
-	}
-
-	public ChangePosition(dX: number, dY: number) {
-		this.internalXPosition += dX;
-		this.internalYPosition += dY; 
 	}
 	
-	public Tick(worldHeight: number, worldWidth: number, controller: Controller){
+	public Tick(worldDimensions: Point){
 		// Move "forward"
-		this.internalXPosition += this.internalXSpeed;
-		this.internalYPosition += this.internalYSpeed;
+		this.xPosition += this.xSpeed;
+		this.yPosition += this.ySpeed;
 		
 		// If off the bottom, bounce up
-		if(this.bottom > worldHeight)
+		if(this.bottom > worldDimensions.y)
 		{
 			// Clamp on screen, invert vertical speed.
 			// Prevent loss of height on bounce.
 			// This is less important for horizontals.
-			let distanceOffBottom = this.bottom - worldHeight;
-			this.yPosition = worldHeight - this.height - distanceOffBottom;
+			let distanceOffBottom = this.bottom - worldDimensions.y;
+			this.yPosition = worldDimensions.y - this.height - distanceOffBottom;
 			this.ySpeed = -Math.abs(this.ySpeed);
 			
-			// If we were jumping, thats over now
-			this.isJumping = false;
-			this.jumpRotationAmount = 0;
-			this.jumpRotationSpeed = 0;
+			// Allow insertion of bouncing code
+			this.onBounceCallback();
 		}
 		
 		// If off the right, bounce left
-		if(this.right > worldWidth)
+		if(this.right > worldDimensions.x)
 		{
 			// Clamp on screen, invert horizontal speed
-			this.xPosition = worldWidth - this.width;
+			this.xPosition = worldDimensions.x - this.width;
 			this.xSpeed = -Math.abs(this.xSpeed);
 		}
 		
@@ -146,24 +130,6 @@ class Block {
 			this.xSpeed = Math.abs(this.xSpeed); 
 		}
 		
-		// Perform the jump
-		if(!this.isJumping && controller.isKeyPressed(["up", "space", "w"]))
-		{
-			this.ySpeed = Block.jumpSpeedIncrease;
-			this.isJumping = true;
-			this.jumpRotationSpeed = this.direction == "right" ? Block.initialJumpRotationSpeed : -Block.initialJumpRotationSpeed;
-		}
-		
-		// Allow influence over horizontal direction
-		if(controller.isKeyPressed(["left", "a"]))
-		{
-			this.xSpeed -= Block.horizontalSpeedIncrease;
-		}
-		if(controller.isKeyPressed(["right", "d"]))
-		{
-			this.xSpeed += Block.horizontalSpeedIncrease;
-		}
-		
 		// Clamp the speed to the speed limit
 		this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
 		this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
@@ -171,30 +137,14 @@ class Block {
 		this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
 		
 		// Apply acceleration due to gravity
-		this.internalYSpeed += Block.gravity;
-		
-		// Apply jump rotation
-		this.jumpRotationAmount += this.jumpRotationSpeed;
-		if(this.jumpRotationSpeed > 0)
-		{
-			this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Block.jumpRotationSlowDown);
-		}
-		else if(this.jumpRotationSpeed < 0)
-		{
-			this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Block.jumpRotationSlowDown);
-		}
+		this.ySpeed += Block.gravity;
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D) {
-		renderContext.save();
-		
-		renderContext.translate(this.centerXPosition, this.centerYPosition);
-		renderContext.rotate(this.jumpRotationAmount * Block.degrees);
-		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
 		
 		renderContext.beginPath();
 
-		renderContext.rect(this.internalXPosition, this.internalYPosition, this.internalWidth, this.internalHeight);
+		renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
 
 		renderContext.strokeStyle = Block.strokeColor;
 		renderContext.stroke();
@@ -203,7 +153,5 @@ class Block {
 		renderContext.fill();
 
 		renderContext.closePath();
-		
-		renderContext.restore();
 	}
 }
