@@ -4,7 +4,8 @@
 
 class Renderer {
 	private static millisecondsPerTick = 13;
-	private static floorHeight = 0;
+	private static gameWidth = 480;
+	private static gameHeight = 800;
 	
 	// Rendering references
 	private canvas: HTMLCanvasElement;
@@ -20,6 +21,8 @@ class Renderer {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
 		
+		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
+		
 		let blockPosition: MovingPoint = {
 			x: 30,
 			y: 300,
@@ -30,9 +33,14 @@ class Renderer {
 			x: 30,
 			y: 30
 		};
+		
 		this.player = new Player(blockPosition, blockDimensions, "#FF0000", controller, undefined, {
-			x: this.canvas.width,
-			y: this.canvas.height - Renderer.floorHeight
+			x: Renderer.gameWidth,
+			y: Renderer.gameHeight
+		},
+		{
+			x: gameLeft,
+			y: 0
 		});
 		
 		let platformPosition: MovingPoint = {
@@ -46,8 +54,12 @@ class Renderer {
 			y: 20
 		}
 		this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#00FF00", -0.2, {
-			x: this.canvas.width,
-			y: this.canvas.height
+			x: Renderer.gameWidth,
+			y: Renderer.gameHeight
+		},
+		{
+			x: gameLeft,
+			y: 400
 		});
 	}
 
