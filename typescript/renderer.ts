@@ -2,6 +2,7 @@
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
 /// <reference path="collider.ts" />
+/// <reference path="IRenderable.ts" />
 
 class Renderer {
 	// Constants
@@ -19,11 +20,12 @@ class Renderer {
 	private player: Player;
 	private platform: PhysicsBlock;
 	private intervalId: number;
+	private renderables: IRenderable[];
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
-		
+
 		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
 		
 		let playerPosition: MovingPoint = {
@@ -66,6 +68,8 @@ class Renderer {
 				x: Renderer.gameWidth,
 				y: Renderer.gameHeight
 			});
+			
+		this.renderables = [];
 	}
 
 	public Start() {
@@ -96,7 +100,19 @@ class Renderer {
 	
 	private Draw() {
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.player.Render(this.context);
-		this.platform.Render(this.context);
+		
+		let newRenderables: IRenderable[] = [];
+		
+		this.renderables.forEach((renderable: IRenderable) => {
+			newRenderables = newRenderables.concat(renderable.Render(this.context));
+		});
+		
+		newRenderables = newRenderables.concat(
+			this.player.Render(this.context),
+			this.platform.Render(this.context));
+		
+		this.renderables = this.renderables.concat(newRenderables).filter((renderable: IRenderable) => {
+			return renderable.isAlive;
+		});
 	}
 }

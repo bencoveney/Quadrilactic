@@ -1,6 +1,7 @@
 /// <reference path="controller.ts" />
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
 
 class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease = -8;
@@ -71,15 +72,17 @@ class Player extends PhysicsBlock {
 		this.jumpRotationSpeed = 0;
 	}
 	
-	public Render(renderContext: CanvasRenderingContext2D) {
+	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
 		renderContext.save();
 		
 		renderContext.translate(this.centerXPosition, this.centerYPosition);
 		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
 		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
 		
-		super.Render(renderContext);
+		let newRenderables = super.Render(renderContext);
 		
 		renderContext.restore();
+		
+		return newRenderables;
 	}
 }

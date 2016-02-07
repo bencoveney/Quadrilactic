@@ -1,5 +1,6 @@
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
 
 class PhysicsBlock extends Block {
 	
@@ -109,8 +110,8 @@ class PhysicsBlock extends Block {
 		this.ySpeed += this.internalGravity;
 	}
 	
-	public Render(renderContext: CanvasRenderingContext2D) {
-		super.Render(renderContext);
+	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
+		return super.Render(renderContext);
 	}
 	
 	public VerticalBounce()

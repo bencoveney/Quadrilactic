@@ -1,7 +1,9 @@
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="particle.ts"" />
 
-class Block {
+class Block implements IRenderable {
 	// Constants
 	private static verticalSpeedLimit = 12;
 	private static horizontalSpeedLimit = 5;
@@ -11,6 +13,8 @@ class Block {
 	private worldPosition: MovingPoint;
 	private dimensions: Point;
 	private internalColor: string;
+	
+	public isAlive = true;
 
 	// Position properties
 	get xPosition(): number {
@@ -98,7 +102,7 @@ class Block {
 		this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D) {
+	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
 		
 		renderContext.beginPath();
 
@@ -111,5 +115,16 @@ class Block {
 		renderContext.fill();
 
 		renderContext.closePath();
+		
+		let particle = new Particle(
+			this.xPosition,
+			this.yPosition,
+			this.width,
+			this.height,
+			0,
+			"#0000FF",
+			1.0);
+		
+		return [particle] as IRenderable[];
 	}
 }
