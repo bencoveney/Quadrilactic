@@ -79,6 +79,11 @@ class Player extends PhysicsBlock {
 		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
 		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
 		
+		let xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
+		let yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
+		
+		this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
+		
 		let newRenderables = super.Render(renderContext);
 		
 		renderContext.restore();

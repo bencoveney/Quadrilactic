@@ -3,6 +3,7 @@
 /// <reference path="point.ts" />
 /// <reference path="collider.ts" />
 /// <reference path="IRenderable.ts" />
+/// <reference path="scoreboard.ts" />
 
 class Renderer {
 	// Constants
@@ -19,6 +20,7 @@ class Renderer {
 	private isRunning: boolean;
 	private player: Player;
 	private platform: PhysicsBlock;
+	private scoreboard: Scoreboard;
 	private intervalId: number;
 	private renderables: IRenderable[];
 
@@ -56,18 +58,35 @@ class Renderer {
 			dY: 2
 		};
 		let platformDimensions: Point = {
-			x: 60,
+			x: 90,
 			y: 20
 		}
 		this.platform = new PhysicsBlock(
 			platformPosition,
 			platformDimensions,
-			"#00FF00",
+			"#FFFFFF",
 			-Renderer.defaultGravity,
 			{
 				x: Renderer.gameWidth,
 				y: Renderer.gameHeight
 			});
+		
+		let scoreboardPosition: MovingPoint = {
+			x: 150,
+			y: 20,
+			dX: 0,
+			dY: 0
+		};
+		let scoreboardDimensions: Point = {
+			x: 0,
+			y: 0
+		}
+		this.scoreboard = new Scoreboard(
+			this.player,
+			scoreboardPosition,
+			scoreboardDimensions,
+			"#333333"
+		)
 			
 		this.renderables = [];
 	}
@@ -99,9 +118,13 @@ class Renderer {
 	}
 	
 	private Draw() {
-		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.context.fillStyle = "#111111";
+		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		
 		let newRenderables: IRenderable[] = [];
+		
+		newRenderables = newRenderables.concat(
+			this.scoreboard.Render(this.context));
 		
 		this.renderables.forEach((renderable: IRenderable) => {
 			newRenderables = newRenderables.concat(renderable.Render(this.context));

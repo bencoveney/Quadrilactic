@@ -108,10 +108,10 @@ class Block implements IRenderable {
 
 		renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
 
-		renderContext.strokeStyle = Block.strokeColor;
-		renderContext.stroke();
+		// renderContext.strokeStyle = Block.strokeColor;
+		// renderContext.stroke();
 
-		renderContext.fillStyle = this.direction == "right" ? this.internalColor : "#00FFFF";
+		renderContext.fillStyle = this.fillColor;
 		renderContext.fill();
 
 		renderContext.closePath();
@@ -122,8 +122,8 @@ class Block implements IRenderable {
 			this.width,
 			this.height,
 			0,
-			"#0000FF",
-			1.0);
+			this.fillColor,
+			0.15);
 		
 		return [particle] as IRenderable[];
 	}

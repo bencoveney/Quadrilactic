@@ -1,35 +1,32 @@
 /// <reference path="IRenderable.ts" />
 
-class Particle implements IRenderable {
+class ParticleText implements IRenderable {
 	private static degrees = Math.PI / 180;
 	private xPosition: number;
 	private yPosition: number;
-	private width: number;
-	private height: number;
+	private text: string;
+	private font: string;
+	private fontSize: number;
 	private rotation: number;
 	private color: string;
 	private opacity: number;
-	private get centerXPosition(): number {
-		return this.xPosition + (this.width / 2);
-	}
-	private get centerYPosition(): number {
-		return this.yPosition + (this.height / 2);
-	}
 	public isAlive: boolean;
 	
 	public constructor(
 		xPosition: number,
 		yPosition: number,
-		width: number,
-		height: number,
+		text: string,
+		fontName: string,
+		fontSize: number,
 		rotation: number,
 		color: string,
 		opacity: number)
 	{
 		this.xPosition = xPosition;
 		this.yPosition = yPosition;
-		this.width = width;
-		this.height = height;
+		this.text = text;
+		this.font = fontSize.toString() + "px " + fontName;
+		this.fontSize = fontSize;
 		this.rotation = rotation;
 		this.color = color;
 		this.opacity = opacity;
@@ -47,19 +44,14 @@ class Particle implements IRenderable {
 			renderContext.save();
 			renderContext.globalAlpha = this.opacity;
 			
-			renderContext.translate(this.centerXPosition, this.centerYPosition);
-			renderContext.rotate(this.rotation * Particle.degrees);
-			renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+			renderContext.translate(this.xPosition, this.yPosition);
+			renderContext.rotate(this.rotation * ParticleText.degrees);
+			renderContext.translate(-this.xPosition, -this.yPosition);
 			
-			renderContext.beginPath();
-
-			renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
-
 			renderContext.fillStyle = this.color;
-			renderContext.fill();
+			renderContext.font = this.font;
+			renderContext.fillText(this.text.toString(), this.xPosition, this.yPosition + this.fontSize);
 
-			renderContext.closePath();
-			
 			renderContext.globalAlpha = 1;
 			renderContext.restore();
 		}
