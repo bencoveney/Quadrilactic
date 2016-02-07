@@ -2,8 +2,6 @@
 /// <reference path="point.ts" />
 
 class PhysicsBlock extends Block {
-	// Constants
-	private static defaultGravity: number = 0.2;
 	
 	private internalGravity: number;
 	private internalBoundary: Point;
@@ -55,7 +53,7 @@ class PhysicsBlock extends Block {
 		worldPosition: MovingPoint,
 		dimensions: Point,
 		color: string,
-		gravity: number = PhysicsBlock.defaultGravity,
+		gravity: number,
 		boundary?: Point,
 		boundaryOffset?: Point)
 	{
@@ -115,7 +113,7 @@ class PhysicsBlock extends Block {
 		super.Render(renderContext);
 	}
 	
-	private VerticalBounce()
+	public VerticalBounce()
 	{
 		this.ySpeed = -this.ySpeed;
 		

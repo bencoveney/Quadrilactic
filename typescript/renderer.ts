@@ -1,8 +1,11 @@
 /// <reference path="player.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
+/// <reference path="collider.ts" />
 
 class Renderer {
+	// Constants
+	private static defaultGravity: number = 0.2;
 	private static millisecondsPerTick = 13;
 	private static gameWidth = 480;
 	private static gameHeight = 800;
@@ -23,44 +26,46 @@ class Renderer {
 		
 		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
 		
-		let blockPosition: MovingPoint = {
+		let playerPosition: MovingPoint = {
 			x: 30,
-			y: 300,
-			dX: -2,
+			y: 100,
+			dX: 2,
 			dY: -2
 		};
-		let blockDimensions: Point = {
+		let playerDimensions: Point = {
 			x: 30,
 			y: 30
 		};
-		
-		this.player = new Player(blockPosition, blockDimensions, "#FF0000", controller, undefined, {
-			x: Renderer.gameWidth,
-			y: Renderer.gameHeight
-		},
-		{
-			x: gameLeft,
-			y: 0
-		});
+		this.player = new Player(
+			playerPosition,
+			playerDimensions,
+			"#FF0000",
+			controller,
+			Renderer.defaultGravity,
+			{
+				x: Renderer.gameWidth,
+				y: Renderer.gameHeight
+			});
 		
 		let platformPosition: MovingPoint = {
 			x: 30,
-			y: 500,
-			dX: -2,
-			dY: -2
+			y: 700,
+			dX: 2,
+			dY: 2
 		};
 		let platformDimensions: Point = {
 			x: 60,
 			y: 20
 		}
-		this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#00FF00", -0.2, {
-			x: Renderer.gameWidth,
-			y: Renderer.gameHeight
-		},
-		{
-			x: gameLeft,
-			y: 400
-		});
+		this.platform = new PhysicsBlock(
+			platformPosition,
+			platformDimensions,
+			"#00FF00",
+			-Renderer.defaultGravity,
+			{
+				x: Renderer.gameWidth,
+				y: Renderer.gameHeight
+			});
 	}
 
 	public Start() {
@@ -80,19 +85,17 @@ class Renderer {
 	}
 	
 	private Tick() {
-		this.Clear();
 		this.Draw();
-
 		this.player.Tick();
-		
 		this.platform.Tick();
+		Collider.processCollisions([this.player, this.platform]);
 	}
 	
 	private Clear() {
-		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 	
 	private Draw() {
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.player.Render(this.context);
 		this.platform.Render(this.context);
 	}
