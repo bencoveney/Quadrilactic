@@ -34,3 +34,4 @@ node_modules
 
 # Project specific
 dist
+tsconfig.json
