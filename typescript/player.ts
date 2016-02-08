@@ -86,6 +86,11 @@ class Player extends PhysicsBlock {
 		
 		let newRenderables = super.Render(renderContext);
 		
+		newRenderables.forEach((renderable: IRenderable) => {
+			(renderable as Particle).rotation = this.jumpRotationAmount;
+			return renderable;
+		});
+		
 		renderContext.restore();
 		
 		return newRenderables;

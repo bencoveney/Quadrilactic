@@ -6,7 +6,7 @@ class Particle implements IRenderable {
 	private yPosition: number;
 	private width: number;
 	private height: number;
-	private rotation: number;
+	public rotation: number;
 	private color: string;
 	private opacity: number;
 	private get centerXPosition(): number {
