@@ -114,8 +114,7 @@ class PhysicsBlock extends Block {
 		return super.Render(renderContext);
 	}
 	
-	public VerticalBounce()
-	{
+	public VerticalBounce() {
 		this.ySpeed = -this.ySpeed;
 		
 		// Allow insertion of bouncing code

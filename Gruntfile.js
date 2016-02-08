@@ -3,8 +3,8 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		typescript: {
 			base: {
-				src: ['typescript/**/*.ts'],
-				dest: 'generated/source.js',
+				src: ['src/**/*.ts'],
+				dest: 'dist/source.js',
 				options: {
 					module: 'amd', //or commonjs 
 					target: 'es5', //or es3 
@@ -21,17 +21,17 @@ module.exports = function(grunt) {
 			},
 			dev: {
 				files: {
-					'generated/style.css': 'sass/**/*.scss'
+					'dist/style.css': 'css/**/*.scss'
 				}
 			},
 		},
 		watch: {
 			typescript: {
-				files: 'typescript/**/*.ts',
+				files: 'src/**/*.ts',
 				tasks: ['typescript']
 			},
 			css: {
-				files: 'sass/**/*.scss',
+				files: 'css/**/*.scss',
 				tasks: ['sass:dev']
 			}
 		}
@@ -41,5 +41,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-sass');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	
+	grunt.registerTask('build', ['typescript', 'sass']);
 	grunt.registerTask('default', ['watch']);
 };
