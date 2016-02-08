@@ -1,0 +1,652 @@
+var Controller = (function () {
+    function Controller() {
+        var _this = this;
+        this.isKeyPressedState = {
+            space: false,
+            left: false,
+            up: false,
+            right: false,
+            a: false,
+            d: false,
+            w: false
+        };
+        window.addEventListener("keyup", function (event) {
+            _this.handleKeyUp(event);
+        });
+        window.addEventListener("keydown", function (event) {
+            _this.handleKeyDown(event);
+        });
+    }
+    Controller.prototype.handleKeyUp = function (event) {
+        var key = Controller.keyCodes[event.keyCode];
+        this.isKeyPressedState[key] = false;
+    };
+    Controller.prototype.handleKeyDown = function (event) {
+        var key = Controller.keyCodes[event.keyCode];
+        this.isKeyPressedState[key] = true;
+    };
+    Controller.prototype.isKeyPressed = function (key) {
+        var _this = this;
+        var keys = [].concat(key);
+        return keys.some(function (value) {
+            return _this.isKeyPressedState[value];
+        });
+    };
+    Controller.keyCodes = {
+        32: "space",
+        37: "left",
+        38: "up",
+        39: "right",
+        65: "a",
+        68: "d",
+        87: "w"
+    };
+    return Controller;
+})();
+/// <reference path="IRenderable.ts" />
+var Particle = (function () {
+    function Particle(xPosition, yPosition, width, height, rotation, color, opacity) {
+        this.xPosition = xPosition;
+        this.yPosition = yPosition;
+        this.width = width;
+        this.height = height;
+        this.rotation = rotation;
+        this.color = color;
+        this.opacity = opacity;
+        this.isAlive = true;
+    }
+    Object.defineProperty(Particle.prototype, "centerXPosition", {
+        get: function () {
+            return this.xPosition + (this.width / 2);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Particle.prototype, "centerYPosition", {
+        get: function () {
+            return this.yPosition + (this.height / 2);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Particle.prototype.Render = function (renderContext) {
+        this.opacity -= 0.005;
+        if (this.opacity <= 0) {
+            this.isAlive = false;
+        }
+        else {
+            renderContext.save();
+            renderContext.globalAlpha = this.opacity;
+            renderContext.translate(this.centerXPosition, this.centerYPosition);
+            renderContext.rotate(this.rotation * Particle.degrees);
+            renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+            renderContext.beginPath();
+            renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
+            renderContext.fillStyle = this.color;
+            renderContext.fill();
+            renderContext.closePath();
+            renderContext.globalAlpha = 1;
+            renderContext.restore();
+        }
+        return [];
+    };
+    Particle.degrees = Math.PI / 180;
+    return Particle;
+})();
+/// <reference path="controller.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="particle.ts"" />
+var Block = (function () {
+    function Block(worldPosition, dimensions, color) {
+        this.isAlive = true;
+        this.worldPosition = worldPosition;
+        this.dimensions = dimensions;
+        this.internalColor = color;
+    }
+    Object.defineProperty(Block.prototype, "xPosition", {
+        // Position properties
+        get: function () {
+            return this.worldPosition.x;
+        },
+        set: function (newValue) {
+            this.worldPosition.x = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "yPosition", {
+        get: function () {
+            return this.worldPosition.y;
+        },
+        set: function (newValue) {
+            this.worldPosition.y = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "xSpeed", {
+        get: function () {
+            return this.worldPosition.dX;
+        },
+        set: function (newValue) {
+            this.worldPosition.dX = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "ySpeed", {
+        get: function () {
+            return this.worldPosition.dY;
+        },
+        set: function (newValue) {
+            this.worldPosition.dY = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "width", {
+        get: function () {
+            return this.dimensions.x;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "height", {
+        get: function () {
+            return this.dimensions.y;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "fillColor", {
+        get: function () {
+            return this.internalColor;
+        },
+        set: function (newValue) {
+            this.internalColor = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "left", {
+        get: function () {
+            return this.worldPosition.x;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "right", {
+        get: function () {
+            return this.worldPosition.x + this.dimensions.x;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "top", {
+        get: function () {
+            return this.worldPosition.y;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "bottom", {
+        get: function () {
+            return this.worldPosition.y + this.dimensions.y;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "centerXPosition", {
+        get: function () {
+            return this.left + (this.width / 2);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "centerYPosition", {
+        get: function () {
+            return this.top + (this.height / 2);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Block.prototype, "direction", {
+        // Direction properties
+        get: function () {
+            return this.xSpeed >= 0 ? "right" : "left";
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Block.prototype.Tick = function () {
+        // Move "forward"
+        this.xPosition += this.xSpeed;
+        this.yPosition += this.ySpeed;
+        // Clamp the speed to the speed limit
+        this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
+        this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
+        this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
+        this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
+    };
+    Block.prototype.Render = function (renderContext) {
+        renderContext.beginPath();
+        renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
+        // renderContext.strokeStyle = Block.strokeColor;
+        // renderContext.stroke();
+        renderContext.fillStyle = this.fillColor;
+        renderContext.fill();
+        renderContext.closePath();
+        var particle = new Particle(this.xPosition, this.yPosition, this.width, this.height, 0, this.fillColor, 0.15);
+        return [particle];
+    };
+    // Constants
+    Block.verticalSpeedLimit = 12;
+    Block.horizontalSpeedLimit = 5;
+    Block.horizontalSpeedSlowDown = 0.1;
+    // Constants
+    Block.strokeColor = "#000000";
+    return Block;
+})();
+/// <reference path="block.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var PhysicsBlock = (function (_super) {
+    __extends(PhysicsBlock, _super);
+    function PhysicsBlock(worldPosition, dimensions, color, gravity, boundary, boundaryOffset) {
+        _super.call(this, worldPosition, dimensions, color);
+        this.internalGravity = gravity;
+        this.internalBoundary = boundary;
+        this.internalBoundaryOffset = boundaryOffset;
+    }
+    Object.defineProperty(PhysicsBlock.prototype, "gravity", {
+        get: function () {
+            return this.internalGravity;
+        },
+        set: function (newValue) {
+            this.internalGravity = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "boundary", {
+        get: function () {
+            return this.internalBoundary;
+        },
+        set: function (newValue) {
+            this.internalBoundary = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "boundaryOffset", {
+        get: function () {
+            return this.internalBoundaryOffset;
+        },
+        set: function (newValue) {
+            this.internalBoundaryOffset = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "leftBoundary", {
+        get: function () {
+            return this.boundaryOffset ? this.boundaryOffset.x : 0;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "rightBoundary", {
+        get: function () {
+            return this.leftBoundary + (this.boundary ? this.boundary.x : 0);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "topBoundary", {
+        get: function () {
+            return this.boundaryOffset ? this.boundaryOffset.y : 0;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "bottomBoundary", {
+        get: function () {
+            return this.topBoundary + (this.boundary ? this.boundary.y : 0);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(PhysicsBlock.prototype, "onBounce", {
+        get: function () {
+            return this.onBounceCallback;
+        },
+        set: function (newValue) {
+            this.onBounceCallback = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    PhysicsBlock.prototype.Tick = function () {
+        _super.prototype.Tick.call(this);
+        // If off the bottom, bounce up
+        if (this.bottom > this.bottomBoundary) {
+            // Clamp on screen, invert vertical speed.
+            // Prevent loss of height on bounce.
+            // This is less important for horizontals.
+            var distanceOffBottom = this.bottom - this.bottomBoundary;
+            this.yPosition = this.bottomBoundary - this.height - distanceOffBottom;
+            this.VerticalBounce();
+        }
+        // If off the top, bounce down
+        if (this.top < this.topBoundary) {
+            // Clamp on screen, invert vertical speed.
+            // Prevent loss of height on bounce.
+            // This is less important for horizontals.
+            var distanceOffTop = this.topBoundary - this.top;
+            this.yPosition = this.topBoundary + distanceOffTop;
+            this.VerticalBounce();
+        }
+        // If off the right, bounce left
+        if (this.right > this.rightBoundary) {
+            // Clamp on screen, invert horizontal speed
+            this.xPosition = this.rightBoundary - this.width;
+            this.xSpeed = -Math.abs(this.xSpeed);
+        }
+        // If off the left, bounce right
+        if (this.left < this.leftBoundary) {
+            // Clamp on screen, invert horizontal speed
+            this.xPosition = this.leftBoundary;
+            this.xSpeed = Math.abs(this.xSpeed);
+        }
+        // Apply acceleration due to gravity
+        this.ySpeed += this.internalGravity;
+    };
+    PhysicsBlock.prototype.Render = function (renderContext) {
+        return _super.prototype.Render.call(this, renderContext);
+    };
+    PhysicsBlock.prototype.VerticalBounce = function () {
+        this.ySpeed = -this.ySpeed;
+        // Allow insertion of bouncing code
+        if (this.onBounceCallback) {
+            this.onBounceCallback();
+        }
+    };
+    return PhysicsBlock;
+})(Block);
+/// <reference path="physicsBlock.ts" />
+var Collider = (function () {
+    function Collider() {
+    }
+    Collider.processCollisions = function (collidables) {
+        if (collidables.length <= 1) {
+            // Need multiple objects to perform collisions
+            return;
+        }
+        for (var i = 0; i < collidables.length - 1; i++) {
+            var collisionAction = function (subject) {
+                subject.VerticalBounce();
+            };
+            var subject = collidables[i];
+            for (var j = i + 1; j < collidables.length; j++) {
+                var target = collidables[j];
+                var isVerticalOverlap = (subject.top < target.bottom) && (subject.bottom > target.top);
+                var isHorizontalOverlap = (subject.left < target.right) && (subject.right > target.left);
+                if (isVerticalOverlap && isHorizontalOverlap) {
+                    collisionAction(subject);
+                    collisionAction(target);
+                }
+            }
+        }
+    };
+    return Collider;
+})();
+/// <reference path="controller.ts" />
+/// <reference path="physicsBlock.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+var Player = (function (_super) {
+    __extends(Player, _super);
+    function Player(worldPosition, dimensions, color, controller, gravity, boundary, boundaryOffset) {
+        _super.call(this, worldPosition, dimensions, color, gravity, boundary, boundaryOffset);
+        this.onBounce = this.Bounce;
+        this.controller = controller;
+        this.isJumping = false;
+    }
+    Player.prototype.Tick = function () {
+        _super.prototype.Tick.call(this);
+        // Perform the jump
+        if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
+            this.ySpeed = Player.jumpSpeedIncrease;
+            this.isJumping = true;
+            this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
+        }
+        // Allow influence over horizontal direction
+        if (this.controller.isKeyPressed(["left", "a"])) {
+            this.xSpeed -= Player.horizontalSpeedIncrease;
+        }
+        if (this.controller.isKeyPressed(["right", "d"])) {
+            this.xSpeed += Player.horizontalSpeedIncrease;
+        }
+        // Apply jump rotation
+        this.jumpRotationAmount += this.jumpRotationSpeed;
+        if (this.jumpRotationSpeed > 0) {
+            this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
+        }
+        else if (this.jumpRotationSpeed < 0) {
+            this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
+        }
+    };
+    Player.prototype.Bounce = function () {
+        // If we were jumping, thats over now
+        this.isJumping = false;
+        this.jumpRotationAmount = 0;
+        this.jumpRotationSpeed = 0;
+    };
+    Player.prototype.Render = function (renderContext) {
+        var _this = this;
+        renderContext.save();
+        renderContext.translate(this.centerXPosition, this.centerYPosition);
+        renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+        renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+        var xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
+        var yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
+        this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
+        var newRenderables = _super.prototype.Render.call(this, renderContext);
+        newRenderables.forEach(function (renderable) {
+            renderable.rotation = _this.jumpRotationAmount;
+            return renderable;
+        });
+        renderContext.restore();
+        return newRenderables;
+    };
+    Player.jumpSpeedIncrease = -8;
+    Player.degrees = Math.PI / 180;
+    Player.jumpRotationSlowDown = 0.25;
+    Player.initialJumpRotationSpeed = 15;
+    Player.horizontalSpeedIncrease = 0.5;
+    return Player;
+})(PhysicsBlock);
+/// <reference path="IRenderable.ts" />
+var ParticleText = (function () {
+    function ParticleText(xPosition, yPosition, text, fontName, fontSize, rotation, color, opacity) {
+        this.xPosition = xPosition;
+        this.yPosition = yPosition;
+        this.text = text;
+        this.font = fontSize.toString() + "px " + fontName;
+        this.fontSize = fontSize;
+        this.rotation = rotation;
+        this.color = color;
+        this.opacity = opacity;
+        this.isAlive = true;
+    }
+    ParticleText.prototype.Render = function (renderContext) {
+        this.opacity -= 0.005;
+        if (this.opacity <= 0) {
+            this.isAlive = false;
+        }
+        else {
+            renderContext.save();
+            renderContext.globalAlpha = this.opacity;
+            renderContext.translate(this.xPosition, this.yPosition);
+            renderContext.rotate(this.rotation * ParticleText.degrees);
+            renderContext.translate(-this.xPosition, -this.yPosition);
+            renderContext.fillStyle = this.color;
+            renderContext.font = this.font;
+            renderContext.fillText(this.text.toString(), this.xPosition, this.yPosition + this.fontSize);
+            renderContext.globalAlpha = 1;
+            renderContext.restore();
+        }
+        return [];
+    };
+    ParticleText.degrees = Math.PI / 180;
+    return ParticleText;
+})();
+/// <reference path="block.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="player.ts" />
+/// <reference path="particleText.ts" />
+var Scoreboard = (function (_super) {
+    __extends(Scoreboard, _super);
+    function Scoreboard(player, worldPosition, dimensions, color) {
+        var _this = this;
+        _super.call(this, worldPosition, dimensions, color);
+        this.player = player;
+        // Shouldn't have to insert the nested function like this.
+        this.player.onBounce = function () {
+            _this.scoreToFade = _this.score;
+            _this.score = _this.score + 1;
+            _this.player.Bounce();
+        };
+        this.score = 0;
+    }
+    Scoreboard.prototype.Render = function (renderContext) {
+        renderContext.beginPath();
+        renderContext.save();
+        renderContext.translate(this.centerXPosition, this.centerYPosition);
+        renderContext.rotate(Scoreboard.fontRotation * Scoreboard.degrees);
+        renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+        renderContext.fillStyle = this.fillColor;
+        renderContext.font = "" + Scoreboard.fontSizeInPx + "px Oswald";
+        renderContext.fillText(this.score.toString(), this.xPosition, this.yPosition + Scoreboard.fontSizeInPx);
+        renderContext.restore();
+        if (this.scoreToFade) {
+            var score = this.scoreToFade;
+            this.scoreToFade = undefined;
+            return [new ParticleText(this.xPosition, this.yPosition, score.toString(), "Oswald", Scoreboard.fontSizeInPx, Scoreboard.fontRotation, this.fillColor, 0.25)];
+        }
+        return [];
+    };
+    Scoreboard.fontSizeInPx = 600;
+    Scoreboard.fontRotation = 30;
+    Scoreboard.degrees = Math.PI / 180;
+    return Scoreboard;
+})(Block);
+/// <reference path="player.ts" />
+/// <reference path="controller.ts" />
+/// <reference path="point.ts" />
+/// <reference path="collider.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="scoreboard.ts" />
+var Renderer = (function () {
+    function Renderer(canvas, controller) {
+        this.canvas = canvas;
+        this.context = canvas.getContext("2d");
+        var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
+        var playerPosition = {
+            x: 30,
+            y: 100,
+            dX: 2,
+            dY: -2
+        };
+        var playerDimensions = {
+            x: 30,
+            y: 30
+        };
+        this.player = new Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, {
+            x: Renderer.gameWidth,
+            y: Renderer.gameHeight
+        });
+        var platformPosition = {
+            x: 30,
+            y: 700,
+            dX: 2,
+            dY: 2
+        };
+        var platformDimensions = {
+            x: 90,
+            y: 20
+        };
+        this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, {
+            x: Renderer.gameWidth,
+            y: Renderer.gameHeight
+        });
+        var scoreboardPosition = {
+            x: 150,
+            y: 20,
+            dX: 0,
+            dY: 0
+        };
+        var scoreboardDimensions = {
+            x: 0,
+            y: 0
+        };
+        this.scoreboard = new Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "#333333");
+        this.renderables = [];
+    }
+    Renderer.prototype.Start = function () {
+        var _this = this;
+        if (this.intervalId) {
+            this.Stop();
+        }
+        this.intervalId = setInterval(function () {
+            _this.Tick();
+        }, Renderer.millisecondsPerTick);
+    };
+    Renderer.prototype.Stop = function () {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+    };
+    Renderer.prototype.Tick = function () {
+        this.Draw();
+        this.player.Tick();
+        this.platform.Tick();
+        Collider.processCollisions([this.player, this.platform]);
+    };
+    Renderer.prototype.Clear = function () {
+    };
+    Renderer.prototype.Draw = function () {
+        var _this = this;
+        this.context.fillStyle = "#111111";
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        var newRenderables = [];
+        newRenderables = newRenderables.concat(this.scoreboard.Render(this.context));
+        this.renderables.forEach(function (renderable) {
+            newRenderables = newRenderables.concat(renderable.Render(_this.context));
+        });
+        newRenderables = newRenderables.concat(this.player.Render(this.context), this.platform.Render(this.context));
+        this.renderables = this.renderables.concat(newRenderables).filter(function (renderable) {
+            return renderable.isAlive;
+        });
+    };
+    // Constants
+    Renderer.defaultGravity = 0.2;
+    Renderer.millisecondsPerTick = 13;
+    Renderer.gameWidth = 480;
+    Renderer.gameHeight = 800;
+    return Renderer;
+})();
+/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="renderer.ts" />
+/// <reference path="controller.ts" />
+var canvas = document.getElementById("viewport");
+var controller = new Controller();
+var renderer = new Renderer(canvas, controller);
+renderer.Start();
+//# sourceMappingURL=source.js.map
