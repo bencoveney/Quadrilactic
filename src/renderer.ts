@@ -4,6 +4,7 @@
 /// <reference path="collider.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="scoreboard.ts" />
+/// <reference path="background.ts" />
 
 class Renderer {
 	// Constants
@@ -23,6 +24,7 @@ class Renderer {
 	private scoreboard: Scoreboard;
 	private intervalId: number;
 	private renderables: IRenderable[];
+	private background: Background;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
@@ -50,6 +52,13 @@ class Renderer {
 				x: Renderer.gameWidth,
 				y: Renderer.gameHeight
 			});
+		
+		this.background = new Background(
+			{ x: 0, y: 0 },
+			{ x: this.canvas.width, y: this.canvas.height },
+			"#222222",
+			this.player
+		);
 		
 		let platformPosition: MovingPoint = {
 			x: 30,
@@ -114,9 +123,6 @@ class Renderer {
 		Collider.processCollisions([this.player, this.platform]);
 	}
 	
-	private Clear() {
-	}
-	
 	private Draw() {
 		this.context.fillStyle = "#111111";
 		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -124,6 +130,7 @@ class Renderer {
 		let newRenderables: IRenderable[] = [];
 		
 		newRenderables = newRenderables.concat(
+			this.background.Render(this.context),
 			this.scoreboard.Render(this.context));
 		
 		this.renderables.forEach((renderable: IRenderable) => {

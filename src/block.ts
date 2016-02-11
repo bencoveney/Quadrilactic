@@ -13,6 +13,7 @@ class Block implements IRenderable {
 	private worldPosition: MovingPoint;
 	private dimensions: Point;
 	private internalColor: string;
+	private onMoveCallback: (amountMoved: Point) => void;
 	
 	public isAlive = true;
 
@@ -76,6 +77,13 @@ class Block implements IRenderable {
 		return this.top + (this.height / 2);
 	}
 	
+	get onMove(): (amountMoved: Point) => void {
+		return this.onMoveCallback;
+	}
+	set onMove(newValue: (amountMoved: Point) => void) {
+		this.onMoveCallback = newValue;
+	}
+	
 	// Direction properties
 	get direction(): string {
 		return this.xSpeed >= 0 ? "right" : "left";
@@ -91,11 +99,17 @@ class Block implements IRenderable {
 	}
 	
 	public Tick(){
-		// Move "forward"
+		// Move "forward".
 		this.xPosition += this.xSpeed;
 		this.yPosition += this.ySpeed;
 		
-		// Clamp the speed to the speed limit
+		if(this.onMoveCallback)
+		{
+			// The amount moved this tick is the same as the speed.
+			this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
+		}
+		
+		// Clamp the speed to the speed limit.
 		this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
 		this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
 		this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
