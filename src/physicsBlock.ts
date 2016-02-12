@@ -76,7 +76,7 @@ class PhysicsBlock extends Block {
 			// This is less important for horizontals.
 			let distanceOffBottom = this.bottom - this.bottomBoundary;
 			this.yPosition = this.bottomBoundary - this.height - distanceOffBottom;
-			this.VerticalBounce();
+			this.VerticalBounce(- this.ySpeed);
 		}
 		
 		// If off the top, bounce down
@@ -87,7 +87,7 @@ class PhysicsBlock extends Block {
 			// This is less important for horizontals.
 			let distanceOffTop = this.topBoundary - this.top;
 			this.yPosition = this.topBoundary + distanceOffTop;
-			this.VerticalBounce();
+			this.VerticalBounce(- this.ySpeed);
 		}
 		
 		// If off the right, bounce left
@@ -114,8 +114,8 @@ class PhysicsBlock extends Block {
 		return super.Render(renderContext);
 	}
 	
-	public VerticalBounce() {
-		this.ySpeed = -this.ySpeed;
+	public VerticalBounce(newYSpeed: number) {
+		this.ySpeed = newYSpeed;
 		
 		// Allow insertion of bouncing code
 		if(this.onBounceCallback)

@@ -10,8 +10,8 @@ class Collider {
 		
 		for(let i: number = 0; i < collidables.length - 1; i++)
 		{
-			let collisionAction = (subject: PhysicsBlock) => {
-				subject.VerticalBounce();
+			let collisionAction = (subject: PhysicsBlock, newYSpeed: number) => {
+				subject.VerticalBounce(newYSpeed);
 			}
 			
 			let subject: PhysicsBlock = collidables[i];
@@ -20,13 +20,36 @@ class Collider {
 			{
 				let target: PhysicsBlock = collidables[j];
 				
-				let isVerticalOverlap: boolean = (subject.top < target.bottom) && ( subject.bottom > target.top );
-				let isHorizontalOverlap: boolean = (subject.left < target.right) && ( subject.right > target.left );
+				let isVerticalOverlap: boolean = (subject.top < target.bottom) && (subject.bottom > target.top);
+				let isHorizontalOverlap: boolean = (subject.left < target.right) && (subject.right > target.left);
 
 				if(isVerticalOverlap && isHorizontalOverlap)
 				{
-					collisionAction(subject);
-					collisionAction(target);
+					// Always simulate a vertical bounce
+					// If masses are the same speed can be swapped during an elastic collision
+					let subjectYSpeed = subject.ySpeed;
+					let targetYSpeed = target.ySpeed;
+					collisionAction(subject, targetYSpeed);
+					collisionAction(target, subjectYSpeed);
+					
+					// Only simulate a horizontal bound if the x overlap has just started
+					let subjectPreviousLeft = subject.xPosition - subject.xSpeed;
+					let subjectPreviousRight = subjectPreviousLeft + subject.width;
+					let targetPreviousLeft = target.xPosition - target.xSpeed;
+					let targetPreviousRight = targetPreviousLeft + target.width;
+					
+					let wasHorizontalOverlap: boolean =
+						(subjectPreviousLeft < targetPreviousRight)
+						&& (subjectPreviousRight > targetPreviousLeft);
+					
+					if(!wasHorizontalOverlap)
+					{
+						let subjectXSpeed = subject.xSpeed;
+						let targetXSpeed = target.xSpeed;
+						
+						subject.xSpeed = targetXSpeed;
+						target.xSpeed = subjectXSpeed;
+					}
 				}
 			}
 		}

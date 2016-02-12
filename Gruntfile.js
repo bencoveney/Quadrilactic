@@ -1,5 +1,8 @@
 module.exports = function(grunt) {
 
+	// Display stats
+	require('time-grunt')(grunt);
+
 	grunt.initConfig({
 		typescript: {
 			base: {
@@ -26,6 +29,14 @@ module.exports = function(grunt) {
 			},
 		},
 		watch: {
+			grunt: {
+				files: [
+					'Gruntfile.js'
+				],
+				options: {
+					reload: true
+				}
+			},
 			typescript: {
 				files: 'src/**/*.ts',
 				tasks: ['typescript']
@@ -42,5 +53,5 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	
 	grunt.registerTask('build', ['typescript', 'sass']);
-	grunt.registerTask('default', ['watch']);
+	grunt.registerTask('default', ['build', 'watch']);
 };
