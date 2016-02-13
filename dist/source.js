@@ -211,6 +211,16 @@ var Block = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Block.prototype, "onMove", {
+        get: function () {
+            return this.onMoveCallback;
+        },
+        set: function (newValue) {
+            this.onMoveCallback = newValue;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Block.prototype, "direction", {
         // Direction properties
         get: function () {
@@ -220,10 +230,14 @@ var Block = (function () {
         configurable: true
     });
     Block.prototype.Tick = function () {
-        // Move "forward"
+        // Move "forward".
         this.xPosition += this.xSpeed;
         this.yPosition += this.ySpeed;
-        // Clamp the speed to the speed limit
+        if (this.onMoveCallback) {
+            // The amount moved this tick is the same as the speed.
+            this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
+        }
+        // Clamp the speed to the speed limit.
         this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
         this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
         this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
@@ -258,11 +272,10 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var PhysicsBlock = (function (_super) {
     __extends(PhysicsBlock, _super);
-    function PhysicsBlock(worldPosition, dimensions, color, gravity, boundary, boundaryOffset) {
+    function PhysicsBlock(worldPosition, dimensions, color, gravity, worldWidth) {
         _super.call(this, worldPosition, dimensions, color);
         this.internalGravity = gravity;
-        this.internalBoundary = boundary;
-        this.internalBoundaryOffset = boundaryOffset;
+        this.worldWidth = worldWidth;
     }
     Object.defineProperty(PhysicsBlock.prototype, "gravity", {
         get: function () {
@@ -270,54 +283,6 @@ var PhysicsBlock = (function (_super) {
         },
         set: function (newValue) {
             this.internalGravity = newValue;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhysicsBlock.prototype, "boundary", {
-        get: function () {
-            return this.internalBoundary;
-        },
-        set: function (newValue) {
-            this.internalBoundary = newValue;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhysicsBlock.prototype, "boundaryOffset", {
-        get: function () {
-            return this.internalBoundaryOffset;
-        },
-        set: function (newValue) {
-            this.internalBoundaryOffset = newValue;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhysicsBlock.prototype, "leftBoundary", {
-        get: function () {
-            return this.boundaryOffset ? this.boundaryOffset.x : 0;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhysicsBlock.prototype, "rightBoundary", {
-        get: function () {
-            return this.leftBoundary + (this.boundary ? this.boundary.x : 0);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhysicsBlock.prototype, "topBoundary", {
-        get: function () {
-            return this.boundaryOffset ? this.boundaryOffset.y : 0;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PhysicsBlock.prototype, "bottomBoundary", {
-        get: function () {
-            return this.topBoundary + (this.boundary ? this.boundary.y : 0);
         },
         enumerable: true,
         configurable: true
@@ -334,34 +299,16 @@ var PhysicsBlock = (function (_super) {
     });
     PhysicsBlock.prototype.Tick = function () {
         _super.prototype.Tick.call(this);
-        // If off the bottom, bounce up
-        if (this.bottom > this.bottomBoundary) {
-            // Clamp on screen, invert vertical speed.
-            // Prevent loss of height on bounce.
-            // This is less important for horizontals.
-            var distanceOffBottom = this.bottom - this.bottomBoundary;
-            this.yPosition = this.bottomBoundary - this.height - distanceOffBottom;
-            this.VerticalBounce();
-        }
-        // If off the top, bounce down
-        if (this.top < this.topBoundary) {
-            // Clamp on screen, invert vertical speed.
-            // Prevent loss of height on bounce.
-            // This is less important for horizontals.
-            var distanceOffTop = this.topBoundary - this.top;
-            this.yPosition = this.topBoundary + distanceOffTop;
-            this.VerticalBounce();
-        }
         // If off the right, bounce left
-        if (this.right > this.rightBoundary) {
+        if (this.right > this.worldWidth) {
             // Clamp on screen, invert horizontal speed
-            this.xPosition = this.rightBoundary - this.width;
+            this.xPosition = this.worldWidth - this.width;
             this.xSpeed = -Math.abs(this.xSpeed);
         }
         // If off the left, bounce right
-        if (this.left < this.leftBoundary) {
+        if (this.left < 0) {
             // Clamp on screen, invert horizontal speed
-            this.xPosition = this.leftBoundary;
+            this.xPosition = 0;
             this.xSpeed = Math.abs(this.xSpeed);
         }
         // Apply acceleration due to gravity
@@ -370,8 +317,8 @@ var PhysicsBlock = (function (_super) {
     PhysicsBlock.prototype.Render = function (renderContext) {
         return _super.prototype.Render.call(this, renderContext);
     };
-    PhysicsBlock.prototype.VerticalBounce = function () {
-        this.ySpeed = -this.ySpeed;
+    PhysicsBlock.prototype.VerticalBounce = function (newYSpeed) {
+        this.ySpeed = newYSpeed;
         // Allow insertion of bouncing code
         if (this.onBounceCallback) {
             this.onBounceCallback();
@@ -379,41 +326,14 @@ var PhysicsBlock = (function (_super) {
     };
     return PhysicsBlock;
 })(Block);
-/// <reference path="physicsBlock.ts" />
-var Collider = (function () {
-    function Collider() {
-    }
-    Collider.processCollisions = function (collidables) {
-        if (collidables.length <= 1) {
-            // Need multiple objects to perform collisions
-            return;
-        }
-        for (var i = 0; i < collidables.length - 1; i++) {
-            var collisionAction = function (subject) {
-                subject.VerticalBounce();
-            };
-            var subject = collidables[i];
-            for (var j = i + 1; j < collidables.length; j++) {
-                var target = collidables[j];
-                var isVerticalOverlap = (subject.top < target.bottom) && (subject.bottom > target.top);
-                var isHorizontalOverlap = (subject.left < target.right) && (subject.right > target.left);
-                if (isVerticalOverlap && isHorizontalOverlap) {
-                    collisionAction(subject);
-                    collisionAction(target);
-                }
-            }
-        }
-    };
-    return Collider;
-})();
 /// <reference path="controller.ts" />
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 var Player = (function (_super) {
     __extends(Player, _super);
-    function Player(worldPosition, dimensions, color, controller, gravity, boundary, boundaryOffset) {
-        _super.call(this, worldPosition, dimensions, color, gravity, boundary, boundaryOffset);
+    function Player(worldPosition, dimensions, color, controller, gravity, worldWidth) {
+        _super.call(this, worldPosition, dimensions, color, gravity, worldWidth);
         this.onBounce = this.Bounce;
         this.controller = controller;
         this.isJumping = false;
@@ -472,6 +392,80 @@ var Player = (function (_super) {
     Player.horizontalSpeedIncrease = 0.5;
     return Player;
 })(PhysicsBlock);
+/// <reference path="block.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="player.ts" />
+var Background = (function () {
+    function Background(renderPosition, renderDimensions, color, player) {
+        this.offset = 0;
+        this.isAlive = true;
+        this.renderPosition = renderPosition;
+        this.renderDimensions = renderDimensions;
+        this.color = color;
+    }
+    Background.prototype.SlideUp = function (amount) {
+        if (amount < 0) {
+            this.offset = this.offset - amount;
+        }
+    };
+    Background.prototype.Render = function (renderContext) {
+        var lowerYPosition = this.offset % this.renderDimensions.y;
+        var upperYPosition = lowerYPosition - this.renderDimensions.y;
+        renderContext.beginPath();
+        renderContext.rect(this.renderPosition.x, lowerYPosition, this.renderDimensions.x, this.renderDimensions.y - 10);
+        renderContext.rect(this.renderPosition.x, upperYPosition, this.renderDimensions.x, this.renderDimensions.y - 10);
+        renderContext.fillStyle = this.color;
+        renderContext.fill();
+        renderContext.closePath();
+        return [];
+    };
+    return Background;
+})();
+/// <reference path="physicsBlock.ts" />
+var Collider = (function () {
+    function Collider() {
+    }
+    Collider.processCollisions = function (collidables) {
+        if (collidables.length <= 1) {
+            // Need multiple objects to perform collisions
+            return;
+        }
+        for (var i = 0; i < collidables.length - 1; i++) {
+            var collisionAction = function (subject, newYSpeed) {
+                subject.VerticalBounce(newYSpeed);
+            };
+            var subject = collidables[i];
+            for (var j = i + 1; j < collidables.length; j++) {
+                var target = collidables[j];
+                var isVerticalOverlap = (subject.top < target.bottom) && (subject.bottom > target.top);
+                var isHorizontalOverlap = (subject.left < target.right) && (subject.right > target.left);
+                if (isVerticalOverlap && isHorizontalOverlap) {
+                    // Always simulate a vertical bounce
+                    // If masses are the same speed can be swapped during an elastic collision
+                    var subjectYSpeed = subject.ySpeed;
+                    var targetYSpeed = target.ySpeed;
+                    collisionAction(subject, targetYSpeed);
+                    collisionAction(target, subjectYSpeed);
+                    // Only simulate a horizontal bound if the x overlap has just started
+                    var subjectPreviousLeft = subject.xPosition - subject.xSpeed;
+                    var subjectPreviousRight = subjectPreviousLeft + subject.width;
+                    var targetPreviousLeft = target.xPosition - target.xSpeed;
+                    var targetPreviousRight = targetPreviousLeft + target.width;
+                    var wasHorizontalOverlap = (subjectPreviousLeft < targetPreviousRight)
+                        && (subjectPreviousRight > targetPreviousLeft);
+                    if (!wasHorizontalOverlap) {
+                        var subjectXSpeed = subject.xSpeed;
+                        var targetXSpeed = target.xSpeed;
+                        subject.xSpeed = targetXSpeed;
+                        target.xSpeed = subjectXSpeed;
+                    }
+                }
+            }
+        }
+    };
+    return Collider;
+})();
 /// <reference path="IRenderable.ts" />
 var ParticleText = (function () {
     function ParticleText(xPosition, yPosition, text, fontName, fontSize, rotation, color, opacity) {
@@ -548,14 +542,61 @@ var Scoreboard = (function (_super) {
     Scoreboard.degrees = Math.PI / 180;
     return Scoreboard;
 })(Block);
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+var Viewport = (function () {
+    function Viewport(renderContext, fixedRenderables, backgroundRenderables, foregroundRenderables) {
+        this.renderContext = renderContext;
+        this.fixedRenderables = fixedRenderables;
+        this.backgroundRenderables = backgroundRenderables;
+        this.foregroundRenderables = foregroundRenderables;
+        this.renderOffset = 0;
+    }
+    Object.defineProperty(Viewport.prototype, "offset", {
+        get: function () {
+            return this.renderOffset;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Viewport.prototype.SlideUp = function (amount) {
+        if (amount < 0) {
+            this.renderOffset = this.renderOffset - amount;
+        }
+    };
+    Viewport.prototype.Render = function () {
+        this.renderContext.save();
+        this.renderContext.translate(0, this.renderOffset);
+        this.backgroundRenderables = this.RenderSubSet(this.backgroundRenderables);
+        this.renderContext.restore();
+        this.fixedRenderables = this.RenderSubSet(this.fixedRenderables);
+        this.renderContext.save();
+        this.renderContext.translate(0, this.renderOffset);
+        this.foregroundRenderables = this.RenderSubSet(this.foregroundRenderables);
+        this.renderContext.restore();
+    };
+    Viewport.prototype.RenderSubSet = function (subSet) {
+        var newRenderables = subSet;
+        for (var i = 0; i < subSet.length; i++) {
+            newRenderables = newRenderables.concat(subSet[i].Render(this.renderContext));
+        }
+        return newRenderables.filter(function (renderable) {
+            return renderable.isAlive;
+        });
+    };
+    return Viewport;
+})();
 /// <reference path="player.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
 /// <reference path="collider.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="scoreboard.ts" />
+/// <reference path="background.ts" />
+/// <reference path="viewport.ts" />
 var Renderer = (function () {
     function Renderer(canvas, controller) {
+        var _this = this;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
@@ -569,10 +610,8 @@ var Renderer = (function () {
             x: 30,
             y: 30
         };
-        this.player = new Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, {
-            x: Renderer.gameWidth,
-            y: Renderer.gameHeight
-        });
+        this.player = new Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth);
+        this.background = new Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
         var platformPosition = {
             x: 30,
             y: 700,
@@ -583,10 +622,7 @@ var Renderer = (function () {
             x: 90,
             y: 20
         };
-        this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, {
-            x: Renderer.gameWidth,
-            y: Renderer.gameHeight
-        });
+        this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, Renderer.gameWidth);
         var scoreboardPosition = {
             x: 150,
             y: 20,
@@ -598,7 +634,13 @@ var Renderer = (function () {
             y: 0
         };
         this.scoreboard = new Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "#333333");
-        this.renderables = [];
+        this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
+        this.player.onMove = function (amountMoved) {
+            if (_this.player.yPosition < -(_this.viewport.offset - 100)) {
+                _this.viewport.SlideUp(amountMoved.y);
+                _this.background.SlideUp(amountMoved.y);
+            }
+        };
     }
     Renderer.prototype.Start = function () {
         var _this = this;
@@ -619,21 +661,10 @@ var Renderer = (function () {
         this.platform.Tick();
         Collider.processCollisions([this.player, this.platform]);
     };
-    Renderer.prototype.Clear = function () {
-    };
     Renderer.prototype.Draw = function () {
-        var _this = this;
         this.context.fillStyle = "#111111";
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        var newRenderables = [];
-        newRenderables = newRenderables.concat(this.scoreboard.Render(this.context));
-        this.renderables.forEach(function (renderable) {
-            newRenderables = newRenderables.concat(renderable.Render(_this.context));
-        });
-        newRenderables = newRenderables.concat(this.player.Render(this.context), this.platform.Render(this.context));
-        this.renderables = this.renderables.concat(newRenderables).filter(function (renderable) {
-            return renderable.isAlive;
-        });
+        this.viewport.Render();
     };
     // Constants
     Renderer.defaultGravity = 0.2;

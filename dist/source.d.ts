@@ -41,6 +41,7 @@ declare class Block implements IRenderable {
     private worldPosition;
     private dimensions;
     private internalColor;
+    private onMoveCallback;
     isAlive: boolean;
     xPosition: number;
     yPosition: number;
@@ -55,6 +56,7 @@ declare class Block implements IRenderable {
     bottom: number;
     centerXPosition: number;
     centerYPosition: number;
+    onMove: (amountMoved: Point) => void;
     direction: string;
     private static strokeColor;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string);
@@ -63,24 +65,14 @@ declare class Block implements IRenderable {
 }
 declare class PhysicsBlock extends Block {
     private internalGravity;
-    private internalBoundary;
-    private internalBoundaryOffset;
     private onBounceCallback;
+    private worldWidth;
     gravity: number;
-    boundary: Point;
-    boundaryOffset: Point;
-    leftBoundary: number;
-    rightBoundary: number;
-    topBoundary: number;
-    bottomBoundary: number;
     onBounce: () => void;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, boundary?: Point, boundaryOffset?: Point);
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, worldWidth?: number);
     Tick(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-    VerticalBounce(): void;
-}
-declare class Collider {
-    static processCollisions(collidables: PhysicsBlock[]): void;
+    VerticalBounce(newYSpeed: number): void;
 }
 declare class Player extends PhysicsBlock {
     private static jumpSpeedIncrease;
@@ -92,10 +84,23 @@ declare class Player extends PhysicsBlock {
     private jumpRotationAmount;
     private jumpRotationSpeed;
     private controller;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity?: number, boundary?: Point, boundaryOffset?: Point);
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number);
     Tick(): void;
     Bounce(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+}
+declare class Background implements IRenderable {
+    private renderPosition;
+    private renderDimensions;
+    private color;
+    private offset;
+    isAlive: boolean;
+    constructor(renderPosition: Point, renderDimensions: Point, color: string, player: Player);
+    SlideUp(amount: number): void;
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+}
+declare class Collider {
+    static processCollisions(collidables: PhysicsBlock[]): void;
 }
 declare class ParticleText implements IRenderable {
     private static degrees;
@@ -121,6 +126,18 @@ declare class Scoreboard extends Block {
     constructor(player: Player, worldPosition: MovingPoint, dimensions: Point, color: string);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
+declare class Viewport {
+    private renderContext;
+    private fixedRenderables;
+    private backgroundRenderables;
+    private foregroundRenderables;
+    private renderOffset;
+    offset: number;
+    constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: IRenderable[], backgroundRenderables: IRenderable[], foregroundRenderables: IRenderable[]);
+    SlideUp(amount: number): void;
+    Render(): void;
+    private RenderSubSet(subSet);
+}
 declare class Renderer {
     private static defaultGravity;
     private static millisecondsPerTick;
@@ -133,12 +150,12 @@ declare class Renderer {
     private platform;
     private scoreboard;
     private intervalId;
-    private renderables;
+    private background;
+    private viewport;
     constructor(canvas: HTMLCanvasElement, controller: Controller);
     Start(): void;
     Stop(): void;
     private Tick();
-    private Clear();
     private Draw();
 }
 declare let canvas: HTMLCanvasElement;
