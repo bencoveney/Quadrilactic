@@ -5,42 +5,14 @@
 class PhysicsBlock extends Block {
 	
 	private internalGravity: number;
-	private internalBoundary: Point;
-	private internalBoundaryOffset: Point;
 	private onBounceCallback: () => void;
+	private worldWidth: number;
 	
 	public get gravity(): number {
 		return this.internalGravity;
 	}
 	public set gravity(newValue: number) {
 		this.internalGravity = newValue;
-	}
-
-	public get boundary(): Point {
-		return this.internalBoundary
-	}
-	public set boundary(newValue: Point) {
-		this.internalBoundary = newValue;
-	}
-
-	public get boundaryOffset(): Point {
-		return this.internalBoundaryOffset
-	}
-	public set boundaryOffset(newValue: Point) {
-		this.internalBoundaryOffset = newValue;
-	}
-	
-	public get leftBoundary(): number {
-		return this.boundaryOffset ? this.boundaryOffset.x : 0;
-	}
-	public get rightBoundary(): number {
-		return this.leftBoundary + (this.boundary ? this.boundary.x : 0);
-	}
-	public get topBoundary(): number {
-		return this.boundaryOffset ? this.boundaryOffset.y : 0;
-	}
-	public get bottomBoundary(): number {
-		return this.topBoundary + (this.boundary ? this.boundary.y : 0);
 	}
 	
 	get onBounce() : () => void {
@@ -55,54 +27,30 @@ class PhysicsBlock extends Block {
 		dimensions: Point,
 		color: string,
 		gravity: number,
-		boundary?: Point,
-		boundaryOffset?: Point)
+		worldWidth?: number)
 	{
 		super(worldPosition, dimensions, color);
 		
 		this.internalGravity = gravity;
-		this.internalBoundary = boundary;
-		this.internalBoundaryOffset = boundaryOffset;
+		this.worldWidth = worldWidth;
 	}
 	
 	public Tick(){
 		super.Tick();
 		
-		// If off the bottom, bounce up
-		if(this.bottom > this.bottomBoundary)
-		{
-			// Clamp on screen, invert vertical speed.
-			// Prevent loss of height on bounce.
-			// This is less important for horizontals.
-			let distanceOffBottom = this.bottom - this.bottomBoundary;
-			this.yPosition = this.bottomBoundary - this.height - distanceOffBottom;
-			this.VerticalBounce();
-		}
-		
-		// If off the top, bounce down
-		if(this.top < this.topBoundary)
-		{
-			// Clamp on screen, invert vertical speed.
-			// Prevent loss of height on bounce.
-			// This is less important for horizontals.
-			let distanceOffTop = this.topBoundary - this.top;
-			this.yPosition = this.topBoundary + distanceOffTop;
-			this.VerticalBounce();
-		}
-		
 		// If off the right, bounce left
-		if(this.right > this.rightBoundary)
+		if(this.right > this.worldWidth)
 		{
 			// Clamp on screen, invert horizontal speed
-			this.xPosition = this.rightBoundary - this.width;
+			this.xPosition = this.worldWidth - this.width;
 			this.xSpeed = -Math.abs(this.xSpeed);
 		}
 		
 		// If off the left, bounce right
-		if(this.left < this.leftBoundary)
+		if(this.left < 0)
 		{
 			// Clamp on screen, invert horizontal speed
-			this.xPosition = this.leftBoundary;
+			this.xPosition = 0;
 			this.xSpeed = Math.abs(this.xSpeed); 
 		}
 		
@@ -114,8 +62,8 @@ class PhysicsBlock extends Block {
 		return super.Render(renderContext);
 	}
 	
-	public VerticalBounce() {
-		this.ySpeed = -this.ySpeed;
+	public VerticalBounce(newYSpeed: number) {
+		this.ySpeed = newYSpeed;
 		
 		// Allow insertion of bouncing code
 		if(this.onBounceCallback)

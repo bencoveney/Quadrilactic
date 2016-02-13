@@ -4,6 +4,8 @@
 /// <reference path="collider.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="scoreboard.ts" />
+/// <reference path="background.ts" />
+/// <reference path="viewport.ts" />
 
 class Renderer {
 	// Constants
@@ -22,7 +24,8 @@ class Renderer {
 	private platform: PhysicsBlock;
 	private scoreboard: Scoreboard;
 	private intervalId: number;
-	private renderables: IRenderable[];
+	private background: Background;
+	private viewport: Viewport;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
@@ -46,10 +49,14 @@ class Renderer {
 			"#FF0000",
 			controller,
 			Renderer.defaultGravity,
-			{
-				x: Renderer.gameWidth,
-				y: Renderer.gameHeight
-			});
+			Renderer.gameWidth);
+		
+		this.background = new Background(
+			{ x: 0, y: 0 },
+			{ x: this.canvas.width, y: this.canvas.height },
+			"#222222",
+			this.player
+		);
 		
 		let platformPosition: MovingPoint = {
 			x: 30,
@@ -66,10 +73,7 @@ class Renderer {
 			platformDimensions,
 			"#FFFFFF",
 			-Renderer.defaultGravity,
-			{
-				x: Renderer.gameWidth,
-				y: Renderer.gameHeight
-			});
+			Renderer.gameWidth);
 		
 		let scoreboardPosition: MovingPoint = {
 			x: 150,
@@ -87,8 +91,21 @@ class Renderer {
 			scoreboardDimensions,
 			"#333333"
 		)
-			
-		this.renderables = [];
+		
+		this.viewport = new Viewport(
+			this.context,
+			[this.background, this.scoreboard],
+			[],
+			[this.player, this.platform]
+		)
+		
+		this.player.onMove = (amountMoved: Point) => {
+			if(this.player.yPosition < - (this.viewport.offset - 100))
+			{
+				this.viewport.SlideUp(amountMoved.y);
+				this.background.SlideUp(amountMoved.y);
+			}
+		}
 	}
 
 	public Start() {
@@ -114,28 +131,10 @@ class Renderer {
 		Collider.processCollisions([this.player, this.platform]);
 	}
 	
-	private Clear() {
-	}
-	
 	private Draw() {
 		this.context.fillStyle = "#111111";
 		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		
-		let newRenderables: IRenderable[] = [];
-		
-		newRenderables = newRenderables.concat(
-			this.scoreboard.Render(this.context));
-		
-		this.renderables.forEach((renderable: IRenderable) => {
-			newRenderables = newRenderables.concat(renderable.Render(this.context));
-		});
-		
-		newRenderables = newRenderables.concat(
-			this.player.Render(this.context),
-			this.platform.Render(this.context));
-		
-		this.renderables = this.renderables.concat(newRenderables).filter((renderable: IRenderable) => {
-			return renderable.isAlive;
-		});
+		this.viewport.Render();
 	}
 }
