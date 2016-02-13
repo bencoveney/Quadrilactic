@@ -19,8 +19,13 @@ class Background implements IRenderable {
 		this.renderPosition = renderPosition;
 		this.renderDimensions = renderDimensions;
 		this.color = color;
-		player.onMove = (amountMoved: Point) => {
-			this.offset += amountMoved.y;
+	}
+	
+	public SlideUp(amount: number)
+	{
+		if(amount < 0)
+		{
+			this.offset = this.offset - amount;
 		}
 	}
 

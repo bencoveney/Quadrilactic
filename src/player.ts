@@ -20,11 +20,10 @@ class Player extends PhysicsBlock {
 		dimensions: Point,
 		color: string,
 		controller: Controller,
-		gravity?: number,
-		boundary?: Point,
-		boundaryOffset?: Point)
+		gravity: number,
+		worldWidth: number)
 	{
-		super(worldPosition, dimensions, color, gravity, boundary, boundaryOffset);
+		super(worldPosition, dimensions, color, gravity, worldWidth);
 		
 		this.onBounce = this.Bounce;
 		
