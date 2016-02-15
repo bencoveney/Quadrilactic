@@ -1,24 +1,30 @@
 $foreground-color: #424242;
 $background-color: #E2E2E2;
 
-* {
-	font-family: 'Metrophobic', Arial, serif;
-	font-weight: 400;
-}
-
 html {
 	min-height: 100%;
 }
 
 body {
-	text-align: center;
 	min-height: 100%;
 	background: linear-gradient($background-color, lighten($background-color, 10%));
 	color: $foreground-color;
+	font-family: 'Roboto', sans-serif;
+	text-align: center;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: 'Oswald', sans-serif;
+	font-weight: 400;
 }
 
 #viewport {
 	border: 1px solid $foreground-color;
 	background-color: white;
 	box-shadow: 10px 10px 50px black;
+}
+
+ul {
+	display: inline-block;
+	text-align: left;
 }

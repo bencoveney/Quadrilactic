@@ -13,6 +13,7 @@ class Renderer {
 	private static millisecondsPerTick = 13;
 	private static gameWidth = 480;
 	private static gameHeight = 800;
+	private static minimumPlatformReboundSpeed = 10;
 	
 	// Rendering references
 	private canvas: HTMLCanvasElement;
@@ -74,10 +75,16 @@ class Renderer {
 			"#FFFFFF",
 			-Renderer.defaultGravity,
 			Renderer.gameWidth);
+		this.platform.onBounce = () => {
+			if(this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed)
+			{
+				this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
+			}
+		};
 		
 		let scoreboardPosition: MovingPoint = {
-			x: 150,
-			y: 20,
+			x: 20,
+			y: 370,
 			dX: 0,
 			dY: 0
 		};
@@ -99,11 +106,17 @@ class Renderer {
 			[this.player, this.platform]
 		)
 		
+		let originalOnMove = this.player.onMove
 		this.player.onMove = (amountMoved: Point) => {
 			if(this.player.yPosition < - (this.viewport.offset - 100))
 			{
 				this.viewport.SlideUp(amountMoved.y);
 				this.background.SlideUp(amountMoved.y);
+			}
+
+			if(originalOnMove)
+			{
+				originalOnMove(amountMoved);
 			}
 		}
 	}
