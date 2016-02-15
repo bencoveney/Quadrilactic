@@ -13,6 +13,7 @@ class Renderer {
 	private static millisecondsPerTick = 13;
 	private static gameWidth = 480;
 	private static gameHeight = 800;
+	private static minimumPlatformReboundSpeed = 10;
 	
 	// Rendering references
 	private canvas: HTMLCanvasElement;
@@ -74,6 +75,12 @@ class Renderer {
 			"#FFFFFF",
 			-Renderer.defaultGravity,
 			Renderer.gameWidth);
+		this.platform.onBounce = () => {
+			if(this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed)
+			{
+				this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
+			}
+		};
 		
 		let scoreboardPosition: MovingPoint = {
 			x: 150,
