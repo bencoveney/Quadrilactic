@@ -122,7 +122,9 @@ declare class Scoreboard extends Block {
     private player;
     private score;
     private static degrees;
-    private scoreToFade;
+    private greatestHeightReached;
+    private multiplier;
+    private points;
     constructor(player: Player, worldPosition: MovingPoint, dimensions: Point, color: string);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
@@ -143,6 +145,7 @@ declare class Renderer {
     private static millisecondsPerTick;
     private static gameWidth;
     private static gameHeight;
+    private static minimumPlatformReboundSpeed;
     private canvas;
     private context;
     private isRunning;

@@ -514,31 +514,61 @@ var Scoreboard = (function (_super) {
         this.player = player;
         // Shouldn't have to insert the nested function like this.
         this.player.onBounce = function () {
-            _this.scoreToFade = _this.score;
-            _this.score = _this.score + 1;
+            //this.scoreToFade = this.score;
+            _this.score = Math.round((_this.score + 0.1) * 10) / 10;
             _this.player.Bounce();
         };
+        var originalOnMove = this.player.onMove;
+        this.player.onMove = function (amountMoved) {
+            var currentHeight = -_this.player.top;
+            if (currentHeight > _this.greatestHeightReached) {
+                _this.greatestHeightReached = currentHeight;
+                _this.multiplier = Math.round(_this.greatestHeightReached / 10) / 100;
+                _this.points = Math.round(_this.score * _this.multiplier * 10) / 10;
+            }
+            if (originalOnMove) {
+                originalOnMove(amountMoved);
+            }
+        };
         this.score = 0;
+        this.greatestHeightReached = 0;
+        this.multiplier = 0;
+        this.points = 0;
     }
     Scoreboard.prototype.Render = function (renderContext) {
         renderContext.beginPath();
         renderContext.save();
+        renderContext.fillStyle = this.fillColor;
+        renderContext.font = "" + Scoreboard.fontSizeInPx + "px Oswald";
         renderContext.translate(this.centerXPosition, this.centerYPosition);
         renderContext.rotate(Scoreboard.fontRotation * Scoreboard.degrees);
         renderContext.translate(-this.centerXPosition, -this.centerYPosition);
-        renderContext.fillStyle = this.fillColor;
-        renderContext.font = "" + Scoreboard.fontSizeInPx + "px Oswald";
         renderContext.fillText(this.score.toString(), this.xPosition, this.yPosition + Scoreboard.fontSizeInPx);
+        renderContext.font = "" + (Scoreboard.fontSizeInPx / 2) + "px Oswald";
+        renderContext.fillText("x " + this.multiplier.toString(), this.xPosition, this.yPosition + (1.5 * Scoreboard.fontSizeInPx));
+        renderContext.fillStyle = this.player.fillColor;
+        renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
         renderContext.restore();
-        if (this.scoreToFade) {
-            var score = this.scoreToFade;
-            this.scoreToFade = undefined;
-            return [new ParticleText(this.xPosition, this.yPosition, score.toString(), "Oswald", Scoreboard.fontSizeInPx, Scoreboard.fontRotation, this.fillColor, 0.25)];
-        }
+        // if(this.scoreToFade)
+        // {
+        // 	let score = this.scoreToFade;
+        // 	this.scoreToFade = undefined;
+        // 	
+        // 	return [new ParticleText(
+        // 		this.xPosition,
+        // 		this.yPosition,
+        // 		score.toString(),
+        // 		"Oswald",
+        // 		Scoreboard.fontSizeInPx,
+        // 		Scoreboard.fontRotation,
+        // 		this.fillColor,
+        // 		0.25
+        // 	)] as IRenderable[];
+        // }
         return [];
     };
-    Scoreboard.fontSizeInPx = 600;
-    Scoreboard.fontRotation = 30;
+    Scoreboard.fontSizeInPx = 200;
+    Scoreboard.fontRotation = 0;
     Scoreboard.degrees = Math.PI / 180;
     return Scoreboard;
 })(Block);
@@ -623,9 +653,14 @@ var Renderer = (function () {
             y: 20
         };
         this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, Renderer.gameWidth);
+        this.platform.onBounce = function () {
+            if (_this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed) {
+                _this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
+            }
+        };
         var scoreboardPosition = {
-            x: 150,
-            y: 20,
+            x: 20,
+            y: 370,
             dX: 0,
             dY: 0
         };
@@ -635,10 +670,14 @@ var Renderer = (function () {
         };
         this.scoreboard = new Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "#333333");
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
+        var originalOnMove = this.player.onMove;
         this.player.onMove = function (amountMoved) {
             if (_this.player.yPosition < -(_this.viewport.offset - 100)) {
                 _this.viewport.SlideUp(amountMoved.y);
                 _this.background.SlideUp(amountMoved.y);
+            }
+            if (originalOnMove) {
+                originalOnMove(amountMoved);
             }
         };
     }
@@ -671,6 +710,7 @@ var Renderer = (function () {
     Renderer.millisecondsPerTick = 13;
     Renderer.gameWidth = 480;
     Renderer.gameHeight = 800;
+    Renderer.minimumPlatformReboundSpeed = 10;
     return Renderer;
 })();
 /// <reference path="../typings/tsd.d.ts" />
