@@ -83,8 +83,8 @@ class Renderer {
 		};
 		
 		let scoreboardPosition: MovingPoint = {
-			x: 150,
-			y: 20,
+			x: 20,
+			y: 370,
 			dX: 0,
 			dY: 0
 		};
@@ -106,11 +106,17 @@ class Renderer {
 			[this.player, this.platform]
 		)
 		
+		let originalOnMove = this.player.onMove
 		this.player.onMove = (amountMoved: Point) => {
 			if(this.player.yPosition < - (this.viewport.offset - 100))
 			{
 				this.viewport.SlideUp(amountMoved.y);
 				this.background.SlideUp(amountMoved.y);
+			}
+
+			if(originalOnMove)
+			{
+				originalOnMove(amountMoved);
 			}
 		}
 	}

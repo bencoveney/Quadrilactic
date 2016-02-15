@@ -5,7 +5,7 @@
 
 class Block implements IRenderable {
 	// Constants
-	private static verticalSpeedLimit = 15;
+	private static verticalSpeedLimit = 12;
 	private static horizontalSpeedLimit = 5;
 	private static horizontalSpeedSlowDown = 0.1;
 
