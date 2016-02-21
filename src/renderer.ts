@@ -96,7 +96,7 @@ class Renderer {
 			this.player,
 			scoreboardPosition,
 			scoreboardDimensions,
-			"#333333"
+			"rgba(255,255,255, 0.1)"
 		)
 		
 		this.viewport = new Viewport(

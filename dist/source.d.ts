@@ -89,12 +89,23 @@ declare class Player extends PhysicsBlock {
     Bounce(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
+declare class Sprite implements IRenderable {
+    private image;
+    private dimensions;
+    isAlive: boolean;
+    constructor(imagePath: string, dimensions: Point);
+    private loaded();
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+}
 declare class Background implements IRenderable {
     private renderPosition;
     private renderDimensions;
     private color;
     private offset;
     isAlive: boolean;
+    private staticBackground;
+    private stars1;
+    private stars2;
     constructor(renderPosition: Point, renderDimensions: Point, color: string, player: Player);
     SlideUp(amount: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];

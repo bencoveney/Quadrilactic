@@ -392,10 +392,35 @@ var Player = (function (_super) {
     Player.horizontalSpeedIncrease = 0.5;
     return Player;
 })(PhysicsBlock);
+/// <reference path="IRenderable.ts" />
+/// <reference path="point.ts" />
+var Sprite = (function () {
+    function Sprite(imagePath, dimensions) {
+        var _this = this;
+        this.isAlive = true;
+        this.image = new Image();
+        this.image.addEventListener("load", function () { _this.loaded(); }, false);
+        this.image.src = imagePath;
+        this.dimensions = dimensions;
+    }
+    Sprite.prototype.loaded = function () {
+        console.log("Loaded: " + this.image.src);
+    };
+    Sprite.prototype.Render = function (renderContext) {
+        renderContext.drawImage(this.image, 
+        // Source dimensions
+        0, 0, this.image.width, this.image.height, 
+        // Destination dimensions
+        0, 0, this.dimensions.x, this.dimensions.y);
+        return [];
+    };
+    return Sprite;
+})();
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="player.ts" />
+/// <reference path="sprite.ts" />
 var Background = (function () {
     function Background(renderPosition, renderDimensions, color, player) {
         this.offset = 0;
@@ -403,6 +428,9 @@ var Background = (function () {
         this.renderPosition = renderPosition;
         this.renderDimensions = renderDimensions;
         this.color = color;
+        this.staticBackground = new Sprite("img/staticBackground.png", renderDimensions);
+        this.stars1 = new Sprite("img/stars1.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
+        this.stars2 = new Sprite("img/stars2.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
     }
     Background.prototype.SlideUp = function (amount) {
         if (amount < 0) {
@@ -410,15 +438,29 @@ var Background = (function () {
         }
     };
     Background.prototype.Render = function (renderContext) {
-        var lowerYPosition = this.offset % this.renderDimensions.y;
-        var upperYPosition = lowerYPosition - this.renderDimensions.y;
-        renderContext.beginPath();
-        renderContext.rect(this.renderPosition.x, lowerYPosition, this.renderDimensions.x, this.renderDimensions.y - 10);
-        renderContext.rect(this.renderPosition.x, upperYPosition, this.renderDimensions.x, this.renderDimensions.y - 10);
-        renderContext.fillStyle = this.color;
-        renderContext.fill();
-        renderContext.closePath();
-        return [];
+        var result = [];
+        result = result.concat(this.staticBackground.Render(renderContext));
+        var lowerYPosition1 = this.offset % (this.renderDimensions.y * 2);
+        var upperYPosition1 = lowerYPosition1 - (this.renderDimensions.y * 2);
+        renderContext.save();
+        renderContext.translate(0, lowerYPosition1);
+        result = result.concat(this.stars1.Render(renderContext));
+        renderContext.restore();
+        renderContext.save();
+        renderContext.translate(0, upperYPosition1);
+        result = result.concat(this.stars1.Render(renderContext));
+        renderContext.restore();
+        var lowerYPosition2 = (this.offset / 2) % (this.renderDimensions.y * 2);
+        var upperYPosition2 = lowerYPosition2 - (this.renderDimensions.y * 2);
+        renderContext.save();
+        renderContext.translate(0, lowerYPosition2);
+        result = result.concat(this.stars2.Render(renderContext));
+        renderContext.restore();
+        renderContext.save();
+        renderContext.translate(0, upperYPosition2);
+        result = result.concat(this.stars2.Render(renderContext));
+        renderContext.restore();
+        return result;
     };
     return Background;
 })();
@@ -549,22 +591,6 @@ var Scoreboard = (function (_super) {
         renderContext.fillStyle = this.player.fillColor;
         renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
         renderContext.restore();
-        // if(this.scoreToFade)
-        // {
-        // 	let score = this.scoreToFade;
-        // 	this.scoreToFade = undefined;
-        // 	
-        // 	return [new ParticleText(
-        // 		this.xPosition,
-        // 		this.yPosition,
-        // 		score.toString(),
-        // 		"Oswald",
-        // 		Scoreboard.fontSizeInPx,
-        // 		Scoreboard.fontRotation,
-        // 		this.fillColor,
-        // 		0.25
-        // 	)] as IRenderable[];
-        // }
         return [];
     };
     Scoreboard.fontSizeInPx = 200;
@@ -668,7 +694,7 @@ var Renderer = (function () {
             x: 0,
             y: 0
         };
-        this.scoreboard = new Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "#333333");
+        this.scoreboard = new Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "rgba(255,255,255, 0.1)");
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
         var originalOnMove = this.player.onMove;
         this.player.onMove = function (amountMoved) {

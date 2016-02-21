@@ -71,23 +71,6 @@ class Scoreboard extends Block {
 		renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
 
 		renderContext.restore();
-		
-		// if(this.scoreToFade)
-		// {
-		// 	let score = this.scoreToFade;
-		// 	this.scoreToFade = undefined;
-		// 	
-		// 	return [new ParticleText(
-		// 		this.xPosition,
-		// 		this.yPosition,
-		// 		score.toString(),
-		// 		"Oswald",
-		// 		Scoreboard.fontSizeInPx,
-		// 		Scoreboard.fontRotation,
-		// 		this.fillColor,
-		// 		0.25
-		// 	)] as IRenderable[];
-		// }
 
 		return [] as IRenderable[];
 	}
