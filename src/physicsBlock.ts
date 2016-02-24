@@ -35,8 +35,8 @@ class PhysicsBlock extends Block {
 		this.worldWidth = worldWidth;
 	}
 	
-	public Tick(){
-		super.Tick();
+	public Tick(deltaTime: number){
+		super.Tick(deltaTime);
 		
 		// If off the right, bounce left
 		if(this.right > this.worldWidth)
@@ -55,7 +55,7 @@ class PhysicsBlock extends Block {
 		}
 		
 		// Apply acceleration due to gravity
-		this.ySpeed += this.internalGravity;
+		this.ySpeed += (this.internalGravity * deltaTime);
 	}
 	
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {

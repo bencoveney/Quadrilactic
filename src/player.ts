@@ -42,13 +42,13 @@ class Player extends PhysicsBlock {
 		this.faceHover = new Sprite("img/faceChill.png", dimensions);
 	}
 	
-	public Tick() {
-		super.Tick();
+	public Tick(deltaTime: number) {
+		super.Tick(deltaTime);
 		
 		// Perform the jump
 		if(!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"]))
 		{
-			this.ySpeed = Player.jumpSpeedIncrease;
+			this.ySpeed = Player.jumpSpeedIncrease * deltaTime;
 			this.isJumping = true;
 			this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
 		}
@@ -56,15 +56,15 @@ class Player extends PhysicsBlock {
 		// Allow influence over horizontal direction
 		if(this.controller.isKeyPressed(["left", "a"]))
 		{
-			this.xSpeed -= Player.horizontalSpeedIncrease;
+			this.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
 		}
 		if(this.controller.isKeyPressed(["right", "d"]))
 		{
-			this.xSpeed += Player.horizontalSpeedIncrease;
+			this.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
 		}
 		
 		// Apply jump rotation
-		this.jumpRotationAmount += this.jumpRotationSpeed;
+		this.jumpRotationAmount += (this.jumpRotationSpeed * deltaTime);
 		if(this.jumpRotationSpeed > 0)
 		{
 			this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
@@ -74,7 +74,7 @@ class Player extends PhysicsBlock {
 			this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
 		}
 		
-		this.jumpRotationAmount += (this.xSpeed / 2);
+		this.jumpRotationAmount += this.xSpeed / 2;
 	}
 	
 	public Bounce() {

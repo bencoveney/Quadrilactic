@@ -14,26 +14,28 @@ class Renderer {
 	private static gameWidth = 480;
 	private static gameHeight = 800;
 	private static minimumPlatformReboundSpeed = 10;
+	private static timescale = 16;
 	
 	// Rendering references
 	private canvas: HTMLCanvasElement;
 	private context: CanvasRenderingContext2D;
 
 	// State
-	private isRunning: boolean;
+	private isRunning: boolean = false;
 	private player: Player;
 	private platform: PhysicsBlock;
 	private scoreboard: Scoreboard;
-	private intervalId: number;
 	private background: Background;
 	private viewport: Viewport;
+	private lastTimestamp: number;
+	private lastFps: number;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
 
 		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
-		
+
 		let playerPosition: MovingPoint = {
 			x: 30,
 			y: 100,
@@ -51,14 +53,14 @@ class Renderer {
 			controller,
 			Renderer.defaultGravity,
 			Renderer.gameWidth);
-		
+
 		this.background = new Background(
 			{ x: 0, y: 0 },
 			{ x: this.canvas.width, y: this.canvas.height },
 			"#222222",
 			this.player
 		);
-		
+
 		let platformPosition: MovingPoint = {
 			x: 30,
 			y: 700,
@@ -81,7 +83,7 @@ class Renderer {
 				this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
 			}
 		};
-		
+
 		let scoreboardPosition: MovingPoint = {
 			x: 20,
 			y: 370,
@@ -98,14 +100,14 @@ class Renderer {
 			scoreboardDimensions,
 			"rgba(255,255,255, 0.1)"
 		)
-		
+
 		this.viewport = new Viewport(
 			this.context,
 			[this.background, this.scoreboard],
 			[],
 			[this.player, this.platform]
 		)
-		
+
 		let originalOnMove = this.player.onMove
 		this.player.onMove = (amountMoved: Point) => {
 			if(this.player.yPosition < - (this.viewport.offset - 100))
@@ -122,32 +124,43 @@ class Renderer {
 	}
 
 	public Start() {
-		if(this.intervalId)
+		if(this.isRunning)
 		{
-			this.Stop();
+			return;
 		}
 
-		this.intervalId = setInterval(() => {
-			this.Tick();
-		}, Renderer.millisecondsPerTick);
+		this.isRunning = true;
+		requestAnimationFrame((time: number) => { this.Tick(time); });
 	}
-	
+
 	public Stop() {
-		clearInterval(this.intervalId);
-		this.intervalId = null;
+		this.isRunning = false;
 	}
-	
-	private Tick() {
+
+	private Tick(timestamp: number) {
+		let deltaTime = this.lastTimestamp ? (timestamp - this.lastTimestamp) : 0;
+		let scaledTime = deltaTime / Renderer.timescale
+		this.lastTimestamp = timestamp;
+		this.lastFps = Math.round(1000 / deltaTime);
+		
 		this.Draw();
-		this.player.Tick();
-		this.platform.Tick();
+		this.player.Tick(scaledTime);
+		this.platform.Tick(scaledTime);
 		Collider.processCollisions([this.player, this.platform]);
+
+		if(this.isRunning)
+		{
+			requestAnimationFrame((time: number) => { this.Tick(time); });
+		}
 	}
-	
+
 	private Draw() {
 		this.context.fillStyle = "#111111";
 		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		
+
 		this.viewport.Render();
+		
+		this.context.fillStyle = '#FFFFFF';
+		this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
 	}
 }

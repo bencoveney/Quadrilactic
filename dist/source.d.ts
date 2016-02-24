@@ -60,7 +60,7 @@ declare class Block implements IRenderable {
     direction: string;
     private static strokeColor;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string);
-    Tick(): void;
+    Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class PhysicsBlock extends Block {
@@ -70,7 +70,7 @@ declare class PhysicsBlock extends Block {
     gravity: number;
     onBounce: () => void;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, worldWidth?: number);
-    Tick(): void;
+    Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     VerticalBounce(newYSpeed: number): void;
 }
@@ -97,7 +97,7 @@ declare class Player extends PhysicsBlock {
     private faceDown;
     private faceHover;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number);
-    Tick(): void;
+    Tick(deltaTime: number): void;
     Bounce(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
@@ -161,19 +161,21 @@ declare class Renderer {
     private static gameWidth;
     private static gameHeight;
     private static minimumPlatformReboundSpeed;
+    private static timescale;
     private canvas;
     private context;
     private isRunning;
     private player;
     private platform;
     private scoreboard;
-    private intervalId;
     private background;
     private viewport;
+    private lastTimestamp;
+    private lastFps;
     constructor(canvas: HTMLCanvasElement, controller: Controller);
     Start(): void;
     Stop(): void;
-    private Tick();
+    private Tick(timestamp);
     private Draw();
 }
 declare let canvas: HTMLCanvasElement;

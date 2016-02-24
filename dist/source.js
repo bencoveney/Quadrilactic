@@ -229,10 +229,10 @@ var Block = (function () {
         enumerable: true,
         configurable: true
     });
-    Block.prototype.Tick = function () {
+    Block.prototype.Tick = function (deltaTime) {
         // Move "forward".
-        this.xPosition += this.xSpeed;
-        this.yPosition += this.ySpeed;
+        this.xPosition += (this.xSpeed * deltaTime);
+        this.yPosition += (this.ySpeed * deltaTime);
         if (this.onMoveCallback) {
             // The amount moved this tick is the same as the speed.
             this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
@@ -246,12 +246,10 @@ var Block = (function () {
     Block.prototype.Render = function (renderContext) {
         renderContext.beginPath();
         renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
-        // renderContext.strokeStyle = Block.strokeColor;
-        // renderContext.stroke();
         renderContext.fillStyle = this.fillColor;
         renderContext.fill();
         renderContext.closePath();
-        var particle = new Particle(this.xPosition, this.yPosition, this.width, this.height, 0, this.fillColor, 0.15);
+        var particle = new Particle(this.xPosition, this.yPosition, this.width, this.height, 0, this.fillColor, 0.1);
         return [particle];
     };
     // Constants
@@ -297,8 +295,8 @@ var PhysicsBlock = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    PhysicsBlock.prototype.Tick = function () {
-        _super.prototype.Tick.call(this);
+    PhysicsBlock.prototype.Tick = function (deltaTime) {
+        _super.prototype.Tick.call(this, deltaTime);
         // If off the right, bounce left
         if (this.right > this.worldWidth) {
             // Clamp on screen, invert horizontal speed
@@ -312,7 +310,7 @@ var PhysicsBlock = (function (_super) {
             this.xSpeed = Math.abs(this.xSpeed);
         }
         // Apply acceleration due to gravity
-        this.ySpeed += this.internalGravity;
+        this.ySpeed += (this.internalGravity * deltaTime);
     };
     PhysicsBlock.prototype.Render = function (renderContext) {
         return _super.prototype.Render.call(this, renderContext);
@@ -367,30 +365,30 @@ var Player = (function (_super) {
         this.faceDown = new Sprite("img/faceWorried.png", dimensions);
         this.faceHover = new Sprite("img/faceChill.png", dimensions);
     }
-    Player.prototype.Tick = function () {
-        _super.prototype.Tick.call(this);
+    Player.prototype.Tick = function (deltaTime) {
+        _super.prototype.Tick.call(this, deltaTime);
         // Perform the jump
         if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
-            this.ySpeed = Player.jumpSpeedIncrease;
+            this.ySpeed = Player.jumpSpeedIncrease * deltaTime;
             this.isJumping = true;
             this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
         }
         // Allow influence over horizontal direction
         if (this.controller.isKeyPressed(["left", "a"])) {
-            this.xSpeed -= Player.horizontalSpeedIncrease;
+            this.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
         }
         if (this.controller.isKeyPressed(["right", "d"])) {
-            this.xSpeed += Player.horizontalSpeedIncrease;
+            this.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
         }
         // Apply jump rotation
-        this.jumpRotationAmount += this.jumpRotationSpeed;
+        this.jumpRotationAmount += (this.jumpRotationSpeed * deltaTime);
         if (this.jumpRotationSpeed > 0) {
             this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
         }
         else if (this.jumpRotationSpeed < 0) {
             this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
         }
-        this.jumpRotationAmount += (this.xSpeed / 2);
+        this.jumpRotationAmount += this.xSpeed / 2;
     };
     Player.prototype.Bounce = function () {
         // If we were jumping, thats over now
@@ -676,6 +674,8 @@ var Viewport = (function () {
 var Renderer = (function () {
     function Renderer(canvas, controller) {
         var _this = this;
+        // State
+        this.isRunning = false;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
         var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
@@ -732,27 +732,35 @@ var Renderer = (function () {
     }
     Renderer.prototype.Start = function () {
         var _this = this;
-        if (this.intervalId) {
-            this.Stop();
+        if (this.isRunning) {
+            return;
         }
-        this.intervalId = setInterval(function () {
-            _this.Tick();
-        }, Renderer.millisecondsPerTick);
+        this.isRunning = true;
+        requestAnimationFrame(function (time) { _this.Tick(time); });
     };
     Renderer.prototype.Stop = function () {
-        clearInterval(this.intervalId);
-        this.intervalId = null;
+        this.isRunning = false;
     };
-    Renderer.prototype.Tick = function () {
+    Renderer.prototype.Tick = function (timestamp) {
+        var _this = this;
+        var deltaTime = this.lastTimestamp ? (timestamp - this.lastTimestamp) : 0;
+        var scaledTime = deltaTime / Renderer.timescale;
+        this.lastTimestamp = timestamp;
+        this.lastFps = Math.round(1000 / deltaTime);
         this.Draw();
-        this.player.Tick();
-        this.platform.Tick();
+        this.player.Tick(scaledTime);
+        this.platform.Tick(scaledTime);
         Collider.processCollisions([this.player, this.platform]);
+        if (this.isRunning) {
+            requestAnimationFrame(function (time) { _this.Tick(time); });
+        }
     };
     Renderer.prototype.Draw = function () {
         this.context.fillStyle = "#111111";
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.viewport.Render();
+        this.context.fillStyle = '#FFFFFF';
+        this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
     };
     // Constants
     Renderer.defaultGravity = 0.2;
@@ -760,6 +768,7 @@ var Renderer = (function () {
     Renderer.gameWidth = 480;
     Renderer.gameHeight = 800;
     Renderer.minimumPlatformReboundSpeed = 10;
+    Renderer.timescale = 16;
     return Renderer;
 })();
 /// <reference path="../typings/tsd.d.ts" />

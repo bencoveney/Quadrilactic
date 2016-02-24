@@ -98,10 +98,10 @@ class Block implements IRenderable {
 		this.internalColor = color;
 	}
 	
-	public Tick(){
+	public Tick(deltaTime: number){
 		// Move "forward".
-		this.xPosition += this.xSpeed;
-		this.yPosition += this.ySpeed;
+		this.xPosition += (this.xSpeed * deltaTime);
+		this.yPosition += (this.ySpeed * deltaTime);
 		
 		if(this.onMoveCallback)
 		{
@@ -122,9 +122,6 @@ class Block implements IRenderable {
 
 		renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
 
-		// renderContext.strokeStyle = Block.strokeColor;
-		// renderContext.stroke();
-
 		renderContext.fillStyle = this.fillColor;
 		renderContext.fill();
 
@@ -137,7 +134,7 @@ class Block implements IRenderable {
 			this.height,
 			0,
 			this.fillColor,
-			0.15);
+			0.1);
 		
 		return [particle] as IRenderable[];
 	}
