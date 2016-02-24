@@ -61,7 +61,7 @@ class Viewport {
 		let newRenderables = subSet;
 		for(let i = 0; i < subSet.length; i++)
 		{
-			newRenderables = newRenderables.concat(subSet[i].Render(this.renderContext));
+			newRenderables = subSet[i].Render(this.renderContext).concat(newRenderables);
 		}
 		
 		return newRenderables.filter((renderable: IRenderable) => {

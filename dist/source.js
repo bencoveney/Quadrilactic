@@ -326,72 +326,6 @@ var PhysicsBlock = (function (_super) {
     };
     return PhysicsBlock;
 })(Block);
-/// <reference path="controller.ts" />
-/// <reference path="physicsBlock.ts" />
-/// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
-var Player = (function (_super) {
-    __extends(Player, _super);
-    function Player(worldPosition, dimensions, color, controller, gravity, worldWidth) {
-        _super.call(this, worldPosition, dimensions, color, gravity, worldWidth);
-        this.onBounce = this.Bounce;
-        this.controller = controller;
-        this.isJumping = false;
-    }
-    Player.prototype.Tick = function () {
-        _super.prototype.Tick.call(this);
-        // Perform the jump
-        if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
-            this.ySpeed = Player.jumpSpeedIncrease;
-            this.isJumping = true;
-            this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
-        }
-        // Allow influence over horizontal direction
-        if (this.controller.isKeyPressed(["left", "a"])) {
-            this.xSpeed -= Player.horizontalSpeedIncrease;
-        }
-        if (this.controller.isKeyPressed(["right", "d"])) {
-            this.xSpeed += Player.horizontalSpeedIncrease;
-        }
-        // Apply jump rotation
-        this.jumpRotationAmount += this.jumpRotationSpeed;
-        if (this.jumpRotationSpeed > 0) {
-            this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
-        }
-        else if (this.jumpRotationSpeed < 0) {
-            this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
-        }
-    };
-    Player.prototype.Bounce = function () {
-        // If we were jumping, thats over now
-        this.isJumping = false;
-        this.jumpRotationAmount = 0;
-        this.jumpRotationSpeed = 0;
-    };
-    Player.prototype.Render = function (renderContext) {
-        var _this = this;
-        renderContext.save();
-        renderContext.translate(this.centerXPosition, this.centerYPosition);
-        renderContext.rotate(this.jumpRotationAmount * Player.degrees);
-        renderContext.translate(-this.centerXPosition, -this.centerYPosition);
-        var xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
-        var yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
-        this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
-        var newRenderables = _super.prototype.Render.call(this, renderContext);
-        newRenderables.forEach(function (renderable) {
-            renderable.rotation = _this.jumpRotationAmount;
-            return renderable;
-        });
-        renderContext.restore();
-        return newRenderables;
-    };
-    Player.jumpSpeedIncrease = -8;
-    Player.degrees = Math.PI / 180;
-    Player.jumpRotationSlowDown = 0.25;
-    Player.initialJumpRotationSpeed = 15;
-    Player.horizontalSpeedIncrease = 0.5;
-    return Player;
-})(PhysicsBlock);
 /// <reference path="IRenderable.ts" />
 /// <reference path="point.ts" />
 var Sprite = (function () {
@@ -416,6 +350,95 @@ var Sprite = (function () {
     };
     return Sprite;
 })();
+/// <reference path="controller.ts" />
+/// <reference path="physicsBlock.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="sprite.ts" />
+var Player = (function (_super) {
+    __extends(Player, _super);
+    function Player(worldPosition, dimensions, color, controller, gravity, worldWidth) {
+        _super.call(this, worldPosition, dimensions, color, gravity, worldWidth);
+        this.onBounce = this.Bounce;
+        this.controller = controller;
+        this.isJumping = false;
+        this.jumpRotationAmount = 0;
+        this.faceUp = new Sprite("img/faceHappy.png", dimensions);
+        this.faceDown = new Sprite("img/faceWorried.png", dimensions);
+        this.faceHover = new Sprite("img/faceChill.png", dimensions);
+    }
+    Player.prototype.Tick = function () {
+        _super.prototype.Tick.call(this);
+        // Perform the jump
+        if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
+            this.ySpeed = Player.jumpSpeedIncrease;
+            this.isJumping = true;
+            this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
+        }
+        // Allow influence over horizontal direction
+        if (this.controller.isKeyPressed(["left", "a"])) {
+            this.xSpeed -= Player.horizontalSpeedIncrease;
+        }
+        if (this.controller.isKeyPressed(["right", "d"])) {
+            this.xSpeed += Player.horizontalSpeedIncrease;
+        }
+        // Apply jump rotation
+        this.jumpRotationAmount += this.jumpRotationSpeed;
+        if (this.jumpRotationSpeed > 0) {
+            this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
+        }
+        else if (this.jumpRotationSpeed < 0) {
+            this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
+        }
+        this.jumpRotationAmount += (this.xSpeed / 2);
+    };
+    Player.prototype.Bounce = function () {
+        // If we were jumping, thats over now
+        this.isJumping = false;
+        this.jumpRotationAmount = 0;
+        this.jumpRotationSpeed = 0;
+    };
+    Player.prototype.Render = function (renderContext) {
+        var _this = this;
+        renderContext.save();
+        renderContext.translate(this.centerXPosition, this.centerYPosition);
+        renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+        renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+        var faceSprite;
+        if (this.ySpeed > Player.faceSwapThreshold) {
+            faceSprite = this.faceDown;
+        }
+        else if (this.ySpeed < -Player.faceSwapThreshold) {
+            faceSprite = this.faceUp;
+        }
+        else {
+            faceSprite = this.faceHover;
+        }
+        var xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
+        var yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
+        this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
+        var newRenderables = _super.prototype.Render.call(this, renderContext);
+        newRenderables.forEach(function (renderable) {
+            renderable.rotation = _this.jumpRotationAmount;
+        });
+        renderContext.restore();
+        renderContext.save();
+        renderContext.translate(this.centerXPosition, this.centerYPosition);
+        renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+        renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+        renderContext.translate(this.left, this.top);
+        newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
+        renderContext.restore();
+        return newRenderables;
+    };
+    Player.jumpSpeedIncrease = -8;
+    Player.degrees = Math.PI / 180;
+    Player.jumpRotationSlowDown = 0.1;
+    Player.initialJumpRotationSpeed = 15;
+    Player.horizontalSpeedIncrease = 0.5;
+    Player.faceSwapThreshold = 3.5;
+    return Player;
+})(PhysicsBlock);
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
@@ -634,7 +657,7 @@ var Viewport = (function () {
     Viewport.prototype.RenderSubSet = function (subSet) {
         var newRenderables = subSet;
         for (var i = 0; i < subSet.length; i++) {
-            newRenderables = newRenderables.concat(subSet[i].Render(this.renderContext));
+            newRenderables = subSet[i].Render(this.renderContext).concat(newRenderables);
         }
         return newRenderables.filter(function (renderable) {
             return renderable.isAlive;

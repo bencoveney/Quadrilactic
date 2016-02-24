@@ -2,18 +2,24 @@
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
+/// <reference path="sprite.ts" />
 
 class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease = -8;
 	private static degrees = Math.PI / 180;
-	private static jumpRotationSlowDown = 0.25;
+	private static jumpRotationSlowDown = 0.1;
 	private static initialJumpRotationSpeed = 15;
 	private static horizontalSpeedIncrease = 0.5;
+	private static faceSwapThreshold = 3.5;
 	
 	private isJumping: boolean;
 	private jumpRotationAmount: number;
 	private jumpRotationSpeed: number;
 	private controller: Controller;
+	
+	private faceUp: Sprite;
+	private faceDown: Sprite;
+	private faceHover: Sprite;
 	
 	public constructor(
 		worldPosition: MovingPoint,
@@ -29,6 +35,11 @@ class Player extends PhysicsBlock {
 		
 		this.controller = controller;
 		this.isJumping = false;
+		this.jumpRotationAmount = 0;
+		
+		this.faceUp = new Sprite("img/faceHappy.png", dimensions);
+		this.faceDown = new Sprite("img/faceWorried.png", dimensions);
+		this.faceHover = new Sprite("img/faceChill.png", dimensions);
 	}
 	
 	public Tick() {
@@ -62,6 +73,8 @@ class Player extends PhysicsBlock {
 		{
 			this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
 		}
+		
+		this.jumpRotationAmount += (this.xSpeed / 2);
 	}
 	
 	public Bounce() {
@@ -77,7 +90,22 @@ class Player extends PhysicsBlock {
 		renderContext.translate(this.centerXPosition, this.centerYPosition);
 		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
 		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
-		
+
+		let faceSprite: Sprite;
+
+		if (this.ySpeed > Player.faceSwapThreshold)
+		{
+			faceSprite = this.faceDown;
+		}
+		else if(this.ySpeed < -Player.faceSwapThreshold)
+		{
+			faceSprite = this.faceUp;
+		}
+		else
+		{
+			faceSprite = this.faceHover;
+		}
+
 		let xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
 		let yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
 		
@@ -87,8 +115,18 @@ class Player extends PhysicsBlock {
 		
 		newRenderables.forEach((renderable: IRenderable) => {
 			(renderable as Particle).rotation = this.jumpRotationAmount;
-			return renderable;
 		});
+		
+		renderContext.restore();
+		
+		renderContext.save();
+		renderContext.translate(this.centerXPosition, this.centerYPosition);
+		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+
+		renderContext.translate(this.left, this.top);
+		
+		newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
 		
 		renderContext.restore();
 		

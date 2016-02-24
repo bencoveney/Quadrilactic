@@ -74,27 +74,31 @@ declare class PhysicsBlock extends Block {
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     VerticalBounce(newYSpeed: number): void;
 }
-declare class Player extends PhysicsBlock {
-    private static jumpSpeedIncrease;
-    private static degrees;
-    private static jumpRotationSlowDown;
-    private static initialJumpRotationSpeed;
-    private static horizontalSpeedIncrease;
-    private isJumping;
-    private jumpRotationAmount;
-    private jumpRotationSpeed;
-    private controller;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number);
-    Tick(): void;
-    Bounce(): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-}
 declare class Sprite implements IRenderable {
     private image;
     private dimensions;
     isAlive: boolean;
     constructor(imagePath: string, dimensions: Point);
     private loaded();
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+}
+declare class Player extends PhysicsBlock {
+    private static jumpSpeedIncrease;
+    private static degrees;
+    private static jumpRotationSlowDown;
+    private static initialJumpRotationSpeed;
+    private static horizontalSpeedIncrease;
+    private static faceSwapThreshold;
+    private isJumping;
+    private jumpRotationAmount;
+    private jumpRotationSpeed;
+    private controller;
+    private faceUp;
+    private faceDown;
+    private faceHover;
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number);
+    Tick(): void;
+    Bounce(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class Background implements IRenderable {
