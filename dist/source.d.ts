@@ -63,10 +63,16 @@ declare class Block implements IRenderable {
     Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
+declare class Sound {
+    private sound;
+    constructor(path: string);
+    play(): void;
+}
 declare class PhysicsBlock extends Block {
     private internalGravity;
     private onBounceCallback;
     private worldWidth;
+    private rebound;
     gravity: number;
     onBounce: () => void;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, worldWidth?: number);
@@ -93,6 +99,8 @@ declare class Player extends PhysicsBlock {
     private jumpRotationAmount;
     private jumpRotationSpeed;
     private controller;
+    private jump;
+    private bounce;
     private faceUp;
     private faceDown;
     private faceHover;

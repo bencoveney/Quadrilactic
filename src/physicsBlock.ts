@@ -1,12 +1,15 @@
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
+/// <reference path="sound.ts" />
 
 class PhysicsBlock extends Block {
 	
 	private internalGravity: number;
 	private onBounceCallback: () => void;
 	private worldWidth: number;
+	
+	private rebound: Sound;
 	
 	public get gravity(): number {
 		return this.internalGravity;
@@ -33,6 +36,8 @@ class PhysicsBlock extends Block {
 		
 		this.internalGravity = gravity;
 		this.worldWidth = worldWidth;
+		
+		this.rebound = new Sound("snd/blip.wav");
 	}
 	
 	public Tick(deltaTime: number){
@@ -41,6 +46,8 @@ class PhysicsBlock extends Block {
 		// If off the right, bounce left
 		if(this.right > this.worldWidth)
 		{
+			this.rebound.play();
+			
 			// Clamp on screen, invert horizontal speed
 			this.xPosition = this.worldWidth - this.width;
 			this.xSpeed = -Math.abs(this.xSpeed);
@@ -49,6 +56,8 @@ class PhysicsBlock extends Block {
 		// If off the left, bounce right
 		if(this.left < 0)
 		{
+			this.rebound.play();
+			
 			// Clamp on screen, invert horizontal speed
 			this.xPosition = 0;
 			this.xSpeed = Math.abs(this.xSpeed); 

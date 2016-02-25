@@ -3,6 +3,7 @@
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="sprite.ts" />
+/// <reference path="sound.ts" />
 
 class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease = -8;
@@ -17,6 +18,8 @@ class Player extends PhysicsBlock {
 	private jumpRotationSpeed: number;
 	private controller: Controller;
 	
+	private jump: Sound;
+	private bounce: Sound;
 	private faceUp: Sprite;
 	private faceDown: Sprite;
 	private faceHover: Sprite;
@@ -40,6 +43,9 @@ class Player extends PhysicsBlock {
 		this.faceUp = new Sprite("img/faceHappy.png", dimensions);
 		this.faceDown = new Sprite("img/faceWorried.png", dimensions);
 		this.faceHover = new Sprite("img/faceChill.png", dimensions);
+		
+		this.jump = new Sound("snd/jump.wav");
+		this.bounce = new Sound("snd/blip3.wav");
 	}
 	
 	public Tick(deltaTime: number) {
@@ -48,6 +54,7 @@ class Player extends PhysicsBlock {
 		// Perform the jump
 		if(!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"]))
 		{
+			this.jump.play();
 			this.ySpeed = Player.jumpSpeedIncrease * deltaTime;
 			this.isJumping = true;
 			this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
@@ -82,6 +89,7 @@ class Player extends PhysicsBlock {
 		this.isJumping = false;
 		this.jumpRotationAmount = 0;
 		this.jumpRotationSpeed = 0;
+		this.bounce.play();
 	}
 	
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {

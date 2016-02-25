@@ -260,9 +260,20 @@ var Block = (function () {
     Block.strokeColor = "#000000";
     return Block;
 })();
+var Sound = (function () {
+    function Sound(path) {
+        this.sound = new Audio(path);
+        this.sound.volume = 0.5;
+    }
+    Sound.prototype.play = function () {
+        this.sound.play();
+    };
+    return Sound;
+})();
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
+/// <reference path="sound.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -274,6 +285,7 @@ var PhysicsBlock = (function (_super) {
         _super.call(this, worldPosition, dimensions, color);
         this.internalGravity = gravity;
         this.worldWidth = worldWidth;
+        this.rebound = new Sound("snd/blip.wav");
     }
     Object.defineProperty(PhysicsBlock.prototype, "gravity", {
         get: function () {
@@ -299,12 +311,14 @@ var PhysicsBlock = (function (_super) {
         _super.prototype.Tick.call(this, deltaTime);
         // If off the right, bounce left
         if (this.right > this.worldWidth) {
+            this.rebound.play();
             // Clamp on screen, invert horizontal speed
             this.xPosition = this.worldWidth - this.width;
             this.xSpeed = -Math.abs(this.xSpeed);
         }
         // If off the left, bounce right
         if (this.left < 0) {
+            this.rebound.play();
             // Clamp on screen, invert horizontal speed
             this.xPosition = 0;
             this.xSpeed = Math.abs(this.xSpeed);
@@ -353,6 +367,7 @@ var Sprite = (function () {
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="sprite.ts" />
+/// <reference path="sound.ts" />
 var Player = (function (_super) {
     __extends(Player, _super);
     function Player(worldPosition, dimensions, color, controller, gravity, worldWidth) {
@@ -364,11 +379,14 @@ var Player = (function (_super) {
         this.faceUp = new Sprite("img/faceHappy.png", dimensions);
         this.faceDown = new Sprite("img/faceWorried.png", dimensions);
         this.faceHover = new Sprite("img/faceChill.png", dimensions);
+        this.jump = new Sound("snd/jump.wav");
+        this.bounce = new Sound("snd/blip3.wav");
     }
     Player.prototype.Tick = function (deltaTime) {
         _super.prototype.Tick.call(this, deltaTime);
         // Perform the jump
         if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
+            this.jump.play();
             this.ySpeed = Player.jumpSpeedIncrease * deltaTime;
             this.isJumping = true;
             this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
@@ -395,6 +413,7 @@ var Player = (function (_super) {
         this.isJumping = false;
         this.jumpRotationAmount = 0;
         this.jumpRotationSpeed = 0;
+        this.bounce.play();
     };
     Player.prototype.Render = function (renderContext) {
         var _this = this;
