@@ -44,8 +44,8 @@ class Player extends PhysicsBlock {
 		this.faceDown = new Sprite("img/faceWorried.png", dimensions);
 		this.faceHover = new Sprite("img/faceChill.png", dimensions);
 		
-		this.jump = new Sound("snd/jump.wav");
-		this.bounce = new Sound("snd/blip3.wav");
+		this.jump = new Sound("snd/jump.wav", {});
+		this.bounce = new Sound("snd/blip3.wav", {});
 	}
 	
 	public Tick(deltaTime: number) {

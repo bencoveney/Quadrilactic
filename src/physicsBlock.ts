@@ -37,7 +37,7 @@ class PhysicsBlock extends Block {
 		this.internalGravity = gravity;
 		this.worldWidth = worldWidth;
 		
-		this.rebound = new Sound("snd/blip.wav");
+		this.rebound = new Sound("snd/blip.wav", {});
 	}
 	
 	public Tick(deltaTime: number){

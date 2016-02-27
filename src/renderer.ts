@@ -6,6 +6,7 @@
 /// <reference path="scoreboard.ts" />
 /// <reference path="background.ts" />
 /// <reference path="viewport.ts" />
+/// <reference path="sound.ts" />
 
 class Renderer {
 	// Constants
@@ -29,10 +30,14 @@ class Renderer {
 	private viewport: Viewport;
 	private lastTimestamp: number;
 	private lastFps: number;
+	private backgroundMusic: Sound;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
+		
+		this.backgroundMusic = new Sound("snd/music.wav", { isLooping: true });
+		this.backgroundMusic.play();
 
 		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
 

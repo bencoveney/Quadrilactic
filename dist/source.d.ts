@@ -63,9 +63,14 @@ declare class Block implements IRenderable {
     Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
+interface ISoundOptions {
+    volume?: number;
+    isLooping?: boolean;
+}
 declare class Sound {
+    private static defaultVolume;
     private sound;
-    constructor(path: string);
+    constructor(path: string, options: ISoundOptions);
     play(): void;
 }
 declare class PhysicsBlock extends Block {
@@ -180,6 +185,7 @@ declare class Renderer {
     private viewport;
     private lastTimestamp;
     private lastFps;
+    private backgroundMusic;
     constructor(canvas: HTMLCanvasElement, controller: Controller);
     Start(): void;
     Stop(): void;

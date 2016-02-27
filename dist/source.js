@@ -261,13 +261,15 @@ var Block = (function () {
     return Block;
 })();
 var Sound = (function () {
-    function Sound(path) {
+    function Sound(path, options) {
         this.sound = new Audio(path);
-        this.sound.volume = 0.5;
+        this.sound.volume = options.volume || Sound.defaultVolume;
+        this.sound.loop = options.isLooping === true;
     }
     Sound.prototype.play = function () {
         this.sound.play();
     };
+    Sound.defaultVolume = 0.3;
     return Sound;
 })();
 /// <reference path="block.ts" />
@@ -285,7 +287,7 @@ var PhysicsBlock = (function (_super) {
         _super.call(this, worldPosition, dimensions, color);
         this.internalGravity = gravity;
         this.worldWidth = worldWidth;
-        this.rebound = new Sound("snd/blip.wav");
+        this.rebound = new Sound("snd/blip.wav", {});
     }
     Object.defineProperty(PhysicsBlock.prototype, "gravity", {
         get: function () {
@@ -379,8 +381,8 @@ var Player = (function (_super) {
         this.faceUp = new Sprite("img/faceHappy.png", dimensions);
         this.faceDown = new Sprite("img/faceWorried.png", dimensions);
         this.faceHover = new Sprite("img/faceChill.png", dimensions);
-        this.jump = new Sound("snd/jump.wav");
-        this.bounce = new Sound("snd/blip3.wav");
+        this.jump = new Sound("snd/jump.wav", {});
+        this.bounce = new Sound("snd/blip3.wav", {});
     }
     Player.prototype.Tick = function (deltaTime) {
         _super.prototype.Tick.call(this, deltaTime);
@@ -690,6 +692,7 @@ var Viewport = (function () {
 /// <reference path="scoreboard.ts" />
 /// <reference path="background.ts" />
 /// <reference path="viewport.ts" />
+/// <reference path="sound.ts" />
 var Renderer = (function () {
     function Renderer(canvas, controller) {
         var _this = this;
@@ -697,6 +700,8 @@ var Renderer = (function () {
         this.isRunning = false;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
+        this.backgroundMusic = new Sound("snd/music.wav", { isLooping: true });
+        this.backgroundMusic.play();
         var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
         var playerPosition = {
             x: 30,
