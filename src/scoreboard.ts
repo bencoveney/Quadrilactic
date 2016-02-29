@@ -7,6 +7,7 @@
 class Scoreboard extends Block {
 	private static fontSizeInPx = 200;
 	private static fontRotation = 0;
+	private static bouncePoints = 1;
 	private player: Player;
 	private score: number;
 	private static degrees = Math.PI / 180;
@@ -23,7 +24,7 @@ class Scoreboard extends Block {
 		// Shouldn't have to insert the nested function like this.
 		this.player.onBounce = () => {
 			//this.scoreToFade = this.score;
-			this.score = Math.round((this.score + 0.1) * 10) / 10;
+			this.score = Math.round((this.score + Scoreboard.bouncePoints) * 10) / 10;
 			this.player.Bounce();
 		}
 		

@@ -3,14 +3,6 @@ interface IRenderable {
     isAlive: boolean;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
-declare class Controller {
-    private static keyCodes;
-    private isKeyPressedState;
-    constructor();
-    private handleKeyUp(event);
-    private handleKeyDown(event);
-    isKeyPressed(key: string | string[]): boolean;
-}
 interface Point {
     x: number;
     y: number;
@@ -18,6 +10,21 @@ interface Point {
 interface MovingPoint extends Point {
     dX: number;
     dY: number;
+}
+declare class Controller {
+    private static keyCodes;
+    private isKeyPressedState;
+    private mousePosition;
+    private clickLocation;
+    private canvas;
+    constructor(canvas: HTMLCanvasElement);
+    private handleKeyUp(event);
+    private handleKeyDown(event);
+    private handleMouseMove(event);
+    private handleMouseDown(event);
+    isKeyPressed(key: string | string[]): boolean;
+    getMousePosition(): Point;
+    getClickPosition(): Point;
 }
 declare class Particle implements IRenderable {
     private static degrees;
@@ -147,6 +154,7 @@ declare class ParticleText implements IRenderable {
 declare class Scoreboard extends Block {
     private static fontSizeInPx;
     private static fontRotation;
+    private static bouncePoints;
     private player;
     private score;
     private static degrees;
@@ -168,6 +176,25 @@ declare class Viewport {
     Render(): void;
     private RenderSubSet(subSet);
 }
+declare class Menu implements IRenderable {
+    private static titleFontSizeInPx;
+    private static playFontSizeInPx;
+    private static buttonWidth;
+    private static buttonHeight;
+    private renderDimensions;
+    private background;
+    private isMenuOpen;
+    private buttonPosition;
+    private buttonDimensions;
+    private isButtonHovered;
+    private controller;
+    private onStartGame;
+    constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void);
+    isAlive: boolean;
+    private isPointOnButton(point);
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    showMenu(): void;
+}
 declare class Renderer {
     private static defaultGravity;
     private static millisecondsPerTick;
@@ -182,13 +209,13 @@ declare class Renderer {
     private platform;
     private scoreboard;
     private background;
+    private menu;
     private viewport;
     private lastTimestamp;
     private lastFps;
     private backgroundMusic;
     constructor(canvas: HTMLCanvasElement, controller: Controller);
     Start(): void;
-    Stop(): void;
     private Tick(timestamp);
     private Draw();
 }

@@ -4,8 +4,6 @@
 
 let canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement;
 
-let controller: Controller = new Controller();
+let controller: Controller = new Controller(canvas);
 
 let renderer: Renderer = new Renderer(canvas, controller);
-
-renderer.Start();

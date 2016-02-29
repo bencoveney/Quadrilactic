@@ -1,3 +1,5 @@
+/// <reference path="point.ts" />
+
 class Controller {
 	private static keyCodes = {
 		32: "space",
@@ -19,13 +21,29 @@ class Controller {
 		w: false
 	};
 	
-	constructor() {
+	private mousePosition: Point;
+	
+	private clickLocation: Point;
+	
+	private canvas: HTMLCanvasElement;
+	
+	constructor(canvas: HTMLCanvasElement) {
+		this.canvas = canvas;
+		
 		window.addEventListener("keyup", (event: KeyboardEvent) => {
-			this.handleKeyUp(event)
+			this.handleKeyUp(event);
 		});
 		
 		window.addEventListener("keydown", (event: KeyboardEvent) => {
-			this.handleKeyDown(event)
+			this.handleKeyDown(event);
+		});
+		
+		canvas.addEventListener("mousemove", (event: MouseEvent) => {
+			this.handleMouseMove(event);
+		});
+		
+		canvas.addEventListener("mousedown", (event: MouseEvent) => {
+			this.handleMouseDown(event);
 		});
 	}
 
@@ -39,11 +57,40 @@ class Controller {
 		this.isKeyPressedState[key] = true;
 	}
 	
+	private handleMouseMove(event: MouseEvent){
+		let canvasElementPosition = this.canvas.getBoundingClientRect();
+		this.mousePosition  = {
+			x: event.clientX - canvasElementPosition.left,
+			y: event.clientY - canvasElementPosition.top,
+		};
+	}
+	
+	private handleMouseDown(event: MouseEvent){
+		let canvasElementPosition = this.canvas.getBoundingClientRect();
+		this.clickLocation = {
+			x: event.clientX - canvasElementPosition.left,
+			y: event.clientY - canvasElementPosition.top,
+		};
+		
+		event.preventDefault();
+	}
+	
 	public isKeyPressed(key: string | string[]): boolean
 	{
 		let keys: string[] = [].concat(key);
 		return keys.some((value: string) => {
 			return this.isKeyPressedState[value]
 		});
+	}
+	
+	public getMousePosition(): Point
+	{
+		return this.mousePosition;
+	}
+	
+	public getClickPosition(): Point
+	{
+		return this.clickLocation;
+		this.clickLocation = undefined;
 	}
 }

@@ -7,6 +7,7 @@
 /// <reference path="background.ts" />
 /// <reference path="viewport.ts" />
 /// <reference path="sound.ts" />
+/// <reference path="menu.ts" />
 
 class Renderer {
 	// Constants
@@ -27,6 +28,7 @@ class Renderer {
 	private platform: PhysicsBlock;
 	private scoreboard: Scoreboard;
 	private background: Background;
+	private menu: Menu;
 	private viewport: Viewport;
 	private lastTimestamp: number;
 	private lastFps: number;
@@ -105,6 +107,16 @@ class Renderer {
 			scoreboardDimensions,
 			"rgba(255,255,255, 0.1)"
 		)
+		
+		this.menu = new Menu(
+			{
+				x: this.canvas.width,
+				y: this.canvas.height
+			},
+			controller,
+			this.background,
+			() => { this.isRunning = true; }
+		);
 
 		this.viewport = new Viewport(
 			this.context,
@@ -126,20 +138,12 @@ class Renderer {
 				originalOnMove(amountMoved);
 			}
 		}
+		
+		this.Start();
 	}
 
 	public Start() {
-		if(this.isRunning)
-		{
-			return;
-		}
-
-		this.isRunning = true;
 		requestAnimationFrame((time: number) => { this.Tick(time); });
-	}
-
-	public Stop() {
-		this.isRunning = false;
 	}
 
 	private Tick(timestamp: number) {
@@ -147,23 +151,28 @@ class Renderer {
 		let scaledTime = deltaTime / Renderer.timescale
 		this.lastTimestamp = timestamp;
 		this.lastFps = Math.round(1000 / deltaTime);
-		
+
 		this.Draw();
-		this.player.Tick(scaledTime);
-		this.platform.Tick(scaledTime);
-		Collider.processCollisions([this.player, this.platform]);
 
 		if(this.isRunning)
 		{
-			requestAnimationFrame((time: number) => { this.Tick(time); });
+			this.player.Tick(scaledTime);
+			this.platform.Tick(scaledTime);
+			Collider.processCollisions([this.player, this.platform]);
 		}
+		
+		requestAnimationFrame((time: number) => { this.Tick(time); });
 	}
 
 	private Draw() {
-		this.context.fillStyle = "#111111";
-		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-		this.viewport.Render();
+		if(this.isRunning)
+		{
+			this.viewport.Render();
+		}
+		else
+		{
+			this.menu.Render(this.context);
+		}
 		
 		this.context.fillStyle = '#FFFFFF';
 		this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);

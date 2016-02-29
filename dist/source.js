@@ -1,5 +1,6 @@
+/// <reference path="point.ts" />
 var Controller = (function () {
-    function Controller() {
+    function Controller(canvas) {
         var _this = this;
         this.isKeyPressedState = {
             space: false,
@@ -10,11 +11,18 @@ var Controller = (function () {
             d: false,
             w: false
         };
+        this.canvas = canvas;
         window.addEventListener("keyup", function (event) {
             _this.handleKeyUp(event);
         });
         window.addEventListener("keydown", function (event) {
             _this.handleKeyDown(event);
+        });
+        canvas.addEventListener("mousemove", function (event) {
+            _this.handleMouseMove(event);
+        });
+        canvas.addEventListener("mousedown", function (event) {
+            _this.handleMouseDown(event);
         });
     }
     Controller.prototype.handleKeyUp = function (event) {
@@ -25,12 +33,34 @@ var Controller = (function () {
         var key = Controller.keyCodes[event.keyCode];
         this.isKeyPressedState[key] = true;
     };
+    Controller.prototype.handleMouseMove = function (event) {
+        var canvasElementPosition = this.canvas.getBoundingClientRect();
+        this.mousePosition = {
+            x: event.clientX - canvasElementPosition.left,
+            y: event.clientY - canvasElementPosition.top,
+        };
+    };
+    Controller.prototype.handleMouseDown = function (event) {
+        var canvasElementPosition = this.canvas.getBoundingClientRect();
+        this.clickLocation = {
+            x: event.clientX - canvasElementPosition.left,
+            y: event.clientY - canvasElementPosition.top,
+        };
+        event.preventDefault();
+    };
     Controller.prototype.isKeyPressed = function (key) {
         var _this = this;
         var keys = [].concat(key);
         return keys.some(function (value) {
             return _this.isKeyPressedState[value];
         });
+    };
+    Controller.prototype.getMousePosition = function () {
+        return this.mousePosition;
+    };
+    Controller.prototype.getClickPosition = function () {
+        return this.clickLocation;
+        this.clickLocation = undefined;
     };
     Controller.keyCodes = {
         32: "space",
@@ -599,7 +629,7 @@ var Scoreboard = (function (_super) {
         // Shouldn't have to insert the nested function like this.
         this.player.onBounce = function () {
             //this.scoreToFade = this.score;
-            _this.score = Math.round((_this.score + 0.1) * 10) / 10;
+            _this.score = Math.round((_this.score + Scoreboard.bouncePoints) * 10) / 10;
             _this.player.Bounce();
         };
         var originalOnMove = this.player.onMove;
@@ -637,6 +667,7 @@ var Scoreboard = (function (_super) {
     };
     Scoreboard.fontSizeInPx = 200;
     Scoreboard.fontRotation = 0;
+    Scoreboard.bouncePoints = 1;
     Scoreboard.degrees = Math.PI / 180;
     return Scoreboard;
 })(Block);
@@ -684,6 +715,65 @@ var Viewport = (function () {
     };
     return Viewport;
 })();
+/// <reference path="IRenderable.ts" />
+/// <reference path="controller.ts" />
+/// <reference path="background.ts" />
+var Menu = (function () {
+    function Menu(renderDimensions, controller, background, onStartGame) {
+        this.isAlive = true;
+        this.renderDimensions = renderDimensions;
+        this.background = background;
+        this.isMenuOpen = true;
+        this.isButtonHovered = false;
+        this.controller = controller;
+        this.onStartGame = onStartGame;
+        this.buttonPosition = {
+            x: (renderDimensions.x - Menu.buttonWidth) / 2,
+            y: renderDimensions.y - (Menu.buttonHeight * 2)
+        };
+    }
+    Menu.prototype.isPointOnButton = function (point) {
+        return point
+            && point.x > this.buttonPosition.x
+            && point.x < this.buttonPosition.x + Menu.buttonWidth
+            && point.y > this.buttonPosition.y
+            && point.y < this.buttonPosition.y + Menu.buttonHeight;
+    };
+    Menu.prototype.Render = function (renderContext) {
+        var mouseClick = this.controller.getClickPosition();
+        if (mouseClick && this.isPointOnButton(mouseClick)) {
+            this.onStartGame();
+        }
+        this.isButtonHovered = this.isPointOnButton(this.controller.getMousePosition());
+        this.background.Render(renderContext);
+        var horizontalCenter = (this.renderDimensions.x / 2);
+        renderContext.save();
+        renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
+        renderContext.fillStyle = "white";
+        renderContext.textAlign = "center";
+        renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
+        if (this.isButtonHovered) {
+            renderContext.fillRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+        }
+        renderContext.strokeStyle = "white";
+        renderContext.lineWidth = 2;
+        renderContext.strokeRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+        renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
+        renderContext.fillStyle = this.isButtonHovered ? "black" : "white";
+        renderContext.textAlign = "center";
+        renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.buttonPosition.y);
+        renderContext.restore();
+        return [];
+    };
+    Menu.prototype.showMenu = function () {
+        this.isMenuOpen = true;
+    };
+    Menu.titleFontSizeInPx = 90;
+    Menu.playFontSizeInPx = 50;
+    Menu.buttonWidth = 200;
+    Menu.buttonHeight = 100;
+    return Menu;
+})();
 /// <reference path="player.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
@@ -693,6 +783,7 @@ var Viewport = (function () {
 /// <reference path="background.ts" />
 /// <reference path="viewport.ts" />
 /// <reference path="sound.ts" />
+/// <reference path="menu.ts" />
 var Renderer = (function () {
     function Renderer(canvas, controller) {
         var _this = this;
@@ -742,6 +833,10 @@ var Renderer = (function () {
             y: 0
         };
         this.scoreboard = new Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "rgba(255,255,255, 0.1)");
+        this.menu = new Menu({
+            x: this.canvas.width,
+            y: this.canvas.height
+        }, controller, this.background, function () { _this.isRunning = true; });
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
         var originalOnMove = this.player.onMove;
         this.player.onMove = function (amountMoved) {
@@ -753,17 +848,11 @@ var Renderer = (function () {
                 originalOnMove(amountMoved);
             }
         };
+        this.Start();
     }
     Renderer.prototype.Start = function () {
         var _this = this;
-        if (this.isRunning) {
-            return;
-        }
-        this.isRunning = true;
         requestAnimationFrame(function (time) { _this.Tick(time); });
-    };
-    Renderer.prototype.Stop = function () {
-        this.isRunning = false;
     };
     Renderer.prototype.Tick = function (timestamp) {
         var _this = this;
@@ -772,17 +861,20 @@ var Renderer = (function () {
         this.lastTimestamp = timestamp;
         this.lastFps = Math.round(1000 / deltaTime);
         this.Draw();
-        this.player.Tick(scaledTime);
-        this.platform.Tick(scaledTime);
-        Collider.processCollisions([this.player, this.platform]);
         if (this.isRunning) {
-            requestAnimationFrame(function (time) { _this.Tick(time); });
+            this.player.Tick(scaledTime);
+            this.platform.Tick(scaledTime);
+            Collider.processCollisions([this.player, this.platform]);
         }
+        requestAnimationFrame(function (time) { _this.Tick(time); });
     };
     Renderer.prototype.Draw = function () {
-        this.context.fillStyle = "#111111";
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.viewport.Render();
+        if (this.isRunning) {
+            this.viewport.Render();
+        }
+        else {
+            this.menu.Render(this.context);
+        }
         this.context.fillStyle = '#FFFFFF';
         this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
     };
@@ -799,7 +891,6 @@ var Renderer = (function () {
 /// <reference path="renderer.ts" />
 /// <reference path="controller.ts" />
 var canvas = document.getElementById("viewport");
-var controller = new Controller();
+var controller = new Controller(canvas);
 var renderer = new Renderer(canvas, controller);
-renderer.Start();
 //# sourceMappingURL=source.js.map
