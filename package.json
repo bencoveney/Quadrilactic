@@ -1,26 +1,28 @@
 {
-  "name": "canvas",
+  "name": "Quadrilactic",
   "version": "1.0.0",
-  "description": "HTML Canvas Experiments",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "Quadrilactic 2D Browser Game",
+  "main": "index.html",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bencoveney/Canvas.git"
+    "url": "git+https://github.com/bencoveney/Quadrilactic.git"
   },
   "keywords": [
     "HTML",
     "Canvas",
-    "Experiments"
+    "Experiments",
+	"TypeScript",
+	"JavaScript",
+	"Quadrilactic",
+	"Space",
+	"Game"
   ],
   "author": "Ben Coveney",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/bencoveney/Canvas/issues"
+    "url": "https://github.com/bencoveney/Quadrilactic/issues"
   },
-  "homepage": "https://github.com/bencoveney/Canvas#readme",
+  "homepage": "https://github.com/bencoveney/Quadrilactic#readme",
   "devDependencies": {
     "grunt-contrib-watch": "^0.6.1",
     "grunt-sass": "^1.1.0",
