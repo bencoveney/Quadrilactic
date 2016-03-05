@@ -181,6 +181,7 @@ declare class Menu implements IRenderable {
     private static playFontSizeInPx;
     private static buttonWidth;
     private static buttonHeight;
+    private static fadeInRate;
     private renderDimensions;
     private background;
     private isMenuOpen;
@@ -189,6 +190,7 @@ declare class Menu implements IRenderable {
     private isButtonHovered;
     private controller;
     private onStartGame;
+    private opacity;
     constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void);
     isAlive: boolean;
     private isPointOnButton(point);

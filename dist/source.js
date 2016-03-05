@@ -59,8 +59,9 @@ var Controller = (function () {
         return this.mousePosition;
     };
     Controller.prototype.getClickPosition = function () {
-        return this.clickLocation;
+        var clickLocation = this.clickLocation;
         this.clickLocation = undefined;
+        return clickLocation;
     };
     Controller.keyCodes = {
         32: "space",
@@ -727,6 +728,7 @@ var Menu = (function () {
         this.isButtonHovered = false;
         this.controller = controller;
         this.onStartGame = onStartGame;
+        this.opacity = 0;
         this.buttonPosition = {
             x: (renderDimensions.x - Menu.buttonWidth) / 2,
             y: renderDimensions.y - (Menu.buttonHeight * 2)
@@ -749,29 +751,32 @@ var Menu = (function () {
         var horizontalCenter = (this.renderDimensions.x / 2);
         renderContext.save();
         renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
-        renderContext.fillStyle = "white";
+        renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
         renderContext.textAlign = "center";
         renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
         if (this.isButtonHovered) {
             renderContext.fillRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         }
-        renderContext.strokeStyle = "white";
+        renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
         renderContext.lineWidth = 2;
         renderContext.strokeRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
-        renderContext.fillStyle = this.isButtonHovered ? "black" : "white";
+        renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
         renderContext.textAlign = "center";
         renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.buttonPosition.y);
         renderContext.restore();
+        this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
         return [];
     };
     Menu.prototype.showMenu = function () {
         this.isMenuOpen = true;
+        this.opacity = 0;
     };
     Menu.titleFontSizeInPx = 90;
     Menu.playFontSizeInPx = 50;
     Menu.buttonWidth = 200;
     Menu.buttonHeight = 100;
+    Menu.fadeInRate = 0.02;
     return Menu;
 })();
 /// <reference path="player.ts" />
@@ -836,13 +841,19 @@ var Renderer = (function () {
         this.menu = new Menu({
             x: this.canvas.width,
             y: this.canvas.height
-        }, controller, this.background, function () { _this.isRunning = true; });
+        }, controller, this.background, function () {
+            _this.isRunning = true;
+        });
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
         var originalOnMove = this.player.onMove;
         this.player.onMove = function (amountMoved) {
             if (_this.player.yPosition < -(_this.viewport.offset - 100)) {
                 _this.viewport.SlideUp(amountMoved.y);
                 _this.background.SlideUp(amountMoved.y);
+            }
+            if (_this.player.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
+                _this.isRunning = false;
+                _this.menu.showMenu();
             }
             if (originalOnMove) {
                 originalOnMove(amountMoved);
@@ -861,7 +872,7 @@ var Renderer = (function () {
         this.lastTimestamp = timestamp;
         this.lastFps = Math.round(1000 / deltaTime);
         this.Draw();
-        if (this.isRunning) {
+        if (this.isRunning === true) {
             this.player.Tick(scaledTime);
             this.platform.Tick(scaledTime);
             Collider.processCollisions([this.player, this.platform]);

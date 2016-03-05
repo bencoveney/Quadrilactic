@@ -115,7 +115,9 @@ class Renderer {
 			},
 			controller,
 			this.background,
-			() => { this.isRunning = true; }
+			() => {
+				this.isRunning = true;
+			}
 		);
 
 		this.viewport = new Viewport(
@@ -131,6 +133,12 @@ class Renderer {
 			{
 				this.viewport.SlideUp(amountMoved.y);
 				this.background.SlideUp(amountMoved.y);
+			}
+			
+			if(this.player.yPosition > -(this.viewport.offset - this.canvas.height))
+			{
+				this.isRunning = false;
+				this.menu.showMenu();
 			}
 
 			if(originalOnMove)
@@ -154,7 +162,7 @@ class Renderer {
 
 		this.Draw();
 
-		if(this.isRunning)
+		if(this.isRunning === true)
 		{
 			this.player.Tick(scaledTime);
 			this.platform.Tick(scaledTime);

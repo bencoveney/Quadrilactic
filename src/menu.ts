@@ -7,6 +7,7 @@ class Menu implements IRenderable {
 	private static playFontSizeInPx: number = 50;
 	private static buttonWidth: number = 200;
 	private static buttonHeight: number = 100;
+	private static fadeInRate: number = 0.02;
 
 	private renderDimensions: Point;
 	private background: Background;
@@ -16,6 +17,7 @@ class Menu implements IRenderable {
 	private isButtonHovered: boolean;
 	private controller: Controller;
 	private onStartGame: () => void;
+	private opacity: number;
 
 	public constructor(
 		renderDimensions: Point,
@@ -29,6 +31,8 @@ class Menu implements IRenderable {
 		this.isButtonHovered = false;
 		this.controller = controller;
 		this.onStartGame = onStartGame;
+		
+		this.opacity = 0;
 		
 		this.buttonPosition = {
 			x: (renderDimensions.x - Menu.buttonWidth) / 2,
@@ -64,7 +68,7 @@ class Menu implements IRenderable {
 		renderContext.save();
 
 		renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
-		renderContext.fillStyle = "white";
+		renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
 		renderContext.textAlign = "center";
 		renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
 
@@ -76,7 +80,7 @@ class Menu implements IRenderable {
 				Menu.buttonWidth,
 				Menu.buttonHeight);
 		}
-		renderContext.strokeStyle = "white";
+		renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
 		renderContext.lineWidth = 2;
 		renderContext.strokeRect(
 			this.buttonPosition.x,
@@ -85,11 +89,13 @@ class Menu implements IRenderable {
 			Menu.buttonHeight);
 
 		renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
-		renderContext.fillStyle = this.isButtonHovered ? "black" : "white";
+		renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
 		renderContext.textAlign = "center";
 		renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.buttonPosition.y);
 
 		renderContext.restore();
+		
+		this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
 
 		return [];
 	}
@@ -97,5 +103,6 @@ class Menu implements IRenderable {
 	public showMenu()
 	{
 		this.isMenuOpen = true;
+		this.opacity = 0;
 	}
 }
