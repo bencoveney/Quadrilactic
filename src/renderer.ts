@@ -145,7 +145,7 @@ class Renderer {
 			{
 				this.isRunning = false;
 				this.deathSound.play();
-				this.menu.showMenu(this.scoreboard.totalPoints);
+				this.menu.showMenu(this.scoreboard.totalPoints, this.player.fillColor);
 			}
 
 			if(originalOnMove)

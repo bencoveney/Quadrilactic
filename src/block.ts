@@ -15,7 +15,7 @@ class Block implements IRenderable {
 	private internalColor: string;
 	private onMoveCallback: (amountMoved: Point) => void;
 	private initialWorldPosition: MovingPoint;
-	
+
 	public isAlive = true;
 
 	// Position properties
@@ -44,7 +44,7 @@ class Block implements IRenderable {
 	set ySpeed(newValue: number) {
 		this.worldPosition.dY = newValue;
 	}
-	
+
 	get width(): number {
 		return this.dimensions.x;
 	}
@@ -58,7 +58,7 @@ class Block implements IRenderable {
 	set fillColor(newValue: string) {
 		this.internalColor = newValue;
 	}
-	
+
 	get left(): number {
 		return this.worldPosition.x;
 	}
@@ -77,14 +77,14 @@ class Block implements IRenderable {
 	get centerYPosition(): number {
 		return this.top + (this.height / 2);
 	}
-	
+
 	get onMove(): (amountMoved: Point) => void {
 		return this.onMoveCallback;
 	}
 	set onMove(newValue: (amountMoved: Point) => void) {
 		this.onMoveCallback = newValue;
 	}
-	
+
 	// Direction properties
 	get direction(): string {
 		return this.xSpeed >= 0 ? "right" : "left";
@@ -105,18 +105,18 @@ class Block implements IRenderable {
 			dY: worldPosition.dY
 		};
 	}
-	
+
 	public Tick(deltaTime: number){
 		// Move "forward".
 		this.xPosition += (this.xSpeed * deltaTime);
 		this.yPosition += (this.ySpeed * deltaTime);
-		
+
 		if(this.onMoveCallback)
 		{
 			// The amount moved this tick is the same as the speed.
 			this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
 		}
-		
+
 		// Clamp the speed to the speed limit.
 		this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
 		this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
@@ -125,7 +125,7 @@ class Block implements IRenderable {
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
-		
+
 		renderContext.beginPath();
 
 		renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
@@ -134,7 +134,7 @@ class Block implements IRenderable {
 		renderContext.fill();
 
 		renderContext.closePath();
-		
+
 		let particle = new Particle(
 			this.xPosition,
 			this.yPosition,
@@ -143,10 +143,10 @@ class Block implements IRenderable {
 			0,
 			this.fillColor,
 			0.1);
-		
+
 		return [particle] as IRenderable[];
 	}
-	
+
 	public Reset()
 	{
 		this.worldPosition = {

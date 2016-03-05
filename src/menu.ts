@@ -4,6 +4,7 @@
 
 class Menu implements IRenderable {
 	private static titleFontSizeInPx: number = 90;
+	private static scoreFontSizeInPx: number = 50;
 	private static playFontSizeInPx: number = 50;
 	private static buttonWidth: number = 200;
 	private static buttonHeight: number = 100;
@@ -19,6 +20,7 @@ class Menu implements IRenderable {
 	private onStartGame: () => void;
 	private opacity: number;
 	private lastPoints: number;
+	private scoreColor: string;
 
 	public constructor(
 		renderDimensions: Point,
@@ -72,6 +74,19 @@ class Menu implements IRenderable {
 		renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
 		renderContext.textAlign = "center";
 		renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
+		
+		if(this.lastPoints)
+		{
+			renderContext.save();
+			
+			renderContext.font = "" + Menu.scoreFontSizeInPx + "px Oswald";
+			renderContext.fillStyle = this.scoreColor;
+			renderContext.globalAlpha = this.opacity;
+			renderContext.textAlign = "center";
+			renderContext.fillText("Score: " + this.lastPoints, horizontalCenter, Menu.titleFontSizeInPx + Menu.scoreFontSizeInPx + 70);
+			
+			renderContext.restore();
+		}
 
 		if(this.isButtonHovered)
 		{
@@ -101,10 +116,11 @@ class Menu implements IRenderable {
 		return [];
 	}
 
-	public showMenu(totalPoints: number)
+	public showMenu(totalPoints: number, scoreColor: string)
 	{
 		this.isMenuOpen = true;
 		this.opacity = 0;
 		this.lastPoints = totalPoints;
+		this.scoreColor = scoreColor;
 	}
 }

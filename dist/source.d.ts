@@ -185,6 +185,7 @@ declare class Viewport {
 }
 declare class Menu implements IRenderable {
     private static titleFontSizeInPx;
+    private static scoreFontSizeInPx;
     private static playFontSizeInPx;
     private static buttonWidth;
     private static buttonHeight;
@@ -199,11 +200,12 @@ declare class Menu implements IRenderable {
     private onStartGame;
     private opacity;
     private lastPoints;
+    private scoreColor;
     constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void);
     isAlive: boolean;
     private isPointOnButton(point);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-    showMenu(totalPoints: number): void;
+    showMenu(totalPoints: number, scoreColor: string): void;
 }
 declare class Renderer {
     private static defaultGravity;

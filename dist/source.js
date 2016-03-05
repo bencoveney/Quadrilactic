@@ -792,6 +792,15 @@ var Menu = (function () {
         renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
         renderContext.textAlign = "center";
         renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
+        if (this.lastPoints) {
+            renderContext.save();
+            renderContext.font = "" + Menu.scoreFontSizeInPx + "px Oswald";
+            renderContext.fillStyle = this.scoreColor;
+            renderContext.globalAlpha = this.opacity;
+            renderContext.textAlign = "center";
+            renderContext.fillText("Score: " + this.lastPoints, horizontalCenter, Menu.titleFontSizeInPx + Menu.scoreFontSizeInPx + 70);
+            renderContext.restore();
+        }
         if (this.isButtonHovered) {
             renderContext.fillRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         }
@@ -806,12 +815,14 @@ var Menu = (function () {
         this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
         return [];
     };
-    Menu.prototype.showMenu = function (totalPoints) {
+    Menu.prototype.showMenu = function (totalPoints, scoreColor) {
         this.isMenuOpen = true;
         this.opacity = 0;
         this.lastPoints = totalPoints;
+        this.scoreColor = scoreColor;
     };
     Menu.titleFontSizeInPx = 90;
+    Menu.scoreFontSizeInPx = 50;
     Menu.playFontSizeInPx = 50;
     Menu.buttonWidth = 200;
     Menu.buttonHeight = 100;
@@ -897,7 +908,7 @@ var Renderer = (function () {
             if (_this.player.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
                 _this.isRunning = false;
                 _this.deathSound.play();
-                _this.menu.showMenu(_this.scoreboard.totalPoints);
+                _this.menu.showMenu(_this.scoreboard.totalPoints, _this.player.fillColor);
             }
             if (originalOnMove) {
                 originalOnMove(amountMoved);
