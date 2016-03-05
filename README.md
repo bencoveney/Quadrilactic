@@ -12,6 +12,7 @@ A simple HTML5 canvas game built using typescript.
 - Increase difficulty as player climbs
 - Develop horizontal platform speed
 - Pointer to off-screen platform
+- Release!
 
 ## Nice To Have
 
@@ -24,4 +25,5 @@ A simple HTML5 canvas game built using typescript.
 # Credits
 
 Background music from [Section 31](http://opengameart.org/content/robotic-city-v2)
+
 Sound effects made using [BFXR](http://www.bfxr.net)
