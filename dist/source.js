@@ -798,6 +798,7 @@ var Renderer = (function () {
         this.context = canvas.getContext("2d");
         this.backgroundMusic = new Sound("snd/music.wav", { isLooping: true });
         this.backgroundMusic.play();
+        this.deathSound = new Sound("snd/death.wav", {});
         var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
         var playerPosition = {
             x: 30,
@@ -853,6 +854,7 @@ var Renderer = (function () {
             }
             if (_this.player.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
                 _this.isRunning = false;
+                _this.deathSound.play();
                 _this.menu.showMenu();
             }
             if (originalOnMove) {

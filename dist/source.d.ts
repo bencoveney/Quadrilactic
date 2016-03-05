@@ -216,6 +216,7 @@ declare class Renderer {
     private lastTimestamp;
     private lastFps;
     private backgroundMusic;
+    private deathSound;
     constructor(canvas: HTMLCanvasElement, controller: Controller);
     Start(): void;
     private Tick(timestamp);

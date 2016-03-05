@@ -33,6 +33,7 @@ class Renderer {
 	private lastTimestamp: number;
 	private lastFps: number;
 	private backgroundMusic: Sound;
+	private deathSound: Sound;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
@@ -40,6 +41,8 @@ class Renderer {
 		
 		this.backgroundMusic = new Sound("snd/music.wav", { isLooping: true });
 		this.backgroundMusic.play();
+		
+		this.deathSound = new Sound("snd/death.wav", {});
 
 		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
 
@@ -138,6 +141,7 @@ class Renderer {
 			if(this.player.yPosition > -(this.viewport.offset - this.canvas.height))
 			{
 				this.isRunning = false;
+				this.deathSound.play();
 				this.menu.showMenu();
 			}
 
