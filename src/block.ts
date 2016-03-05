@@ -14,6 +14,7 @@ class Block implements IRenderable {
 	private dimensions: Point;
 	private internalColor: string;
 	private onMoveCallback: (amountMoved: Point) => void;
+	private initialWorldPosition: MovingPoint;
 	
 	public isAlive = true;
 
@@ -96,6 +97,13 @@ class Block implements IRenderable {
 		this.worldPosition = worldPosition;
 		this.dimensions = dimensions;
 		this.internalColor = color;
+
+		this.initialWorldPosition = {
+			x: worldPosition.x,
+			y: worldPosition.y,
+			dX: worldPosition.dX,
+			dY: worldPosition.dY
+		};
 	}
 	
 	public Tick(deltaTime: number){
@@ -137,5 +145,15 @@ class Block implements IRenderable {
 			0.1);
 		
 		return [particle] as IRenderable[];
+	}
+	
+	public Reset()
+	{
+		this.worldPosition = {
+			x: this.initialWorldPosition.x,
+			y: this.initialWorldPosition.y,
+			dX: this.initialWorldPosition.dX,
+			dY: this.initialWorldPosition.dY
+		};
 	}
 }

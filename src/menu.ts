@@ -18,6 +18,7 @@ class Menu implements IRenderable {
 	private controller: Controller;
 	private onStartGame: () => void;
 	private opacity: number;
+	private lastPoints: number;
 
 	public constructor(
 		renderDimensions: Point,
@@ -100,9 +101,10 @@ class Menu implements IRenderable {
 		return [];
 	}
 
-	public showMenu()
+	public showMenu(totalPoints: number)
 	{
 		this.isMenuOpen = true;
 		this.opacity = 0;
+		this.lastPoints = totalPoints;
 	}
 }

@@ -119,6 +119,9 @@ class Renderer {
 			controller,
 			this.background,
 			() => {
+				this.player.Reset();
+				this.platform.Reset();
+				this.viewport.Reset();
 				this.isRunning = true;
 			}
 		);
@@ -142,7 +145,7 @@ class Renderer {
 			{
 				this.isRunning = false;
 				this.deathSound.play();
-				this.menu.showMenu();
+				this.menu.showMenu(this.scoreboard.totalPoints);
 			}
 
 			if(originalOnMove)
@@ -188,5 +191,9 @@ class Renderer {
 		
 		this.context.fillStyle = '#FFFFFF';
 		this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
+	}
+	
+	private SetUpNewGame() {
+		
 	}
 }

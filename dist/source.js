@@ -134,6 +134,12 @@ var Block = (function () {
         this.worldPosition = worldPosition;
         this.dimensions = dimensions;
         this.internalColor = color;
+        this.initialWorldPosition = {
+            x: worldPosition.x,
+            y: worldPosition.y,
+            dX: worldPosition.dX,
+            dY: worldPosition.dY
+        };
     }
     Object.defineProperty(Block.prototype, "xPosition", {
         // Position properties
@@ -283,6 +289,14 @@ var Block = (function () {
         var particle = new Particle(this.xPosition, this.yPosition, this.width, this.height, 0, this.fillColor, 0.1);
         return [particle];
     };
+    Block.prototype.Reset = function () {
+        this.worldPosition = {
+            x: this.initialWorldPosition.x,
+            y: this.initialWorldPosition.y,
+            dX: this.initialWorldPosition.dX,
+            dY: this.initialWorldPosition.dY
+        };
+    };
     // Constants
     Block.verticalSpeedLimit = 12;
     Block.horizontalSpeedLimit = 5;
@@ -368,6 +382,9 @@ var PhysicsBlock = (function (_super) {
         if (this.onBounceCallback) {
             this.onBounceCallback();
         }
+    };
+    PhysicsBlock.prototype.Reset = function () {
+        _super.prototype.Reset.call(this);
     };
     return PhysicsBlock;
 })(Block);
@@ -480,6 +497,12 @@ var Player = (function (_super) {
         newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
         renderContext.restore();
         return newRenderables;
+    };
+    Player.prototype.Reset = function () {
+        _super.prototype.Reset.call(this);
+        this.isJumping = false;
+        this.jumpRotationAmount = 0;
+        this.jumpRotationSpeed = 0;
     };
     Player.jumpSpeedIncrease = -8;
     Player.degrees = Math.PI / 180;
@@ -629,7 +652,6 @@ var Scoreboard = (function (_super) {
         this.player = player;
         // Shouldn't have to insert the nested function like this.
         this.player.onBounce = function () {
-            //this.scoreToFade = this.score;
             _this.score = Math.round((_this.score + Scoreboard.bouncePoints) * 10) / 10;
             _this.player.Bounce();
         };
@@ -665,6 +687,19 @@ var Scoreboard = (function (_super) {
         renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
         renderContext.restore();
         return [];
+    };
+    Object.defineProperty(Scoreboard.prototype, "totalPoints", {
+        get: function () {
+            return this.points;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Scoreboard.prototype.Reset = function () {
+        this.score = 0;
+        this.greatestHeightReached = 0;
+        this.multiplier = 0;
+        this.points = 0;
     };
     Scoreboard.fontSizeInPx = 200;
     Scoreboard.fontRotation = 0;
@@ -713,6 +748,9 @@ var Viewport = (function () {
         return newRenderables.filter(function (renderable) {
             return renderable.isAlive;
         });
+    };
+    Viewport.prototype.Reset = function () {
+        this.renderOffset = 0;
     };
     return Viewport;
 })();
@@ -768,9 +806,10 @@ var Menu = (function () {
         this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
         return [];
     };
-    Menu.prototype.showMenu = function () {
+    Menu.prototype.showMenu = function (totalPoints) {
         this.isMenuOpen = true;
         this.opacity = 0;
+        this.lastPoints = totalPoints;
     };
     Menu.titleFontSizeInPx = 90;
     Menu.playFontSizeInPx = 50;
@@ -843,6 +882,9 @@ var Renderer = (function () {
             x: this.canvas.width,
             y: this.canvas.height
         }, controller, this.background, function () {
+            _this.player.Reset();
+            _this.platform.Reset();
+            _this.viewport.Reset();
             _this.isRunning = true;
         });
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
@@ -855,7 +897,7 @@ var Renderer = (function () {
             if (_this.player.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
                 _this.isRunning = false;
                 _this.deathSound.play();
-                _this.menu.showMenu();
+                _this.menu.showMenu(_this.scoreboard.totalPoints);
             }
             if (originalOnMove) {
                 originalOnMove(amountMoved);
@@ -890,6 +932,8 @@ var Renderer = (function () {
         }
         this.context.fillStyle = '#FFFFFF';
         this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
+    };
+    Renderer.prototype.SetUpNewGame = function () {
     };
     // Constants
     Renderer.defaultGravity = 0.2;

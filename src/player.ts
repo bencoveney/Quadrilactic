@@ -140,4 +140,13 @@ class Player extends PhysicsBlock {
 		
 		return newRenderables;
 	}
+	
+	public Reset()
+	{
+		super.Reset();
+		
+		this.isJumping = false;
+		this.jumpRotationAmount = 0;
+		this.jumpRotationSpeed = 0;
+	}
 }

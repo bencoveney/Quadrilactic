@@ -49,6 +49,7 @@ declare class Block implements IRenderable {
     private dimensions;
     private internalColor;
     private onMoveCallback;
+    private initialWorldPosition;
     isAlive: boolean;
     xPosition: number;
     yPosition: number;
@@ -69,6 +70,7 @@ declare class Block implements IRenderable {
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string);
     Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Reset(): void;
 }
 interface ISoundOptions {
     volume?: number;
@@ -91,6 +93,7 @@ declare class PhysicsBlock extends Block {
     Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     VerticalBounce(newYSpeed: number): void;
+    Reset(): void;
 }
 declare class Sprite implements IRenderable {
     private image;
@@ -120,6 +123,7 @@ declare class Player extends PhysicsBlock {
     Tick(deltaTime: number): void;
     Bounce(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Reset(): void;
 }
 declare class Background implements IRenderable {
     private renderPosition;
@@ -155,14 +159,16 @@ declare class Scoreboard extends Block {
     private static fontSizeInPx;
     private static fontRotation;
     private static bouncePoints;
+    private static degrees;
     private player;
     private score;
-    private static degrees;
     private greatestHeightReached;
     private multiplier;
     private points;
     constructor(player: Player, worldPosition: MovingPoint, dimensions: Point, color: string);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    totalPoints: number;
+    Reset(): void;
 }
 declare class Viewport {
     private renderContext;
@@ -175,6 +181,7 @@ declare class Viewport {
     SlideUp(amount: number): void;
     Render(): void;
     private RenderSubSet(subSet);
+    Reset(): void;
 }
 declare class Menu implements IRenderable {
     private static titleFontSizeInPx;
@@ -191,11 +198,12 @@ declare class Menu implements IRenderable {
     private controller;
     private onStartGame;
     private opacity;
+    private lastPoints;
     constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void);
     isAlive: boolean;
     private isPointOnButton(point);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-    showMenu(): void;
+    showMenu(totalPoints: number): void;
 }
 declare class Renderer {
     private static defaultGravity;
@@ -221,6 +229,7 @@ declare class Renderer {
     Start(): void;
     private Tick(timestamp);
     private Draw();
+    private SetUpNewGame();
 }
 declare let canvas: HTMLCanvasElement;
 declare let controller: Controller;

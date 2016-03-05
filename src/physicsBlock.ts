@@ -80,4 +80,9 @@ class PhysicsBlock extends Block {
 			this.onBounceCallback();
 		}
 	}
+	
+	public Reset()
+	{
+		super.Reset();
+	}
 }

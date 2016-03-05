@@ -68,4 +68,9 @@ class Viewport {
 			return renderable.isAlive;
 		});
 	}
+	
+	public Reset()
+	{
+		this.renderOffset = 0;
+	}
 }
