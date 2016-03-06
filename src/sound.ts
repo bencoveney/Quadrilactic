@@ -20,4 +20,9 @@ class Sound {
 	{
 		this.sound.play();
 	}
+	
+	public set volume(newVolume: number)
+	{
+		this.sound.volume = newVolume;
+	}
 }

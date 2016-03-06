@@ -59,9 +59,10 @@ var Controller = (function () {
         return this.mousePosition;
     };
     Controller.prototype.getClickPosition = function () {
-        var clickLocation = this.clickLocation;
+        return this.clickLocation;
+    };
+    Controller.prototype.clearClick = function () {
         this.clickLocation = undefined;
-        return clickLocation;
     };
     Controller.keyCodes = {
         32: "space",
@@ -314,6 +315,13 @@ var Sound = (function () {
     Sound.prototype.play = function () {
         this.sound.play();
     };
+    Object.defineProperty(Sound.prototype, "volume", {
+        set: function (newVolume) {
+            this.sound.volume = newVolume;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Sound.defaultVolume = 0.3;
     return Sound;
 })();
@@ -412,15 +420,97 @@ var Sprite = (function () {
     };
     return Sprite;
 })();
+/// <reference path="IRenderable.ts" />
+/// <reference path="controller.ts" />
+/// <reference path="sound.ts" />
+var Volume = (function () {
+    function Volume(renderDimensions, controller) {
+        this.isAlive = true;
+        this.controller = controller;
+        this.soundButtonPosition = {
+            x: renderDimensions.x - 40,
+            y: 10
+        };
+        this.soundButtonDimensions = {
+            x: 30,
+            y: 30
+        };
+        this.opacity = Volume.fadedOpacity;
+        this.level = 2;
+        this.volume0 = new Sprite("img/volume0.png", this.soundButtonDimensions);
+        this.volume1 = new Sprite("img/volume1.png", this.soundButtonDimensions);
+        this.volume2 = new Sprite("img/volume2.png", this.soundButtonDimensions);
+        this.volume3 = new Sprite("img/volume3.png", this.soundButtonDimensions);
+        this.volume4 = new Sprite("img/volume4.png", this.soundButtonDimensions);
+        this.sounds = [];
+    }
+    Volume.prototype.isPointOnButton = function (point) {
+        return point
+            && point.x > this.soundButtonPosition.x
+            && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
+            && point.y > this.soundButtonPosition.y
+            && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
+    };
+    Volume.prototype.Render = function (renderContext) {
+        var mouseClick = this.controller.getClickPosition();
+        if (mouseClick && this.isPointOnButton(mouseClick)) {
+            this.changeVolume();
+        }
+        if (this.isPointOnButton(this.controller.getMousePosition())) {
+            this.opacity = 1;
+        }
+        this.opacity = Math.max(this.opacity - Volume.opacityDecay, Volume.fadedOpacity);
+        renderContext.save();
+        renderContext.globalAlpha = this.opacity;
+        renderContext.translate(this.soundButtonPosition.x, this.soundButtonPosition.y);
+        switch (this.level) {
+            case 0:
+                this.volume0.Render(renderContext);
+                break;
+            case 1:
+                this.volume1.Render(renderContext);
+                break;
+            case 2:
+                this.volume2.Render(renderContext);
+                break;
+            case 3:
+                this.volume3.Render(renderContext);
+                break;
+            case 4:
+                this.volume4.Render(renderContext);
+                break;
+        }
+        renderContext.restore();
+        return [];
+    };
+    Volume.prototype.changeVolume = function () {
+        var _this = this;
+        this.opacity = 1;
+        this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
+        this.sounds.forEach(function (sound) {
+            sound.volume = _this.level / 5;
+        });
+    };
+    Volume.prototype.createSound = function (path, options) {
+        var newSound = new Sound(path, options);
+        newSound.volume = this.level / 5;
+        this.sounds.push(newSound);
+        return newSound;
+    };
+    Volume.opacityDecay = 0.02;
+    Volume.fadedOpacity = 0.4;
+    return Volume;
+})();
 /// <reference path="controller.ts" />
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="sprite.ts" />
 /// <reference path="sound.ts" />
+/// <reference path="volume.ts" />
 var Player = (function (_super) {
     __extends(Player, _super);
-    function Player(worldPosition, dimensions, color, controller, gravity, worldWidth) {
+    function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
         _super.call(this, worldPosition, dimensions, color, gravity, worldWidth);
         this.onBounce = this.Bounce;
         this.controller = controller;
@@ -429,8 +519,8 @@ var Player = (function (_super) {
         this.faceUp = new Sprite("img/faceHappy.png", dimensions);
         this.faceDown = new Sprite("img/faceWorried.png", dimensions);
         this.faceHover = new Sprite("img/faceChill.png", dimensions);
-        this.jump = new Sound("snd/jump.wav", {});
-        this.bounce = new Sound("snd/blip3.wav", {});
+        this.jump = volume.createSound("snd/jump.wav", {});
+        this.bounce = volume.createSound("snd/blip3.wav", {});
     }
     Player.prototype.Tick = function (deltaTime) {
         _super.prototype.Tick.call(this, deltaTime);
@@ -729,7 +819,7 @@ var Viewport = (function () {
             this.renderOffset = this.renderOffset - amount;
         }
     };
-    Viewport.prototype.Render = function () {
+    Viewport.prototype.Render = function (fps) {
         this.renderContext.save();
         this.renderContext.translate(0, this.renderOffset);
         this.backgroundRenderables = this.RenderSubSet(this.backgroundRenderables);
@@ -739,6 +829,10 @@ var Viewport = (function () {
         this.renderContext.translate(0, this.renderOffset);
         this.foregroundRenderables = this.RenderSubSet(this.foregroundRenderables);
         this.renderContext.restore();
+        if (fps) {
+            this.renderContext.fillStyle = '#FFFFFF';
+            this.renderContext.fillText("FPS: " + fps.toString(), 0, 10);
+        }
     };
     Viewport.prototype.RenderSubSet = function (subSet) {
         var newRenderables = subSet;
@@ -767,17 +861,17 @@ var Menu = (function () {
         this.controller = controller;
         this.onStartGame = onStartGame;
         this.opacity = 0;
-        this.buttonPosition = {
+        this.playButtonPosition = {
             x: (renderDimensions.x - Menu.buttonWidth) / 2,
             y: renderDimensions.y - (Menu.buttonHeight * 2)
         };
     }
     Menu.prototype.isPointOnButton = function (point) {
         return point
-            && point.x > this.buttonPosition.x
-            && point.x < this.buttonPosition.x + Menu.buttonWidth
-            && point.y > this.buttonPosition.y
-            && point.y < this.buttonPosition.y + Menu.buttonHeight;
+            && point.x > this.playButtonPosition.x
+            && point.x < this.playButtonPosition.x + Menu.buttonWidth
+            && point.y > this.playButtonPosition.y
+            && point.y < this.playButtonPosition.y + Menu.buttonHeight;
     };
     Menu.prototype.Render = function (renderContext) {
         var mouseClick = this.controller.getClickPosition();
@@ -802,15 +896,15 @@ var Menu = (function () {
             renderContext.restore();
         }
         if (this.isButtonHovered) {
-            renderContext.fillRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+            renderContext.fillRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         }
         renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
         renderContext.lineWidth = 2;
-        renderContext.strokeRect(this.buttonPosition.x, this.buttonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+        renderContext.strokeRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
         renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
         renderContext.textAlign = "center";
-        renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.buttonPosition.y);
+        renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
         renderContext.restore();
         this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
         return [];
@@ -839,6 +933,7 @@ var Menu = (function () {
 /// <reference path="viewport.ts" />
 /// <reference path="sound.ts" />
 /// <reference path="menu.ts" />
+/// <reference path="volume.ts" />
 var Renderer = (function () {
     function Renderer(canvas, controller) {
         var _this = this;
@@ -846,9 +941,14 @@ var Renderer = (function () {
         this.isRunning = false;
         this.canvas = canvas;
         this.context = canvas.getContext("2d");
-        this.backgroundMusic = new Sound("snd/music.wav", { isLooping: true });
+        this.controller = controller;
+        this.volume = new Volume({
+            x: this.canvas.width,
+            y: this.canvas.height
+        }, controller);
+        this.backgroundMusic = this.volume.createSound("snd/music.wav", { isLooping: true });
         this.backgroundMusic.play();
-        this.deathSound = new Sound("snd/death.wav", {});
+        this.deathSound = this.volume.createSound("snd/death.wav", {});
         var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
         var playerPosition = {
             x: 30,
@@ -860,7 +960,7 @@ var Renderer = (function () {
             x: 30,
             y: 30
         };
-        this.player = new Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth);
+        this.player = new Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, this.volume);
         this.background = new Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
         var platformPosition = {
             x: 30,
@@ -932,17 +1032,17 @@ var Renderer = (function () {
             this.platform.Tick(scaledTime);
             Collider.processCollisions([this.player, this.platform]);
         }
+        this.controller.clearClick();
         requestAnimationFrame(function (time) { _this.Tick(time); });
     };
     Renderer.prototype.Draw = function () {
         if (this.isRunning) {
-            this.viewport.Render();
+            this.viewport.Render(this.lastFps);
         }
         else {
             this.menu.Render(this.context);
         }
-        this.context.fillStyle = '#FFFFFF';
-        this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
+        this.volume.Render(this.context);
     };
     Renderer.prototype.SetUpNewGame = function () {
     };

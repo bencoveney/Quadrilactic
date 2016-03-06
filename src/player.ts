@@ -4,6 +4,7 @@
 /// <reference path="IRenderable.ts" />
 /// <reference path="sprite.ts" />
 /// <reference path="sound.ts" />
+/// <reference path="volume.ts" />
 
 class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease = -8;
@@ -30,7 +31,8 @@ class Player extends PhysicsBlock {
 		color: string,
 		controller: Controller,
 		gravity: number,
-		worldWidth: number)
+		worldWidth: number,
+		volume: Volume)
 	{
 		super(worldPosition, dimensions, color, gravity, worldWidth);
 		
@@ -44,8 +46,8 @@ class Player extends PhysicsBlock {
 		this.faceDown = new Sprite("img/faceWorried.png", dimensions);
 		this.faceHover = new Sprite("img/faceChill.png", dimensions);
 		
-		this.jump = new Sound("snd/jump.wav", {});
-		this.bounce = new Sound("snd/blip3.wav", {});
+		this.jump = volume.createSound("snd/jump.wav", {});
+		this.bounce = volume.createSound("snd/blip3.wav", {});
 	}
 	
 	public Tick(deltaTime: number) {

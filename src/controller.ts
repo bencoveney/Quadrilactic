@@ -90,8 +90,11 @@ class Controller {
 	
 	public getClickPosition(): Point
 	{
-		let clickLocation = this.clickLocation;
+		return this.clickLocation;
+	}
+	
+	public clearClick()
+	{
 		this.clickLocation = undefined;
-		return clickLocation;
 	}
 }

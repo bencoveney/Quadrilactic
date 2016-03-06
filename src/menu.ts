@@ -13,8 +13,7 @@ class Menu implements IRenderable {
 	private renderDimensions: Point;
 	private background: Background;
 	private isMenuOpen: boolean;
-	private buttonPosition: Point;
-	private buttonDimensions: Point;
+	private playButtonPosition: Point;
 	private isButtonHovered: boolean;
 	private controller: Controller;
 	private onStartGame: () => void;
@@ -37,10 +36,10 @@ class Menu implements IRenderable {
 		
 		this.opacity = 0;
 		
-		this.buttonPosition = {
+		this.playButtonPosition = {
 			x: (renderDimensions.x - Menu.buttonWidth) / 2,
 			y: renderDimensions.y - (Menu.buttonHeight * 2)
-		}
+		};
 	}
 
 	public isAlive = true;
@@ -48,10 +47,10 @@ class Menu implements IRenderable {
 	private isPointOnButton(point: Point): boolean
 	{
 		return point
-			&& point.x > this.buttonPosition.x
-			&& point.x < this.buttonPosition.x + Menu.buttonWidth
-			&& point.y > this.buttonPosition.y
-			&& point.y < this.buttonPosition.y + Menu.buttonHeight
+			&& point.x > this.playButtonPosition.x
+			&& point.x < this.playButtonPosition.x + Menu.buttonWidth
+			&& point.y > this.playButtonPosition.y
+			&& point.y < this.playButtonPosition.y + Menu.buttonHeight
 	}
 	
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[]
@@ -91,23 +90,23 @@ class Menu implements IRenderable {
 		if(this.isButtonHovered)
 		{
 			renderContext.fillRect(
-				this.buttonPosition.x,
-				this.buttonPosition.y,
+				this.playButtonPosition.x,
+				this.playButtonPosition.y,
 				Menu.buttonWidth,
 				Menu.buttonHeight);
 		}
 		renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
 		renderContext.lineWidth = 2;
 		renderContext.strokeRect(
-			this.buttonPosition.x,
-			this.buttonPosition.y,
+			this.playButtonPosition.x,
+			this.playButtonPosition.y,
 			Menu.buttonWidth,
 			Menu.buttonHeight);
 
 		renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
 		renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
 		renderContext.textAlign = "center";
-		renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.buttonPosition.y);
+		renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
 
 		renderContext.restore();
 		

@@ -25,6 +25,7 @@ declare class Controller {
     isKeyPressed(key: string | string[]): boolean;
     getMousePosition(): Point;
     getClickPosition(): Point;
+    clearClick(): void;
 }
 declare class Particle implements IRenderable {
     private static degrees;
@@ -81,6 +82,7 @@ declare class Sound {
     private sound;
     constructor(path: string, options: ISoundOptions);
     play(): void;
+    volume: number;
 }
 declare class PhysicsBlock extends Block {
     private internalGravity;
@@ -103,6 +105,27 @@ declare class Sprite implements IRenderable {
     private loaded();
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
+declare class Volume implements IRenderable {
+    private static opacityDecay;
+    private static fadedOpacity;
+    private soundButtonPosition;
+    private soundButtonDimensions;
+    private controller;
+    private level;
+    private volume0;
+    private volume1;
+    private volume2;
+    private volume3;
+    private volume4;
+    private opacity;
+    private sounds;
+    constructor(renderDimensions: Point, controller: Controller);
+    isAlive: boolean;
+    private isPointOnButton(point);
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    private changeVolume();
+    createSound(path: string, options: ISoundOptions): Sound;
+}
 declare class Player extends PhysicsBlock {
     private static jumpSpeedIncrease;
     private static degrees;
@@ -119,7 +142,7 @@ declare class Player extends PhysicsBlock {
     private faceUp;
     private faceDown;
     private faceHover;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number);
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number, volume: Volume);
     Tick(deltaTime: number): void;
     Bounce(): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
@@ -179,7 +202,7 @@ declare class Viewport {
     offset: number;
     constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: IRenderable[], backgroundRenderables: IRenderable[], foregroundRenderables: IRenderable[]);
     SlideUp(amount: number): void;
-    Render(): void;
+    Render(fps?: number): void;
     private RenderSubSet(subSet);
     Reset(): void;
 }
@@ -193,8 +216,7 @@ declare class Menu implements IRenderable {
     private renderDimensions;
     private background;
     private isMenuOpen;
-    private buttonPosition;
-    private buttonDimensions;
+    private playButtonPosition;
     private isButtonHovered;
     private controller;
     private onStartGame;
@@ -227,6 +249,8 @@ declare class Renderer {
     private lastFps;
     private backgroundMusic;
     private deathSound;
+    private volume;
+    private controller;
     constructor(canvas: HTMLCanvasElement, controller: Controller);
     Start(): void;
     private Tick(timestamp);

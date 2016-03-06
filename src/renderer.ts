@@ -8,6 +8,7 @@
 /// <reference path="viewport.ts" />
 /// <reference path="sound.ts" />
 /// <reference path="menu.ts" />
+/// <reference path="volume.ts" />
 
 class Renderer {
 	// Constants
@@ -34,15 +35,25 @@ class Renderer {
 	private lastFps: number;
 	private backgroundMusic: Sound;
 	private deathSound: Sound;
+	private volume: Volume;
+	private controller: Controller;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
+		this.controller = controller;
 		
-		this.backgroundMusic = new Sound("snd/music.wav", { isLooping: true });
+		this.volume = new Volume(
+			{ 
+				x: this.canvas.width,
+				y: this.canvas.height
+			}, 
+			controller);
+		
+		this.backgroundMusic = this.volume.createSound("snd/music.wav", { isLooping: true });
 		this.backgroundMusic.play();
 		
-		this.deathSound = new Sound("snd/death.wav", {});
+		this.deathSound = this.volume.createSound("snd/death.wav", {});
 
 		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
 
@@ -62,7 +73,8 @@ class Renderer {
 			"#FF0000",
 			controller,
 			Renderer.defaultGravity,
-			Renderer.gameWidth);
+			Renderer.gameWidth,
+			this.volume);
 
 		this.background = new Background(
 			{ x: 0, y: 0 },
@@ -176,21 +188,22 @@ class Renderer {
 			Collider.processCollisions([this.player, this.platform]);
 		}
 		
+		this.controller.clearClick();
+		
 		requestAnimationFrame((time: number) => { this.Tick(time); });
 	}
 
 	private Draw() {
 		if(this.isRunning)
 		{
-			this.viewport.Render();
+			this.viewport.Render(this.lastFps);
 		}
 		else
 		{
 			this.menu.Render(this.context);
 		}
 		
-		this.context.fillStyle = '#FFFFFF';
-		this.context.fillText("FPS: " + this.lastFps.toString(), 0, 10);
+		this.volume.Render(this.context);
 	}
 	
 	private SetUpNewGame() {

@@ -34,9 +34,8 @@ class Viewport {
 		}
 	}
 	
-	public Render()
+	public Render(fps?: number)
 	{
-		
 		this.renderContext.save();
 		
 		this.renderContext.translate(0, this.renderOffset);
@@ -54,6 +53,12 @@ class Viewport {
 		this.foregroundRenderables = this.RenderSubSet(this.foregroundRenderables);
 
 		this.renderContext.restore();
+		
+		if(fps)
+		{
+			this.renderContext.fillStyle = '#FFFFFF';
+			this.renderContext.fillText("FPS: " + fps.toString(), 0, 10)
+		}
 	}
 	
 	private RenderSubSet(subSet: IRenderable[]): IRenderable[]
