@@ -34,7 +34,7 @@ class Player extends PhysicsBlock {
 		worldWidth: number,
 		volume: Volume)
 	{
-		super(worldPosition, dimensions, color, gravity, worldWidth);
+		super(worldPosition, dimensions, color, gravity, volume, worldWidth);
 		
 		this.onBounce = this.Bounce;
 		

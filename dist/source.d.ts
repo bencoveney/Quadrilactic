@@ -84,27 +84,6 @@ declare class Sound {
     play(): void;
     volume: number;
 }
-declare class PhysicsBlock extends Block {
-    private internalGravity;
-    private onBounceCallback;
-    private worldWidth;
-    private rebound;
-    gravity: number;
-    onBounce: () => void;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, worldWidth?: number);
-    Tick(deltaTime: number): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-    VerticalBounce(newYSpeed: number): void;
-    Reset(): void;
-}
-declare class Sprite implements IRenderable {
-    private image;
-    private dimensions;
-    isAlive: boolean;
-    constructor(imagePath: string, dimensions: Point);
-    private loaded();
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-}
 declare class Volume implements IRenderable {
     private static opacityDecay;
     private static fadedOpacity;
@@ -119,12 +98,34 @@ declare class Volume implements IRenderable {
     private volume4;
     private opacity;
     private sounds;
+    private isVolumeKeyPressed;
     constructor(renderDimensions: Point, controller: Controller);
     isAlive: boolean;
     private isPointOnButton(point);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     private changeVolume();
     createSound(path: string, options: ISoundOptions): Sound;
+}
+declare class PhysicsBlock extends Block {
+    private internalGravity;
+    private onBounceCallback;
+    private worldWidth;
+    private rebound;
+    gravity: number;
+    onBounce: () => void;
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, worldWidth?: number);
+    Tick(deltaTime: number): void;
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    VerticalBounce(newYSpeed: number): void;
+    Reset(): void;
+}
+declare class Sprite implements IRenderable {
+    private image;
+    private dimensions;
+    isAlive: boolean;
+    constructor(imagePath: string, dimensions: Point);
+    private loaded();
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class Player extends PhysicsBlock {
     private static jumpSpeedIncrease;

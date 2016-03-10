@@ -2,6 +2,7 @@
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="sound.ts" />
+/// <reference path="volume.ts" />
 
 class PhysicsBlock extends Block {
 	
@@ -30,6 +31,7 @@ class PhysicsBlock extends Block {
 		dimensions: Point,
 		color: string,
 		gravity: number,
+		volume: Volume,
 		worldWidth?: number)
 	{
 		super(worldPosition, dimensions, color);
@@ -37,7 +39,7 @@ class PhysicsBlock extends Block {
 		this.internalGravity = gravity;
 		this.worldWidth = worldWidth;
 		
-		this.rebound = new Sound("snd/blip.wav", {});
+		this.rebound = volume.createSound("snd/blip.wav", {});
 	}
 	
 	public Tick(deltaTime: number){

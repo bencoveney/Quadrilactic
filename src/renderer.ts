@@ -98,6 +98,7 @@ class Renderer {
 			platformDimensions,
 			"#FFFFFF",
 			-Renderer.defaultGravity,
+			this.volume,
 			Renderer.gameWidth);
 		this.platform.onBounce = () => {
 			if(this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed)

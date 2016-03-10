@@ -23,7 +23,13 @@ A simple HTML5 canvas game built using typescript.
 - Pickups
 - Make the title screen more exciting
 
-# Credits
+## Bugs
+
+When starting a new game
+- Trails are still visible
+- Scoring doesn't work
+
+## Credits
 
 Background music from [Section 31](http://opengameart.org/content/robotic-city-v2)
 

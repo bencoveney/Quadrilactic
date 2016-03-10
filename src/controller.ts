@@ -8,6 +8,8 @@ class Controller {
 		39: "right",
 		65: "a",
 		68: "d",
+		77: "m",
+		86: "v",
 		87: "w"
 	}
 	
@@ -18,6 +20,8 @@ class Controller {
 		right: false,
 		a: false,
 		d: false,
+		m: false,
+		v: false,
 		w: false
 	};
 	

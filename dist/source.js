@@ -9,6 +9,8 @@ var Controller = (function () {
             right: false,
             a: false,
             d: false,
+            m: false,
+            v: false,
             w: false
         };
         this.canvas = canvas;
@@ -71,6 +73,8 @@ var Controller = (function () {
         39: "right",
         65: "a",
         68: "d",
+        77: "m",
+        86: "v",
         87: "w"
     };
     return Controller;
@@ -325,10 +329,102 @@ var Sound = (function () {
     Sound.defaultVolume = 0.3;
     return Sound;
 })();
+/// <reference path="IRenderable.ts" />
+/// <reference path="controller.ts" />
+/// <reference path="sound.ts" />
+var Volume = (function () {
+    function Volume(renderDimensions, controller) {
+        this.isAlive = true;
+        this.controller = controller;
+        this.soundButtonPosition = {
+            x: renderDimensions.x - 40,
+            y: 10
+        };
+        this.soundButtonDimensions = {
+            x: 30,
+            y: 30
+        };
+        this.opacity = Volume.fadedOpacity;
+        this.level = 2;
+        this.volume0 = new Sprite("img/volume0.png", this.soundButtonDimensions);
+        this.volume1 = new Sprite("img/volume1.png", this.soundButtonDimensions);
+        this.volume2 = new Sprite("img/volume2.png", this.soundButtonDimensions);
+        this.volume3 = new Sprite("img/volume3.png", this.soundButtonDimensions);
+        this.volume4 = new Sprite("img/volume4.png", this.soundButtonDimensions);
+        this.isVolumeKeyPressed = false;
+        this.sounds = [];
+    }
+    Volume.prototype.isPointOnButton = function (point) {
+        return point
+            && point.x > this.soundButtonPosition.x
+            && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
+            && point.y > this.soundButtonPosition.y
+            && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
+    };
+    Volume.prototype.Render = function (renderContext) {
+        var mouseClick = this.controller.getClickPosition();
+        if (mouseClick && this.isPointOnButton(mouseClick)) {
+            this.changeVolume();
+        }
+        if (this.isPointOnButton(this.controller.getMousePosition())) {
+            this.opacity = 1;
+        }
+        if (this.controller.isKeyPressed(["m", "v"])) {
+            if (!this.isVolumeKeyPressed) {
+                this.changeVolume();
+                this.isVolumeKeyPressed = true;
+            }
+        }
+        else {
+            this.isVolumeKeyPressed = false;
+        }
+        this.opacity = Math.max(this.opacity - Volume.opacityDecay, Volume.fadedOpacity);
+        renderContext.save();
+        renderContext.globalAlpha = this.opacity;
+        renderContext.translate(this.soundButtonPosition.x, this.soundButtonPosition.y);
+        switch (this.level) {
+            case 0:
+                this.volume0.Render(renderContext);
+                break;
+            case 1:
+                this.volume1.Render(renderContext);
+                break;
+            case 2:
+                this.volume2.Render(renderContext);
+                break;
+            case 3:
+                this.volume3.Render(renderContext);
+                break;
+            case 4:
+                this.volume4.Render(renderContext);
+                break;
+        }
+        renderContext.restore();
+        return [];
+    };
+    Volume.prototype.changeVolume = function () {
+        var _this = this;
+        this.opacity = 1;
+        this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
+        this.sounds.forEach(function (sound) {
+            sound.volume = _this.level / 5;
+        });
+    };
+    Volume.prototype.createSound = function (path, options) {
+        var newSound = new Sound(path, options);
+        newSound.volume = this.level / 5;
+        this.sounds.push(newSound);
+        return newSound;
+    };
+    Volume.opacityDecay = 0.02;
+    Volume.fadedOpacity = 0.4;
+    return Volume;
+})();
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
 /// <reference path="IRenderable.ts" />
 /// <reference path="sound.ts" />
+/// <reference path="volume.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -336,11 +432,11 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var PhysicsBlock = (function (_super) {
     __extends(PhysicsBlock, _super);
-    function PhysicsBlock(worldPosition, dimensions, color, gravity, worldWidth) {
+    function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, worldWidth) {
         _super.call(this, worldPosition, dimensions, color);
         this.internalGravity = gravity;
         this.worldWidth = worldWidth;
-        this.rebound = new Sound("snd/blip.wav", {});
+        this.rebound = volume.createSound("snd/blip.wav", {});
     }
     Object.defineProperty(PhysicsBlock.prototype, "gravity", {
         get: function () {
@@ -420,87 +516,6 @@ var Sprite = (function () {
     };
     return Sprite;
 })();
-/// <reference path="IRenderable.ts" />
-/// <reference path="controller.ts" />
-/// <reference path="sound.ts" />
-var Volume = (function () {
-    function Volume(renderDimensions, controller) {
-        this.isAlive = true;
-        this.controller = controller;
-        this.soundButtonPosition = {
-            x: renderDimensions.x - 40,
-            y: 10
-        };
-        this.soundButtonDimensions = {
-            x: 30,
-            y: 30
-        };
-        this.opacity = Volume.fadedOpacity;
-        this.level = 2;
-        this.volume0 = new Sprite("img/volume0.png", this.soundButtonDimensions);
-        this.volume1 = new Sprite("img/volume1.png", this.soundButtonDimensions);
-        this.volume2 = new Sprite("img/volume2.png", this.soundButtonDimensions);
-        this.volume3 = new Sprite("img/volume3.png", this.soundButtonDimensions);
-        this.volume4 = new Sprite("img/volume4.png", this.soundButtonDimensions);
-        this.sounds = [];
-    }
-    Volume.prototype.isPointOnButton = function (point) {
-        return point
-            && point.x > this.soundButtonPosition.x
-            && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
-            && point.y > this.soundButtonPosition.y
-            && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
-    };
-    Volume.prototype.Render = function (renderContext) {
-        var mouseClick = this.controller.getClickPosition();
-        if (mouseClick && this.isPointOnButton(mouseClick)) {
-            this.changeVolume();
-        }
-        if (this.isPointOnButton(this.controller.getMousePosition())) {
-            this.opacity = 1;
-        }
-        this.opacity = Math.max(this.opacity - Volume.opacityDecay, Volume.fadedOpacity);
-        renderContext.save();
-        renderContext.globalAlpha = this.opacity;
-        renderContext.translate(this.soundButtonPosition.x, this.soundButtonPosition.y);
-        switch (this.level) {
-            case 0:
-                this.volume0.Render(renderContext);
-                break;
-            case 1:
-                this.volume1.Render(renderContext);
-                break;
-            case 2:
-                this.volume2.Render(renderContext);
-                break;
-            case 3:
-                this.volume3.Render(renderContext);
-                break;
-            case 4:
-                this.volume4.Render(renderContext);
-                break;
-        }
-        renderContext.restore();
-        return [];
-    };
-    Volume.prototype.changeVolume = function () {
-        var _this = this;
-        this.opacity = 1;
-        this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
-        this.sounds.forEach(function (sound) {
-            sound.volume = _this.level / 5;
-        });
-    };
-    Volume.prototype.createSound = function (path, options) {
-        var newSound = new Sound(path, options);
-        newSound.volume = this.level / 5;
-        this.sounds.push(newSound);
-        return newSound;
-    };
-    Volume.opacityDecay = 0.02;
-    Volume.fadedOpacity = 0.4;
-    return Volume;
-})();
 /// <reference path="controller.ts" />
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
@@ -511,7 +526,7 @@ var Volume = (function () {
 var Player = (function (_super) {
     __extends(Player, _super);
     function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
-        _super.call(this, worldPosition, dimensions, color, gravity, worldWidth);
+        _super.call(this, worldPosition, dimensions, color, gravity, volume, worldWidth);
         this.onBounce = this.Bounce;
         this.controller = controller;
         this.isJumping = false;
@@ -972,7 +987,7 @@ var Renderer = (function () {
             x: 90,
             y: 20
         };
-        this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, Renderer.gameWidth);
+        this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, this.volume, Renderer.gameWidth);
         this.platform.onBounce = function () {
             if (_this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed) {
                 _this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;

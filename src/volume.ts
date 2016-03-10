@@ -15,7 +15,8 @@ class Volume implements IRenderable {
 	private volume3: Sprite;
 	private volume4: Sprite;
 	private opacity: number;
-	private sounds: Sound[]
+	private sounds: Sound[];
+	private isVolumeKeyPressed;
 
 	public constructor(renderDimensions: Point, controller: Controller)
 	{
@@ -39,6 +40,8 @@ class Volume implements IRenderable {
 		this.volume2 = new Sprite("img/volume2.png", this.soundButtonDimensions);
 		this.volume3 = new Sprite("img/volume3.png", this.soundButtonDimensions);
 		this.volume4 = new Sprite("img/volume4.png", this.soundButtonDimensions);
+		
+		this.isVolumeKeyPressed = false;
 		
 		this.sounds = [];
 	}
@@ -65,6 +68,19 @@ class Volume implements IRenderable {
 		if(this.isPointOnButton(this.controller.getMousePosition()))
 		{
 			this.opacity = 1;
+		}
+		
+		if(this.controller.isKeyPressed(["m", "v"]))
+		{
+			if(!this.isVolumeKeyPressed)
+			{
+				this.changeVolume();
+				this.isVolumeKeyPressed = true;
+			}
+		}
+		else
+		{
+			this.isVolumeKeyPressed = false;
 		}
 		
 		this.opacity = Math.max(this.opacity - Volume.opacityDecay, Volume.fadedOpacity)
