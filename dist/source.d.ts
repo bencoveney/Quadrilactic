@@ -46,11 +46,14 @@ declare class Block implements IRenderable {
     private static verticalSpeedLimit;
     private static horizontalSpeedLimit;
     private static horizontalSpeedSlowDown;
+    private static skewScale;
+    private static skewReduction;
     private worldPosition;
     private dimensions;
     private internalColor;
     private onMoveCallback;
     private initialWorldPosition;
+    protected skew: number;
     isAlive: boolean;
     xPosition: number;
     yPosition: number;

@@ -76,6 +76,8 @@ class PhysicsBlock extends Block {
 	public VerticalBounce(newYSpeed: number) {
 		this.ySpeed = newYSpeed;
 		
+		this.skew = 10;
+		
 		// Allow insertion of bouncing code
 		if(this.onBounceCallback)
 		{

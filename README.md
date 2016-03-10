@@ -6,7 +6,6 @@ A simple HTML5 canvas game built using typescript.
 
 ## Todo List
 
-- Control volume with keyboard
 - Start game with keyboard
 - Instructions on menu screen
 - Increase difficulty as player climbs

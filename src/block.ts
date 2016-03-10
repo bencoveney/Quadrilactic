@@ -8,6 +8,8 @@ class Block implements IRenderable {
 	private static verticalSpeedLimit = 12;
 	private static horizontalSpeedLimit = 5;
 	private static horizontalSpeedSlowDown = 0.1;
+	private static skewScale = 0.07;
+	private static skewReduction = 0.3;
 
 	// Private members
 	private worldPosition: MovingPoint;
@@ -15,6 +17,7 @@ class Block implements IRenderable {
 	private internalColor: string;
 	private onMoveCallback: (amountMoved: Point) => void;
 	private initialWorldPosition: MovingPoint;
+	protected skew: number;
 
 	public isAlive = true;
 
@@ -104,6 +107,8 @@ class Block implements IRenderable {
 			dX: worldPosition.dX,
 			dY: worldPosition.dY
 		};
+		
+		this.skew = 0;
 	}
 
 	public Tick(deltaTime: number){
@@ -116,6 +121,8 @@ class Block implements IRenderable {
 			// The amount moved this tick is the same as the speed.
 			this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
 		}
+		
+		this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime))
 
 		// Clamp the speed to the speed limit.
 		this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
@@ -127,8 +134,20 @@ class Block implements IRenderable {
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
 
 		renderContext.beginPath();
+		
+		let skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
+		skewAdjustment = skewAdjustment * this.skew;
+		
+		let widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
+		let heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
+		
+		let adjustedWidth = this.width - widthAdjustment;
+		let adjustedHeight = this.height + heightAdjustment;
 
-		renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
+		let adjustedX = this.xPosition + (widthAdjustment / 2);
+		let adjustedY = this.yPosition - (heightAdjustment / 2);
+
+		renderContext.rect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
 
 		renderContext.fillStyle = this.fillColor;
 		renderContext.fill();
@@ -136,13 +155,13 @@ class Block implements IRenderable {
 		renderContext.closePath();
 
 		let particle = new Particle(
-			this.xPosition,
-			this.yPosition,
-			this.width,
-			this.height,
+			adjustedX,
+			adjustedY,
+			adjustedWidth,
+			adjustedHeight,
 			0,
 			this.fillColor,
-			0.1);
+			0.15);
 
 		return [particle] as IRenderable[];
 	}

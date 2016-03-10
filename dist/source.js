@@ -145,6 +145,7 @@ var Block = (function () {
             dX: worldPosition.dX,
             dY: worldPosition.dY
         };
+        this.skew = 0;
     }
     Object.defineProperty(Block.prototype, "xPosition", {
         // Position properties
@@ -279,6 +280,7 @@ var Block = (function () {
             // The amount moved this tick is the same as the speed.
             this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
         }
+        this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime));
         // Clamp the speed to the speed limit.
         this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
         this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
@@ -287,11 +289,19 @@ var Block = (function () {
     };
     Block.prototype.Render = function (renderContext) {
         renderContext.beginPath();
-        renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
+        var skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
+        skewAdjustment = skewAdjustment * this.skew;
+        var widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
+        var heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
+        var adjustedWidth = this.width - widthAdjustment;
+        var adjustedHeight = this.height + heightAdjustment;
+        var adjustedX = this.xPosition + (widthAdjustment / 2);
+        var adjustedY = this.yPosition - (heightAdjustment / 2);
+        renderContext.rect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
         renderContext.fillStyle = this.fillColor;
         renderContext.fill();
         renderContext.closePath();
-        var particle = new Particle(this.xPosition, this.yPosition, this.width, this.height, 0, this.fillColor, 0.1);
+        var particle = new Particle(adjustedX, adjustedY, adjustedWidth, adjustedHeight, 0, this.fillColor, 0.15);
         return [particle];
     };
     Block.prototype.Reset = function () {
@@ -306,6 +316,8 @@ var Block = (function () {
     Block.verticalSpeedLimit = 12;
     Block.horizontalSpeedLimit = 5;
     Block.horizontalSpeedSlowDown = 0.1;
+    Block.skewScale = 0.07;
+    Block.skewReduction = 0.3;
     // Constants
     Block.strokeColor = "#000000";
     return Block;
@@ -482,6 +494,7 @@ var PhysicsBlock = (function (_super) {
     };
     PhysicsBlock.prototype.VerticalBounce = function (newYSpeed) {
         this.ySpeed = newYSpeed;
+        this.skew = 10;
         // Allow insertion of bouncing code
         if (this.onBounceCallback) {
             this.onBounceCallback();
