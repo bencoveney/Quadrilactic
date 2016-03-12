@@ -3,7 +3,7 @@
 
 class Sprite implements IRenderable {
 	private image: HTMLImageElement;
-	private dimensions: Point;
+	private internalDimensions: Point;
 	public isAlive: boolean = true;
 	
 	constructor(imagePath: string, dimensions: Point)
@@ -13,6 +13,11 @@ class Sprite implements IRenderable {
 		this.image.src = imagePath;
 		
 		this.dimensions = dimensions;
+	}
+	
+	public set dimensions(dimensions: Point)
+	{
+		this.internalDimensions = dimensions;
 	}
 	
 	private loaded()
@@ -32,8 +37,8 @@ class Sprite implements IRenderable {
 			// Destination dimensions
 			0,
 			0,
-			this.dimensions.x,
-			this.dimensions.y);
+			this.internalDimensions.x,
+			this.internalDimensions.y);
 
 		return [];
 	}

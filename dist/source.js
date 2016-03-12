@@ -139,6 +139,7 @@ var Block = (function () {
         this.worldPosition = worldPosition;
         this.dimensions = dimensions;
         this.internalColor = color;
+        this.verticalSpeedLimit = Block.verticalSpeedLimit;
         this.initialWorldPosition = {
             x: worldPosition.x,
             y: worldPosition.y,
@@ -264,6 +265,22 @@ var Block = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Block.prototype, "skewedPosition", {
+        get: function () {
+            var skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
+            skewAdjustment = skewAdjustment * this.skew;
+            var widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
+            var heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
+            return {
+                x: this.xPosition + (widthAdjustment / 2),
+                y: this.yPosition - (heightAdjustment / 2),
+                width: this.width - widthAdjustment,
+                height: this.height + heightAdjustment
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Block.prototype, "direction", {
         // Direction properties
         get: function () {
@@ -281,27 +298,21 @@ var Block = (function () {
             this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
         }
         this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime));
+        this.verticalSpeedLimit += Block.verticalSpeedLimitDelta * deltaTime;
         // Clamp the speed to the speed limit.
-        this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
-        this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
+        this.ySpeed = Math.min(this.ySpeed, this.verticalSpeedLimit);
+        this.ySpeed = Math.max(this.ySpeed, -this.verticalSpeedLimit);
         this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
         this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
     };
     Block.prototype.Render = function (renderContext) {
         renderContext.beginPath();
-        var skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
-        skewAdjustment = skewAdjustment * this.skew;
-        var widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
-        var heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
-        var adjustedWidth = this.width - widthAdjustment;
-        var adjustedHeight = this.height + heightAdjustment;
-        var adjustedX = this.xPosition + (widthAdjustment / 2);
-        var adjustedY = this.yPosition - (heightAdjustment / 2);
-        renderContext.rect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+        var skewedPosition = this.skewedPosition;
+        renderContext.rect(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height);
         renderContext.fillStyle = this.fillColor;
         renderContext.fill();
         renderContext.closePath();
-        var particle = new Particle(adjustedX, adjustedY, adjustedWidth, adjustedHeight, 0, this.fillColor, 0.15);
+        var particle = new Particle(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height, 0, this.fillColor, 0.15);
         return [particle];
     };
     Block.prototype.Reset = function () {
@@ -311,9 +322,11 @@ var Block = (function () {
             dX: this.initialWorldPosition.dX,
             dY: this.initialWorldPosition.dY
         };
+        this.verticalSpeedLimit = Block.verticalSpeedLimit;
     };
     // Constants
-    Block.verticalSpeedLimit = 12;
+    Block.verticalSpeedLimit = 10;
+    Block.verticalSpeedLimitDelta = 0.01;
     Block.horizontalSpeedLimit = 5;
     Block.horizontalSpeedSlowDown = 0.1;
     Block.skewScale = 0.07;
@@ -476,6 +489,7 @@ var PhysicsBlock = (function (_super) {
         if (this.right > this.worldWidth) {
             this.rebound.play();
             // Clamp on screen, invert horizontal speed
+            this.skew += 3;
             this.xPosition = this.worldWidth - this.width;
             this.xSpeed = -Math.abs(this.xSpeed);
         }
@@ -484,6 +498,7 @@ var PhysicsBlock = (function (_super) {
             this.rebound.play();
             // Clamp on screen, invert horizontal speed
             this.xPosition = 0;
+            this.skew += 3;
             this.xSpeed = Math.abs(this.xSpeed);
         }
         // Apply acceleration due to gravity
@@ -494,7 +509,7 @@ var PhysicsBlock = (function (_super) {
     };
     PhysicsBlock.prototype.VerticalBounce = function (newYSpeed) {
         this.ySpeed = newYSpeed;
-        this.skew = 10;
+        this.skew += 10;
         // Allow insertion of bouncing code
         if (this.onBounceCallback) {
             this.onBounceCallback();
@@ -516,6 +531,13 @@ var Sprite = (function () {
         this.image.src = imagePath;
         this.dimensions = dimensions;
     }
+    Object.defineProperty(Sprite.prototype, "dimensions", {
+        set: function (dimensions) {
+            this.internalDimensions = dimensions;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Sprite.prototype.loaded = function () {
         console.log("Loaded: " + this.image.src);
     };
@@ -524,7 +546,7 @@ var Sprite = (function () {
         // Source dimensions
         0, 0, this.image.width, this.image.height, 
         // Destination dimensions
-        0, 0, this.dimensions.x, this.dimensions.y);
+        0, 0, this.internalDimensions.x, this.internalDimensions.y);
         return [];
     };
     return Sprite;
@@ -611,7 +633,12 @@ var Player = (function (_super) {
         renderContext.translate(this.centerXPosition, this.centerYPosition);
         renderContext.rotate(this.jumpRotationAmount * Player.degrees);
         renderContext.translate(-this.centerXPosition, -this.centerYPosition);
-        renderContext.translate(this.left, this.top);
+        var skewedPosition = this.skewedPosition;
+        renderContext.translate(skewedPosition.x, skewedPosition.y);
+        faceSprite.dimensions = {
+            x: skewedPosition.width,
+            y: skewedPosition.height
+        };
         newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
         renderContext.restore();
         return newRenderables;

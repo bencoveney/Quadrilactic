@@ -51,6 +51,7 @@ class PhysicsBlock extends Block {
 			this.rebound.play();
 			
 			// Clamp on screen, invert horizontal speed
+			this.skew += 3;
 			this.xPosition = this.worldWidth - this.width;
 			this.xSpeed = -Math.abs(this.xSpeed);
 		}
@@ -62,6 +63,7 @@ class PhysicsBlock extends Block {
 			
 			// Clamp on screen, invert horizontal speed
 			this.xPosition = 0;
+			this.skew += 3;
 			this.xSpeed = Math.abs(this.xSpeed); 
 		}
 		
@@ -76,7 +78,7 @@ class PhysicsBlock extends Block {
 	public VerticalBounce(newYSpeed: number) {
 		this.ySpeed = newYSpeed;
 		
-		this.skew = 10;
+		this.skew += 10;
 		
 		// Allow insertion of bouncing code
 		if(this.onBounceCallback)

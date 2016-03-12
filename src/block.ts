@@ -5,7 +5,8 @@
 
 class Block implements IRenderable {
 	// Constants
-	private static verticalSpeedLimit = 12;
+	private static verticalSpeedLimit = 10;
+	private static verticalSpeedLimitDelta = 0.01;
 	private static horizontalSpeedLimit = 5;
 	private static horizontalSpeedSlowDown = 0.1;
 	private static skewScale = 0.07;
@@ -17,6 +18,7 @@ class Block implements IRenderable {
 	private internalColor: string;
 	private onMoveCallback: (amountMoved: Point) => void;
 	private initialWorldPosition: MovingPoint;
+	private verticalSpeedLimit: number;
 	protected skew: number;
 
 	public isAlive = true;
@@ -87,6 +89,27 @@ class Block implements IRenderable {
 	set onMove(newValue: (amountMoved: Point) => void) {
 		this.onMoveCallback = newValue;
 	}
+	
+	get skewedPosition(): {
+		x: number,
+		y: number,
+		width: number,
+		height: number
+	}
+	{
+		let skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
+		skewAdjustment = skewAdjustment * this.skew;
+
+		let widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
+		let heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
+
+		return {
+			x: this.xPosition + (widthAdjustment / 2),
+			y: this.yPosition - (heightAdjustment / 2),
+			width: this.width - widthAdjustment,
+			height: this.height + heightAdjustment
+		};
+	}
 
 	// Direction properties
 	get direction(): string {
@@ -100,6 +123,8 @@ class Block implements IRenderable {
 		this.worldPosition = worldPosition;
 		this.dimensions = dimensions;
 		this.internalColor = color;
+
+		this.verticalSpeedLimit = Block.verticalSpeedLimit;
 
 		this.initialWorldPosition = {
 			x: worldPosition.x,
@@ -123,10 +148,12 @@ class Block implements IRenderable {
 		}
 		
 		this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime))
+		
+		this.verticalSpeedLimit += Block.verticalSpeedLimitDelta * deltaTime;
 
 		// Clamp the speed to the speed limit.
-		this.ySpeed = Math.min(this.ySpeed, Block.verticalSpeedLimit);
-		this.ySpeed = Math.max(this.ySpeed, -Block.verticalSpeedLimit);
+		this.ySpeed = Math.min(this.ySpeed, this.verticalSpeedLimit);
+		this.ySpeed = Math.max(this.ySpeed, -this.verticalSpeedLimit);
 		this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
 		this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
 	}
@@ -135,19 +162,13 @@ class Block implements IRenderable {
 
 		renderContext.beginPath();
 		
-		let skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
-		skewAdjustment = skewAdjustment * this.skew;
-		
-		let widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
-		let heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
-		
-		let adjustedWidth = this.width - widthAdjustment;
-		let adjustedHeight = this.height + heightAdjustment;
+		let skewedPosition = this.skewedPosition;
 
-		let adjustedX = this.xPosition + (widthAdjustment / 2);
-		let adjustedY = this.yPosition - (heightAdjustment / 2);
-
-		renderContext.rect(adjustedX, adjustedY, adjustedWidth, adjustedHeight);
+		renderContext.rect(
+			skewedPosition.x,
+			skewedPosition.y,
+			skewedPosition.width,
+			skewedPosition.height);
 
 		renderContext.fillStyle = this.fillColor;
 		renderContext.fill();
@@ -155,10 +176,10 @@ class Block implements IRenderable {
 		renderContext.closePath();
 
 		let particle = new Particle(
-			adjustedX,
-			adjustedY,
-			adjustedWidth,
-			adjustedHeight,
+			skewedPosition.x,
+			skewedPosition.y,
+			skewedPosition.width,
+			skewedPosition.height,
 			0,
 			this.fillColor,
 			0.15);
@@ -174,5 +195,7 @@ class Block implements IRenderable {
 			dX: this.initialWorldPosition.dX,
 			dY: this.initialWorldPosition.dY
 		};
+
+		this.verticalSpeedLimit = Block.verticalSpeedLimit;
 	}
 }

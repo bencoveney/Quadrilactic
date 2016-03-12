@@ -44,6 +44,7 @@ declare class Particle implements IRenderable {
 }
 declare class Block implements IRenderable {
     private static verticalSpeedLimit;
+    private static verticalSpeedLimitDelta;
     private static horizontalSpeedLimit;
     private static horizontalSpeedSlowDown;
     private static skewScale;
@@ -53,6 +54,7 @@ declare class Block implements IRenderable {
     private internalColor;
     private onMoveCallback;
     private initialWorldPosition;
+    private verticalSpeedLimit;
     protected skew: number;
     isAlive: boolean;
     xPosition: number;
@@ -69,6 +71,12 @@ declare class Block implements IRenderable {
     centerXPosition: number;
     centerYPosition: number;
     onMove: (amountMoved: Point) => void;
+    skewedPosition: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
     direction: string;
     private static strokeColor;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string);
@@ -124,9 +132,10 @@ declare class PhysicsBlock extends Block {
 }
 declare class Sprite implements IRenderable {
     private image;
-    private dimensions;
+    private internalDimensions;
     isAlive: boolean;
     constructor(imagePath: string, dimensions: Point);
+    dimensions: Point;
     private loaded();
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }

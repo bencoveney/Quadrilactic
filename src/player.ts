@@ -133,8 +133,15 @@ class Player extends PhysicsBlock {
 		renderContext.translate(this.centerXPosition, this.centerYPosition);
 		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
 		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+		
+		let skewedPosition = this.skewedPosition;
 
-		renderContext.translate(this.left, this.top);
+		renderContext.translate(skewedPosition.x, skewedPosition.y);
+		
+		faceSprite.dimensions = {
+			x: skewedPosition.width,
+			y: skewedPosition.height
+		};
 		
 		newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
 		
