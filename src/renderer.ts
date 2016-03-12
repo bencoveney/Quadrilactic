@@ -59,7 +59,7 @@ class Renderer {
 
 		let playerPosition: MovingPoint = {
 			x: 30,
-			y: 100,
+			y: 110,
 			dX: 2,
 			dY: -2
 		};
@@ -85,7 +85,7 @@ class Renderer {
 
 		let platformPosition: MovingPoint = {
 			x: 30,
-			y: 700,
+			y: 690,
 			dX: 2,
 			dY: 2
 		};
@@ -135,6 +135,7 @@ class Renderer {
 				this.player.Reset();
 				this.platform.Reset();
 				this.viewport.Reset();
+				this.scoreboard.Reset();
 				this.isRunning = true;
 			}
 		);

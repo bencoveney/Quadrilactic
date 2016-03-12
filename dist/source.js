@@ -1007,7 +1007,7 @@ var Renderer = (function () {
         var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
         var playerPosition = {
             x: 30,
-            y: 100,
+            y: 110,
             dX: 2,
             dY: -2
         };
@@ -1019,7 +1019,7 @@ var Renderer = (function () {
         this.background = new Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
         var platformPosition = {
             x: 30,
-            y: 700,
+            y: 690,
             dX: 2,
             dY: 2
         };
@@ -1051,6 +1051,7 @@ var Renderer = (function () {
             _this.player.Reset();
             _this.platform.Reset();
             _this.viewport.Reset();
+            _this.scoreboard.Reset();
             _this.isRunning = true;
         });
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);

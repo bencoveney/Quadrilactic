@@ -8,7 +8,6 @@ A simple HTML5 canvas game built using typescript.
 
 - Start game with keyboard
 - Instructions on menu screen
-- Increase difficulty as player climbs
 - Develop horizontal platform speed
 - Pointer to off-screen platform
 - Release!
@@ -21,6 +20,7 @@ A simple HTML5 canvas game built using typescript.
   - Component Entity System
 - Pickups
 - Make the title screen more exciting
+- Prompt for player to start jumping
 
 ## Bugs
 
