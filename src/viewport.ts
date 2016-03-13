@@ -6,6 +6,8 @@ class Viewport {
 	private fixedRenderables: IRenderable[];
 	private backgroundRenderables: IRenderable[];
 	private foregroundRenderables: IRenderable[];
+	private initialBackgroundRenderables: IRenderable[];
+	private initialForegroundRenderables: IRenderable[];
 	private renderOffset: number;
 	
 	public get offset(): number
@@ -23,6 +25,8 @@ class Viewport {
 		this.fixedRenderables = fixedRenderables;
 		this.backgroundRenderables = backgroundRenderables;
 		this.foregroundRenderables = foregroundRenderables;
+		this.initialBackgroundRenderables = [].concat(backgroundRenderables);
+		this.initialForegroundRenderables = [].concat(foregroundRenderables);
 		this.renderOffset = 0;
 	}
 	
@@ -77,5 +81,7 @@ class Viewport {
 	public Reset()
 	{
 		this.renderOffset = 0;
+		this.backgroundRenderables = [].concat(this.initialBackgroundRenderables);
+		this.foregroundRenderables = [].concat(this.initialForegroundRenderables);
 	}
 }

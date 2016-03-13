@@ -860,6 +860,8 @@ var Viewport = (function () {
         this.fixedRenderables = fixedRenderables;
         this.backgroundRenderables = backgroundRenderables;
         this.foregroundRenderables = foregroundRenderables;
+        this.initialBackgroundRenderables = [].concat(backgroundRenderables);
+        this.initialForegroundRenderables = [].concat(foregroundRenderables);
         this.renderOffset = 0;
     }
     Object.defineProperty(Viewport.prototype, "offset", {
@@ -900,6 +902,8 @@ var Viewport = (function () {
     };
     Viewport.prototype.Reset = function () {
         this.renderOffset = 0;
+        this.backgroundRenderables = [].concat(this.initialBackgroundRenderables);
+        this.foregroundRenderables = [].concat(this.initialForegroundRenderables);
     };
     return Viewport;
 })();

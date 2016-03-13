@@ -24,9 +24,7 @@ A simple HTML5 canvas game built using typescript.
 
 ## Bugs
 
-When starting a new game
-- Trails are still visible
-- Scoring doesn't work
+Possible to fall of bottom of screen.
 
 ## Credits
 

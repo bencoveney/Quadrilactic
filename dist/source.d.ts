@@ -211,6 +211,8 @@ declare class Viewport {
     private fixedRenderables;
     private backgroundRenderables;
     private foregroundRenderables;
+    private initialBackgroundRenderables;
+    private initialForegroundRenderables;
     private renderOffset;
     offset: number;
     constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: IRenderable[], backgroundRenderables: IRenderable[], foregroundRenderables: IRenderable[]);
