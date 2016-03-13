@@ -9,6 +9,7 @@
 /// <reference path="sound.ts" />
 /// <reference path="menu.ts" />
 /// <reference path="volume.ts" />
+/// <reference path="platform.ts" />
 
 class Renderer {
 	// Constants
@@ -26,7 +27,7 @@ class Renderer {
 	// State
 	private isRunning: boolean = false;
 	private player: Player;
-	private platform: PhysicsBlock;
+	private platform: Platform;
 	private scoreboard: Scoreboard;
 	private background: Background;
 	private menu: Menu;
@@ -93,7 +94,7 @@ class Renderer {
 			x: 90,
 			y: 20
 		}
-		this.platform = new PhysicsBlock(
+		this.platform = new Platform(
 			platformPosition,
 			platformDimensions,
 			"#FFFFFF",
@@ -146,6 +147,8 @@ class Renderer {
 			[],
 			[this.player, this.platform]
 		)
+		
+		this.platform.viewport = this.viewport;
 
 		let originalOnMove = this.player.onMove
 		this.player.onMove = (amountMoved: Point) => {
@@ -154,7 +157,7 @@ class Renderer {
 				this.viewport.SlideUp(amountMoved.y);
 				this.background.SlideUp(amountMoved.y);
 			}
-			
+
 			if(this.player.yPosition > -(this.viewport.offset - this.canvas.height))
 			{
 				this.isRunning = false;

@@ -214,6 +214,7 @@ declare class Viewport {
     private initialBackgroundRenderables;
     private initialForegroundRenderables;
     private renderOffset;
+    renderDimensions: Point;
     offset: number;
     constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: IRenderable[], backgroundRenderables: IRenderable[], foregroundRenderables: IRenderable[]);
     SlideUp(amount: number): void;
@@ -243,6 +244,13 @@ declare class Menu implements IRenderable {
     private isPointOnButton(point);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     showMenu(totalPoints: number, scoreColor: string): void;
+}
+declare class Platform extends PhysicsBlock {
+    viewport: Viewport;
+    private bottomOfScreen;
+    private offscreenAmount;
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, worldWidth: number);
+    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class Renderer {
     private static defaultGravity;

@@ -9,7 +9,6 @@ A simple HTML5 canvas game built using typescript.
 - Start game with keyboard
 - Instructions on menu screen
 - Develop horizontal platform speed
-- Pointer to off-screen platform
 - Release!
 
 ## Nice To Have
@@ -21,6 +20,8 @@ A simple HTML5 canvas game built using typescript.
 - Pickups
 - Make the title screen more exciting
 - Prompt for player to start jumping
+- Screenshake on bounce
+- More particles (eg on bounce)
 
 ## Bugs
 

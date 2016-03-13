@@ -864,6 +864,16 @@ var Viewport = (function () {
         this.initialForegroundRenderables = [].concat(foregroundRenderables);
         this.renderOffset = 0;
     }
+    Object.defineProperty(Viewport.prototype, "renderDimensions", {
+        get: function () {
+            return {
+                x: this.renderContext.canvas.width,
+                y: this.renderContext.canvas.height
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Viewport.prototype, "offset", {
         get: function () {
             return this.renderOffset;
@@ -982,6 +992,46 @@ var Menu = (function () {
     Menu.fadeInRate = 0.02;
     return Menu;
 })();
+/// <reference path="physicsBlock.ts" />
+/// <reference path="point.ts" />
+/// <reference path="IRenderable.ts" />
+/// <reference path="sprite.ts" />
+var Platform = (function (_super) {
+    __extends(Platform, _super);
+    function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
+        _super.call(this, worldPosition, dimensions, color, gravity, volume, worldWidth);
+    }
+    Object.defineProperty(Platform.prototype, "bottomOfScreen", {
+        get: function () {
+            return this.viewport.renderDimensions.y - this.viewport.offset;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Platform.prototype, "offscreenAmount", {
+        get: function () {
+            return Math.max(this.top - this.bottomOfScreen, 0);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Platform.prototype.Render = function (renderContext) {
+        if (this.offscreenAmount <= 0) {
+            return _super.prototype.Render.call(this, renderContext);
+        }
+        else {
+            renderContext.save();
+            renderContext.fillStyle = this.fillColor;
+            renderContext.globalAlpha = 0.2;
+            renderContext.fillRect(this.left, this.bottomOfScreen - this.height, this.width, this.height);
+            renderContext.globalAlpha = 1;
+            renderContext.fillRect(this.left, this.bottomOfScreen - this.height, ((this.offscreenAmount / 10) % this.width), this.height);
+            renderContext.restore();
+            return [];
+        }
+    };
+    return Platform;
+})(PhysicsBlock);
 /// <reference path="player.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
@@ -993,6 +1043,7 @@ var Menu = (function () {
 /// <reference path="sound.ts" />
 /// <reference path="menu.ts" />
 /// <reference path="volume.ts" />
+/// <reference path="platform.ts" />
 var Renderer = (function () {
     function Renderer(canvas, controller) {
         var _this = this;
@@ -1031,7 +1082,7 @@ var Renderer = (function () {
             x: 90,
             y: 20
         };
-        this.platform = new PhysicsBlock(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, this.volume, Renderer.gameWidth);
+        this.platform = new Platform(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, this.volume, Renderer.gameWidth);
         this.platform.onBounce = function () {
             if (_this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed) {
                 _this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
@@ -1059,6 +1110,7 @@ var Renderer = (function () {
             _this.isRunning = true;
         });
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
+        this.platform.viewport = this.viewport;
         var originalOnMove = this.player.onMove;
         this.player.onMove = function (amountMoved) {
             if (_this.player.yPosition < -(_this.viewport.offset - 100)) {

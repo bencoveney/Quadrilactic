@@ -10,6 +10,14 @@ class Viewport {
 	private initialForegroundRenderables: IRenderable[];
 	private renderOffset: number;
 	
+	public get renderDimensions(): Point
+	{
+		return {
+			x: this.renderContext.canvas.width,
+			y: this.renderContext.canvas.height
+		};
+	}
+	
 	public get offset(): number
 	{
 		return this.renderOffset;
