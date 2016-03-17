@@ -6,7 +6,6 @@ A simple HTML5 canvas game built using typescript.
 
 ## Todo List
 
-- Start game with keyboard
 - Instructions on menu screen
 - Develop horizontal platform speed
 - Button hover sound
@@ -23,6 +22,7 @@ A simple HTML5 canvas game built using typescript.
 - Prompt for player to start jumping
 - Screenshake on bounce
 - More particles (eg on bounce)
+- Save volume setting to storage
 
 ## Bugs
 

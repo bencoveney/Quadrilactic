@@ -56,7 +56,9 @@ class Menu implements IRenderable {
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[]
 	{
 		let mouseClick = this.controller.getClickPosition();
-		if(mouseClick && this.isPointOnButton(mouseClick))
+		if((mouseClick && this.isPointOnButton(mouseClick))
+			|| this.controller.isKeyPressed("enter")
+			|| this.controller.isKeyPressed("e"))
 		{
 			this.onStartGame();
 		}

@@ -2,24 +2,28 @@
 
 class Controller {
 	private static keyCodes = {
+		13: "enter",
 		32: "space",
 		37: "left",
 		38: "up",
 		39: "right",
 		65: "a",
 		68: "d",
+		69: "e",
 		77: "m",
 		86: "v",
 		87: "w"
 	}
 	
 	private isKeyPressedState = {
+		enter: false,
 		space: false,
 		left: false,
 		up: false,
 		right: false,
 		a: false,
 		d: false,
+		e: false,
 		m: false,
 		v: false,
 		w: false
@@ -40,6 +44,12 @@ class Controller {
 		
 		window.addEventListener("keydown", (event: KeyboardEvent) => {
 			this.handleKeyDown(event);
+			
+			// Prevent known key codes executing their default action.
+			if(Controller.keyCodes[event.keyCode])
+			{
+				event.preventDefault();
+			}
 		});
 		
 		canvas.addEventListener("mousemove", (event: MouseEvent) => {

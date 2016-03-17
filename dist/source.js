@@ -3,12 +3,14 @@ var Controller = (function () {
     function Controller(canvas) {
         var _this = this;
         this.isKeyPressedState = {
+            enter: false,
             space: false,
             left: false,
             up: false,
             right: false,
             a: false,
             d: false,
+            e: false,
             m: false,
             v: false,
             w: false
@@ -19,6 +21,10 @@ var Controller = (function () {
         });
         window.addEventListener("keydown", function (event) {
             _this.handleKeyDown(event);
+            // Prevent known key codes executing their default action.
+            if (Controller.keyCodes[event.keyCode]) {
+                event.preventDefault();
+            }
         });
         canvas.addEventListener("mousemove", function (event) {
             _this.handleMouseMove(event);
@@ -67,12 +73,14 @@ var Controller = (function () {
         this.clickLocation = undefined;
     };
     Controller.keyCodes = {
+        13: "enter",
         32: "space",
         37: "left",
         38: "up",
         39: "right",
         65: "a",
         68: "d",
+        69: "e",
         77: "m",
         86: "v",
         87: "w"
@@ -944,7 +952,9 @@ var Menu = (function () {
     };
     Menu.prototype.Render = function (renderContext) {
         var mouseClick = this.controller.getClickPosition();
-        if (mouseClick && this.isPointOnButton(mouseClick)) {
+        if ((mouseClick && this.isPointOnButton(mouseClick))
+            || this.controller.isKeyPressed("enter")
+            || this.controller.isKeyPressed("e")) {
             this.onStartGame();
         }
         this.isButtonHovered = this.isPointOnButton(this.controller.getMousePosition());
