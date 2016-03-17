@@ -9,6 +9,7 @@ A simple HTML5 canvas game built using typescript.
 - Start game with keyboard
 - Instructions on menu screen
 - Develop horizontal platform speed
+- Button hover sound
 - Release!
 
 ## Nice To Have
@@ -25,7 +26,8 @@ A simple HTML5 canvas game built using typescript.
 
 ## Bugs
 
-Possible to fall of bottom of screen.
+- Possible to fall of bottom of screen.
+- Color breaks at high speed
 
 ## Credits
 
