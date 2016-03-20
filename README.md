@@ -8,7 +8,6 @@ A simple HTML5 canvas game built using typescript.
 
 - Instructions on menu screen
 - Develop horizontal platform speed
-- Button hover sound
 - Release!
 
 ## Nice To Have
@@ -26,11 +25,13 @@ A simple HTML5 canvas game built using typescript.
 
 ## Bugs
 
-- Possible to fall of bottom of screen.
+- Possible to fall of bottom of screen - what?
 - Color breaks at high speed
 
 ## Credits
 
 Background music from [Section 31](http://opengameart.org/content/robotic-city-v2)
+
+UI sounds from [Little Robot Sound Factory](http://opengameart.org/content/ui-sound-effects-library)
 
 Sound effects made using [BFXR](http://www.bfxr.net)

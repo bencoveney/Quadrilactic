@@ -110,6 +110,7 @@ declare class Volume implements IRenderable {
     private opacity;
     private sounds;
     private isVolumeKeyPressed;
+    private volumeChanged;
     constructor(renderDimensions: Point, controller: Controller);
     isAlive: boolean;
     private isPointOnButton(point);
@@ -239,7 +240,10 @@ declare class Menu implements IRenderable {
     private opacity;
     private lastPoints;
     private scoreColor;
-    constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void);
+    private buttonHover;
+    private buttonUnhover;
+    private buttonClick;
+    constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void, volume: Volume);
     isAlive: boolean;
     private isPointOnButton(point);
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];

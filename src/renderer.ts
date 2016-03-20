@@ -138,7 +138,8 @@ class Renderer {
 				this.viewport.Reset();
 				this.scoreboard.Reset();
 				this.isRunning = true;
-			}
+			},
+			this.volume
 		);
 
 		this.viewport = new Viewport(

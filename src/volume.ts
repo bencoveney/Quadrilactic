@@ -17,6 +17,7 @@ class Volume implements IRenderable {
 	private opacity: number;
 	private sounds: Sound[];
 	private isVolumeKeyPressed;
+	private volumeChanged: Sound;
 
 	public constructor(renderDimensions: Point, controller: Controller)
 	{
@@ -44,6 +45,8 @@ class Volume implements IRenderable {
 		this.isVolumeKeyPressed = false;
 		
 		this.sounds = [];
+		
+		this.volumeChanged = this.createSound("snd/volume.wav", {});
 	}
 
 	public isAlive = true;
@@ -124,6 +127,8 @@ class Volume implements IRenderable {
 		this.sounds.forEach((sound: Sound) => {
 			sound.volume = this.level / 5;
 		});
+		
+		this.volumeChanged.play();
 	}
 
 	public createSound(path: string, options: ISoundOptions): Sound

@@ -386,6 +386,7 @@ var Volume = (function () {
         this.volume4 = new Sprite("img/volume4.png", this.soundButtonDimensions);
         this.isVolumeKeyPressed = false;
         this.sounds = [];
+        this.volumeChanged = this.createSound("snd/volume.wav", {});
     }
     Volume.prototype.isPointOnButton = function (point) {
         return point
@@ -442,6 +443,7 @@ var Volume = (function () {
         this.sounds.forEach(function (sound) {
             sound.volume = _this.level / 5;
         });
+        this.volumeChanged.play();
     };
     Volume.prototype.createSound = function (path, options) {
         var newSound = new Sound(path, options);
@@ -928,8 +930,10 @@ var Viewport = (function () {
 /// <reference path="IRenderable.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="background.ts" />
+/// <reference path="sound.ts" />
+/// <reference path="volume.ts" />
 var Menu = (function () {
-    function Menu(renderDimensions, controller, background, onStartGame) {
+    function Menu(renderDimensions, controller, background, onStartGame, volume) {
         this.isAlive = true;
         this.renderDimensions = renderDimensions;
         this.background = background;
@@ -942,6 +946,9 @@ var Menu = (function () {
             x: (renderDimensions.x - Menu.buttonWidth) / 2,
             y: renderDimensions.y - (Menu.buttonHeight * 2)
         };
+        this.buttonHover = volume.createSound("snd/button_on.wav", {});
+        this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
+        this.buttonClick = volume.createSound("snd/button_click.wav", {});
     }
     Menu.prototype.isPointOnButton = function (point) {
         return point
@@ -955,9 +962,17 @@ var Menu = (function () {
         if ((mouseClick && this.isPointOnButton(mouseClick))
             || this.controller.isKeyPressed("enter")
             || this.controller.isKeyPressed("e")) {
+            this.buttonClick.play();
             this.onStartGame();
         }
-        this.isButtonHovered = this.isPointOnButton(this.controller.getMousePosition());
+        var buttonIsNowHovered = this.isPointOnButton(this.controller.getMousePosition());
+        if (buttonIsNowHovered && !this.isButtonHovered) {
+            this.buttonHover.play();
+        }
+        else if (!buttonIsNowHovered && this.isButtonHovered) {
+            this.buttonUnhover.play();
+        }
+        this.isButtonHovered = buttonIsNowHovered;
         this.background.Render(renderContext);
         var horizontalCenter = (this.renderDimensions.x / 2);
         renderContext.save();
@@ -1118,7 +1133,7 @@ var Renderer = (function () {
             _this.viewport.Reset();
             _this.scoreboard.Reset();
             _this.isRunning = true;
-        });
+        }, this.volume);
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
         this.platform.viewport = this.viewport;
         var originalOnMove = this.player.onMove;

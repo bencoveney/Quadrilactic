@@ -1,6 +1,8 @@
 /// <reference path="IRenderable.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="background.ts" />
+/// <reference path="sound.ts" />
+/// <reference path="volume.ts" />
 
 class Menu implements IRenderable {
 	private static titleFontSizeInPx: number = 90;
@@ -20,12 +22,16 @@ class Menu implements IRenderable {
 	private opacity: number;
 	private lastPoints: number;
 	private scoreColor: string;
+	private buttonHover: Sound;
+	private buttonUnhover: Sound;
+	private buttonClick: Sound;
 
 	public constructor(
 		renderDimensions: Point,
 		controller: Controller,
 		background: Background,
-		onStartGame: () => void)
+		onStartGame: () => void,
+		volume: Volume)
 	{
 		this.renderDimensions = renderDimensions;
 		this.background = background;
@@ -40,6 +46,10 @@ class Menu implements IRenderable {
 			x: (renderDimensions.x - Menu.buttonWidth) / 2,
 			y: renderDimensions.y - (Menu.buttonHeight * 2)
 		};
+		
+		this.buttonHover = volume.createSound("snd/button_on.wav", {});
+		this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
+		this.buttonClick = volume.createSound("snd/button_click.wav", {});
 	}
 
 	public isAlive = true;
@@ -60,11 +70,23 @@ class Menu implements IRenderable {
 			|| this.controller.isKeyPressed("enter")
 			|| this.controller.isKeyPressed("e"))
 		{
+			this.buttonClick.play();
 			this.onStartGame();
 		}
 		
-		this.isButtonHovered = this.isPointOnButton(this.controller.getMousePosition());
-		
+		let buttonIsNowHovered = this.isPointOnButton(this.controller.getMousePosition());
+
+		if(buttonIsNowHovered && !this.isButtonHovered)
+		{
+			this.buttonHover.play();
+		}
+		else if (!buttonIsNowHovered && this.isButtonHovered)
+		{
+			this.buttonUnhover.play();
+		}
+
+		this.isButtonHovered = buttonIsNowHovered;
+
 		this.background.Render(renderContext);
 		
 		let horizontalCenter = (this.renderDimensions.x / 2);
