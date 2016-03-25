@@ -22,6 +22,11 @@ A simple HTML5 canvas game built using typescript.
 - More particles (eg on bounce)
 - Save volume setting to storage
 
+## Bugs
+
+- At very high heights, the platform will be too far below and you will drop off the bottom before it reaches you.
+- Sometimes there is some weirdness that can happen due to assumed anomalous deltatime eg crazy skew.
+
 ## Credits
 
 Background music from [Section 31](http://opengameart.org/content/robotic-city-v2)

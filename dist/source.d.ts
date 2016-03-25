@@ -243,6 +243,8 @@ declare class Menu implements IRenderable {
     private buttonHover;
     private buttonUnhover;
     private buttonClick;
+    private controlPosition;
+    private controlDiagram;
     constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void, volume: Volume);
     isAlive: boolean;
     private isPointOnButton(point);

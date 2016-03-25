@@ -3,12 +3,13 @@
 /// <reference path="background.ts" />
 /// <reference path="sound.ts" />
 /// <reference path="volume.ts" />
+/// <reference path="sprite.ts" />
 
 class Menu implements IRenderable {
 	private static titleFontSizeInPx: number = 90;
 	private static scoreFontSizeInPx: number = 50;
 	private static playFontSizeInPx: number = 50;
-	private static buttonWidth: number = 200;
+	private static buttonWidth: number = 225;
 	private static buttonHeight: number = 100;
 	private static fadeInRate: number = 0.02;
 
@@ -25,6 +26,8 @@ class Menu implements IRenderable {
 	private buttonHover: Sound;
 	private buttonUnhover: Sound;
 	private buttonClick: Sound;
+	private controlPosition: Point;
+	private controlDiagram: Sprite;
 
 	public constructor(
 		renderDimensions: Point,
@@ -44,12 +47,15 @@ class Menu implements IRenderable {
 		
 		this.playButtonPosition = {
 			x: (renderDimensions.x - Menu.buttonWidth) / 2,
-			y: renderDimensions.y - (Menu.buttonHeight * 2)
+			y: (renderDimensions.y - (Menu.buttonHeight * 2)) + 0.5 // 0.5 for stroke alignment
 		};
 		
 		this.buttonHover = volume.createSound("snd/button_on.wav", {});
 		this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
 		this.buttonClick = volume.createSound("snd/button_click.wav", {});
+		
+		this.controlPosition = { x: 45, y: 300};
+		this.controlDiagram = new Sprite("img/controls.png", { x: 390, y: 237 });
 	}
 
 	public isAlive = true;
@@ -120,7 +126,7 @@ class Menu implements IRenderable {
 				Menu.buttonHeight);
 		}
 		renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
-		renderContext.lineWidth = 2;
+		renderContext.lineWidth = 3;
 		renderContext.strokeRect(
 			this.playButtonPosition.x,
 			this.playButtonPosition.y,
@@ -131,6 +137,11 @@ class Menu implements IRenderable {
 		renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
 		renderContext.textAlign = "center";
 		renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
+		
+		// Draw the controls
+		renderContext.globalAlpha = this.opacity;
+		renderContext.translate(this.controlPosition.x, this.controlPosition.y);
+		this.controlDiagram.Render(renderContext);
 
 		renderContext.restore();
 		

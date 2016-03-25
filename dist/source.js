@@ -931,6 +931,7 @@ var Viewport = (function () {
 /// <reference path="background.ts" />
 /// <reference path="sound.ts" />
 /// <reference path="volume.ts" />
+/// <reference path="sprite.ts" />
 var Menu = (function () {
     function Menu(renderDimensions, controller, background, onStartGame, volume) {
         this.isAlive = true;
@@ -943,11 +944,13 @@ var Menu = (function () {
         this.opacity = 0;
         this.playButtonPosition = {
             x: (renderDimensions.x - Menu.buttonWidth) / 2,
-            y: renderDimensions.y - (Menu.buttonHeight * 2)
+            y: (renderDimensions.y - (Menu.buttonHeight * 2)) + 0.5 // 0.5 for stroke alignment
         };
         this.buttonHover = volume.createSound("snd/button_on.wav", {});
         this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
         this.buttonClick = volume.createSound("snd/button_click.wav", {});
+        this.controlPosition = { x: 45, y: 300 };
+        this.controlDiagram = new Sprite("img/controls.png", { x: 390, y: 237 });
     }
     Menu.prototype.isPointOnButton = function (point) {
         return point
@@ -992,12 +995,16 @@ var Menu = (function () {
             renderContext.fillRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         }
         renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
-        renderContext.lineWidth = 2;
+        renderContext.lineWidth = 3;
         renderContext.strokeRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
         renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
         renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
         renderContext.textAlign = "center";
         renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
+        // Draw the controls
+        renderContext.globalAlpha = this.opacity;
+        renderContext.translate(this.controlPosition.x, this.controlPosition.y);
+        this.controlDiagram.Render(renderContext);
         renderContext.restore();
         this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
         return [];
@@ -1011,7 +1018,7 @@ var Menu = (function () {
     Menu.titleFontSizeInPx = 90;
     Menu.scoreFontSizeInPx = 50;
     Menu.playFontSizeInPx = 50;
-    Menu.buttonWidth = 200;
+    Menu.buttonWidth = 225;
     Menu.buttonHeight = 100;
     Menu.fadeInRate = 0.02;
     return Menu;
