@@ -30,11 +30,11 @@ class Background implements IRenderable {
 		this.stars2 = new Sprite("img/stars2.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
 	}
 	
-	public SlideUp(amount: number)
+	public SlideUpTo(y: number)
 	{
-		if(amount < 0)
+		if(y > this.offset)
 		{
-			this.offset = this.offset - amount;
+			this.offset = y;
 		}
 	}
 

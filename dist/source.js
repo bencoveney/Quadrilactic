@@ -631,8 +631,8 @@ var Player = (function (_super) {
         else {
             faceSprite = this.faceHover;
         }
-        var xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
-        var yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
+        var xHexidecimal = Math.max(Math.round(15 - Math.abs(this.xSpeed)), 0).toString(16);
+        var yHexidecimal = Math.max(Math.round(15 - Math.abs(this.ySpeed)), 0).toString(16);
         this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
         var newRenderables = _super.prototype.Render.call(this, renderContext);
         newRenderables.forEach(function (renderable) {
@@ -683,9 +683,9 @@ var Background = (function () {
         this.stars1 = new Sprite("img/stars1.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
         this.stars2 = new Sprite("img/stars2.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
     }
-    Background.prototype.SlideUp = function (amount) {
-        if (amount < 0) {
-            this.offset = this.offset - amount;
+    Background.prototype.SlideUpTo = function (y) {
+        if (y > this.offset) {
+            this.offset = y;
         }
     };
     Background.prototype.Render = function (renderContext) {
@@ -838,6 +838,7 @@ var Scoreboard = (function (_super) {
         renderContext.fillText(this.score.toString(), this.xPosition, this.yPosition + Scoreboard.fontSizeInPx);
         renderContext.font = "" + (Scoreboard.fontSizeInPx / 2) + "px Oswald";
         renderContext.fillText("x " + this.multiplier.toString(), this.xPosition, this.yPosition + (1.5 * Scoreboard.fontSizeInPx));
+        renderContext.globalAlpha = 0.5;
         renderContext.fillStyle = this.player.fillColor;
         renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
         renderContext.restore();
@@ -891,9 +892,9 @@ var Viewport = (function () {
         enumerable: true,
         configurable: true
     });
-    Viewport.prototype.SlideUp = function (amount) {
-        if (amount < 0) {
-            this.renderOffset = this.renderOffset - amount;
+    Viewport.prototype.SlideUpTo = function (y) {
+        if (y > this.renderOffset) {
+            this.renderOffset = y;
         }
     };
     Viewport.prototype.Render = function (fps) {
@@ -1138,10 +1139,8 @@ var Renderer = (function () {
         this.platform.viewport = this.viewport;
         var originalOnMove = this.player.onMove;
         this.player.onMove = function (amountMoved) {
-            if (_this.player.yPosition < -(_this.viewport.offset - 100)) {
-                _this.viewport.SlideUp(amountMoved.y);
-                _this.background.SlideUp(amountMoved.y);
-            }
+            _this.viewport.SlideUpTo(-_this.player.yPosition + 50);
+            _this.background.SlideUpTo(-_this.player.yPosition);
             if (_this.player.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
                 _this.isRunning = false;
                 _this.deathSound.play();

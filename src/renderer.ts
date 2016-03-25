@@ -153,11 +153,8 @@ class Renderer {
 
 		let originalOnMove = this.player.onMove
 		this.player.onMove = (amountMoved: Point) => {
-			if(this.player.yPosition < - (this.viewport.offset - 100))
-			{
-				this.viewport.SlideUp(amountMoved.y);
-				this.background.SlideUp(amountMoved.y);
-			}
+			this.viewport.SlideUpTo(-this.player.yPosition + 50);
+			this.background.SlideUpTo(-this.player.yPosition);
 
 			if(this.player.yPosition > -(this.viewport.offset - this.canvas.height))
 			{

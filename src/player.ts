@@ -116,8 +116,8 @@ class Player extends PhysicsBlock {
 			faceSprite = this.faceHover;
 		}
 
-		let xHexidecimal = Math.round(15 - Math.abs(this.xSpeed)).toString(16);
-		let yHexidecimal = Math.round(15 - Math.abs(this.ySpeed)).toString(16);
+		let xHexidecimal = Math.max(Math.round(15 - Math.abs(this.xSpeed)), 0).toString(16);
+		let yHexidecimal = Math.max(Math.round(15 - Math.abs(this.ySpeed)), 0).toString(16);
 		
 		this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
 		

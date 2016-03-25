@@ -38,11 +38,11 @@ class Viewport {
 		this.renderOffset = 0;
 	}
 	
-	public SlideUp(amount: number)
+	public SlideUpTo(y: number)
 	{
-		if(amount < 0)
+		if(y > this.renderOffset)
 		{
-			this.renderOffset = this.renderOffset - amount;
+			this.renderOffset = y;
 		}
 	}
 	

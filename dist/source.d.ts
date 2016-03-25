@@ -172,7 +172,7 @@ declare class Background implements IRenderable {
     private stars1;
     private stars2;
     constructor(renderPosition: Point, renderDimensions: Point, color: string, player: Player);
-    SlideUp(amount: number): void;
+    SlideUpTo(y: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class Collider {
@@ -218,7 +218,7 @@ declare class Viewport {
     renderDimensions: Point;
     offset: number;
     constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: IRenderable[], backgroundRenderables: IRenderable[], foregroundRenderables: IRenderable[]);
-    SlideUp(amount: number): void;
+    SlideUpTo(y: number): void;
     Render(fps?: number): void;
     private RenderSubSet(subSet);
     Reset(): void;

@@ -67,6 +67,7 @@ class Scoreboard extends Block {
 		renderContext.font = "" + (Scoreboard.fontSizeInPx / 2) + "px Oswald";
 		renderContext.fillText("x " + this.multiplier.toString(), this.xPosition, this.yPosition + (1.5 * Scoreboard.fontSizeInPx));
 		
+		renderContext.globalAlpha = 0.5;
 		renderContext.fillStyle = this.player.fillColor;
 		renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
 
