@@ -7,7 +7,6 @@ class Block implements IRenderable {
 	// Constants
 	private static verticalSpeedLimit = 10;
 	private static verticalSpeedLimitDelta = 0.01;
-	private static horizontalSpeedLimit = 5;
 	private static horizontalSpeedSlowDown = 0.1;
 	private static skewScale = 0.07;
 	private static skewReduction = 0.3;
@@ -20,6 +19,7 @@ class Block implements IRenderable {
 	private initialWorldPosition: MovingPoint;
 	private verticalSpeedLimit: number;
 	protected skew: number;
+	private horizontalSpeedLimit: number;
 
 	public isAlive = true;
 
@@ -119,10 +119,11 @@ class Block implements IRenderable {
 	// Constants
 	private static strokeColor: string = "#000000";
 
-	public constructor(worldPosition: MovingPoint, dimensions: Point, color: string) {
+	public constructor(worldPosition: MovingPoint, dimensions: Point, color: string, xSpeedLimit: number) {
 		this.worldPosition = worldPosition;
 		this.dimensions = dimensions;
 		this.internalColor = color;
+		this.horizontalSpeedLimit = xSpeedLimit;
 
 		this.verticalSpeedLimit = Block.verticalSpeedLimit;
 
@@ -154,8 +155,8 @@ class Block implements IRenderable {
 		// Clamp the speed to the speed limit.
 		this.ySpeed = Math.min(this.ySpeed, this.verticalSpeedLimit);
 		this.ySpeed = Math.max(this.ySpeed, -this.verticalSpeedLimit);
-		this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
-		this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
+		this.xSpeed = Math.min(this.xSpeed, this.horizontalSpeedLimit );
+		this.xSpeed = Math.max(this.xSpeed, -this.horizontalSpeedLimit );
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {

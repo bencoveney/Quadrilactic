@@ -44,11 +44,8 @@ class Collider {
 					
 					if(!wasHorizontalOverlap)
 					{
-						let subjectXSpeed = subject.xSpeed;
-						let targetXSpeed = target.xSpeed;
-						
-						subject.xSpeed = targetXSpeed;
-						target.xSpeed = subjectXSpeed;
+						subject.xSpeed = -subject.xSpeed;
+						target.xSpeed = -target.xSpeed;
 					}
 				}
 			}

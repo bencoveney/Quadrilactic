@@ -45,7 +45,6 @@ declare class Particle implements IRenderable {
 declare class Block implements IRenderable {
     private static verticalSpeedLimit;
     private static verticalSpeedLimitDelta;
-    private static horizontalSpeedLimit;
     private static horizontalSpeedSlowDown;
     private static skewScale;
     private static skewReduction;
@@ -56,6 +55,7 @@ declare class Block implements IRenderable {
     private initialWorldPosition;
     private verticalSpeedLimit;
     protected skew: number;
+    private horizontalSpeedLimit;
     isAlive: boolean;
     xPosition: number;
     yPosition: number;
@@ -79,7 +79,7 @@ declare class Block implements IRenderable {
     };
     direction: string;
     private static strokeColor;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string);
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, xSpeedLimit: number);
     Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     Reset(): void;
@@ -125,7 +125,7 @@ declare class PhysicsBlock extends Block {
     private rebound;
     gravity: number;
     onBounce: () => void;
-    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, worldWidth?: number);
+    constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, xSpeedLimit: number, worldWidth?: number);
     Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     VerticalBounce(newYSpeed: number): void;
@@ -250,10 +250,12 @@ declare class Menu implements IRenderable {
     showMenu(totalPoints: number, scoreColor: string): void;
 }
 declare class Platform extends PhysicsBlock {
+    private static platformSpeedIncrease;
     viewport: Viewport;
     private bottomOfScreen;
     private offscreenAmount;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, worldWidth: number);
+    Tick(deltaTime: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class Renderer {

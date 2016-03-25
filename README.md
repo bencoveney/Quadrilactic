@@ -7,7 +7,6 @@ A simple HTML5 canvas game built using typescript.
 ## Todo List
 
 - Instructions on menu screen
-- Develop horizontal platform speed
 - Release!
 
 ## Nice To Have
@@ -22,11 +21,6 @@ A simple HTML5 canvas game built using typescript.
 - Screenshake on bounce
 - More particles (eg on bounce)
 - Save volume setting to storage
-
-## Bugs
-
-- Possible to fall of bottom of screen - what?
-- Color breaks at high speed
 
 ## Credits
 

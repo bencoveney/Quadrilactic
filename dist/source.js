@@ -142,11 +142,12 @@ var Particle = (function () {
 /// <reference path="IRenderable.ts" />
 /// <reference path="particle.ts"" />
 var Block = (function () {
-    function Block(worldPosition, dimensions, color) {
+    function Block(worldPosition, dimensions, color, xSpeedLimit) {
         this.isAlive = true;
         this.worldPosition = worldPosition;
         this.dimensions = dimensions;
         this.internalColor = color;
+        this.horizontalSpeedLimit = xSpeedLimit;
         this.verticalSpeedLimit = Block.verticalSpeedLimit;
         this.initialWorldPosition = {
             x: worldPosition.x,
@@ -310,8 +311,8 @@ var Block = (function () {
         // Clamp the speed to the speed limit.
         this.ySpeed = Math.min(this.ySpeed, this.verticalSpeedLimit);
         this.ySpeed = Math.max(this.ySpeed, -this.verticalSpeedLimit);
-        this.xSpeed = Math.min(this.xSpeed, Block.horizontalSpeedLimit);
-        this.xSpeed = Math.max(this.xSpeed, -Block.horizontalSpeedLimit);
+        this.xSpeed = Math.min(this.xSpeed, this.horizontalSpeedLimit);
+        this.xSpeed = Math.max(this.xSpeed, -this.horizontalSpeedLimit);
     };
     Block.prototype.Render = function (renderContext) {
         renderContext.beginPath();
@@ -335,7 +336,6 @@ var Block = (function () {
     // Constants
     Block.verticalSpeedLimit = 10;
     Block.verticalSpeedLimitDelta = 0.01;
-    Block.horizontalSpeedLimit = 5;
     Block.horizontalSpeedSlowDown = 0.1;
     Block.skewScale = 0.07;
     Block.skewReduction = 0.3;
@@ -467,8 +467,8 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var PhysicsBlock = (function (_super) {
     __extends(PhysicsBlock, _super);
-    function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, worldWidth) {
-        _super.call(this, worldPosition, dimensions, color);
+    function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, xSpeedLimit, worldWidth) {
+        _super.call(this, worldPosition, dimensions, color, xSpeedLimit);
         this.internalGravity = gravity;
         this.worldWidth = worldWidth;
         this.rebound = volume.createSound("snd/blip.wav", {});
@@ -571,7 +571,7 @@ var Sprite = (function () {
 var Player = (function (_super) {
     __extends(Player, _super);
     function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
-        _super.call(this, worldPosition, dimensions, color, gravity, volume, worldWidth);
+        _super.call(this, worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
         this.onBounce = this.Bounce;
         this.controller = controller;
         this.isJumping = false;
@@ -748,10 +748,8 @@ var Collider = (function () {
                     var wasHorizontalOverlap = (subjectPreviousLeft < targetPreviousRight)
                         && (subjectPreviousRight > targetPreviousLeft);
                     if (!wasHorizontalOverlap) {
-                        var subjectXSpeed = subject.xSpeed;
-                        var targetXSpeed = target.xSpeed;
-                        subject.xSpeed = targetXSpeed;
-                        target.xSpeed = subjectXSpeed;
+                        subject.xSpeed = -subject.xSpeed;
+                        target.xSpeed = -target.xSpeed;
                     }
                 }
             }
@@ -803,7 +801,7 @@ var Scoreboard = (function (_super) {
     __extends(Scoreboard, _super);
     function Scoreboard(player, worldPosition, dimensions, color) {
         var _this = this;
-        _super.call(this, worldPosition, dimensions, color);
+        _super.call(this, worldPosition, dimensions, color, 0);
         this.player = player;
         // Shouldn't have to insert the nested function like this.
         this.player.onBounce = function () {
@@ -1025,7 +1023,7 @@ var Menu = (function () {
 var Platform = (function (_super) {
     __extends(Platform, _super);
     function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
-        _super.call(this, worldPosition, dimensions, color, gravity, volume, worldWidth);
+        _super.call(this, worldPosition, dimensions, color, gravity, volume, 10, worldWidth);
     }
     Object.defineProperty(Platform.prototype, "bottomOfScreen", {
         get: function () {
@@ -1041,6 +1039,10 @@ var Platform = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Platform.prototype.Tick = function (deltaTime) {
+        this.xSpeed = this.xSpeed * ((Platform.platformSpeedIncrease + deltaTime) / Platform.platformSpeedIncrease);
+        _super.prototype.Tick.call(this, deltaTime);
+    };
     Platform.prototype.Render = function (renderContext) {
         if (this.offscreenAmount <= 0) {
             return _super.prototype.Render.call(this, renderContext);
@@ -1056,6 +1058,7 @@ var Platform = (function (_super) {
             return [];
         }
     };
+    Platform.platformSpeedIncrease = 2000;
     return Platform;
 })(PhysicsBlock);
 /// <reference path="player.ts" />

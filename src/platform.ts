@@ -4,6 +4,7 @@
 /// <reference path="sprite.ts" />
 
 class Platform extends PhysicsBlock {
+	private static platformSpeedIncrease = 2000;
 	
 	public viewport: Viewport;
 	
@@ -25,7 +26,13 @@ class Platform extends PhysicsBlock {
 		volume: Volume,
 		worldWidth: number)
 	{
-		super(worldPosition, dimensions, color, gravity, volume, worldWidth);
+		super(worldPosition, dimensions, color, gravity, volume, 10, worldWidth);
+	}
+	
+	public Tick(deltaTime: number){
+		this.xSpeed = this.xSpeed * (( Platform.platformSpeedIncrease + deltaTime) / Platform.platformSpeedIncrease);
+		
+		super.Tick(deltaTime);
 	}
 	
 	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {

@@ -17,7 +17,7 @@ class Scoreboard extends Block {
 	private points: number;
 	
 	public constructor(player: Player, worldPosition: MovingPoint, dimensions: Point, color: string) {
-		super(worldPosition, dimensions, color);
+		super(worldPosition, dimensions, color, 0);
 		
 		this.player = player;
 		

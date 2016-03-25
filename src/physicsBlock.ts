@@ -32,9 +32,10 @@ class PhysicsBlock extends Block {
 		color: string,
 		gravity: number,
 		volume: Volume,
+		xSpeedLimit: number,
 		worldWidth?: number)
 	{
-		super(worldPosition, dimensions, color);
+		super(worldPosition, dimensions, color, xSpeedLimit);
 		
 		this.internalGravity = gravity;
 		this.worldWidth = worldWidth;
