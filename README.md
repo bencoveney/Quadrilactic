@@ -6,10 +6,6 @@ A simple HTML5 canvas game built using typescript.
 
 ## Todo List
 
-- Release!
-
-## Nice To Have
-
 - Tidy up codebase
   - Refactor
   - Linting
