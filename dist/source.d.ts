@@ -171,9 +171,12 @@ declare class Background implements IRenderable {
     private staticBackground;
     private stars1;
     private stars2;
+    private upArrow;
+    showArrow: boolean;
     constructor(renderPosition: Point, renderDimensions: Point, color: string, player: Player);
     SlideUpTo(y: number): void;
     Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Reset(): void;
 }
 declare class Collider {
     static processCollisions(collidables: PhysicsBlock[]): void;

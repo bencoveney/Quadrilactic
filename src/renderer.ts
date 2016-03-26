@@ -137,6 +137,7 @@ class Renderer {
 				this.platform.Reset();
 				this.viewport.Reset();
 				this.scoreboard.Reset();
+				this.background.Reset();
 				this.isRunning = true;
 			},
 			this.volume

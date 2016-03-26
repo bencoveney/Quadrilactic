@@ -4,7 +4,7 @@
 /// <reference path="sprite.ts" />
 
 class Platform extends PhysicsBlock {
-	private static platformSpeedIncrease = 2000;
+	private static platformSpeedIncrease = 1000;
 	
 	public viewport: Viewport;
 	

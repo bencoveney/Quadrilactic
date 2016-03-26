@@ -321,7 +321,7 @@ var Block = (function () {
         renderContext.fillStyle = this.fillColor;
         renderContext.fill();
         renderContext.closePath();
-        var particle = new Particle(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height, 0, this.fillColor, 0.15);
+        var particle = new Particle(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height, 0, this.fillColor, 0.1);
         return [particle];
     };
     Block.prototype.Reset = function () {
@@ -676,12 +676,14 @@ var Background = (function () {
     function Background(renderPosition, renderDimensions, color, player) {
         this.offset = 0;
         this.isAlive = true;
+        this.showArrow = false;
         this.renderPosition = renderPosition;
         this.renderDimensions = renderDimensions;
         this.color = color;
         this.staticBackground = new Sprite("img/staticBackground.png", renderDimensions);
         this.stars1 = new Sprite("img/stars1.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
         this.stars2 = new Sprite("img/stars2.png", { x: renderDimensions.x, y: renderDimensions.y * 2 });
+        this.upArrow = new Sprite("img/upArrow.png", { x: 120, y: 99 });
     }
     Background.prototype.SlideUpTo = function (y) {
         if (y > this.offset) {
@@ -711,7 +713,18 @@ var Background = (function () {
         renderContext.translate(0, upperYPosition2);
         result = result.concat(this.stars2.Render(renderContext));
         renderContext.restore();
+        if (this.showArrow && this.offset < (this.renderDimensions.y * 2)) {
+            renderContext.save();
+            renderContext.globalAlpha = 0.5;
+            renderContext.translate(300, this.offset + 40);
+            this.upArrow.Render(renderContext);
+            renderContext.restore();
+        }
         return result;
+    };
+    Background.prototype.Reset = function () {
+        this.showArrow = true;
+        this.offset = 0;
     };
     return Background;
 })();
@@ -1065,7 +1078,7 @@ var Platform = (function (_super) {
             return [];
         }
     };
-    Platform.platformSpeedIncrease = 2000;
+    Platform.platformSpeedIncrease = 1000;
     return Platform;
 })(PhysicsBlock);
 /// <reference path="player.ts" />
@@ -1143,6 +1156,7 @@ var Renderer = (function () {
             _this.platform.Reset();
             _this.viewport.Reset();
             _this.scoreboard.Reset();
+            _this.background.Reset();
             _this.isRunning = true;
         }, this.volume);
         this.viewport = new Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);

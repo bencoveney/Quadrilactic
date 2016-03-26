@@ -183,7 +183,7 @@ class Block implements IRenderable {
 			skewedPosition.height,
 			0,
 			this.fillColor,
-			0.15);
+			0.1);
 
 		return [particle] as IRenderable[];
 	}
