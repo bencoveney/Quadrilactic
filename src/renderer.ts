@@ -2,7 +2,7 @@
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
 /// <reference path="collider.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="scoreboard.ts" />
 /// <reference path="background.ts" />
 /// <reference path="viewport.ts" />
@@ -14,12 +14,10 @@
 class Renderer {
 	// Constants
 	private static defaultGravity: number = 0.2;
-	private static millisecondsPerTick = 13;
-	private static gameWidth = 480;
-	private static gameHeight = 800;
-	private static minimumPlatformReboundSpeed = 10;
-	private static timescale = 16;
-	
+	private static gameWidth: number = 480;
+	private static minimumPlatformReboundSpeed: number = 10;
+	private static timescale: number = 16;
+
 	// Rendering references
 	private canvas: HTMLCanvasElement;
 	private context: CanvasRenderingContext2D;
@@ -43,26 +41,24 @@ class Renderer {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
 		this.controller = controller;
-		
+
 		this.volume = new Volume(
-			{ 
+			{
 				x: this.canvas.width,
 				y: this.canvas.height
-			}, 
+			},
 			controller);
-		
+
 		this.backgroundMusic = this.volume.createSound("snd/music.wav", { isLooping: true });
 		this.backgroundMusic.play();
-		
+
 		this.deathSound = this.volume.createSound("snd/death.wav", {});
 
-		let gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
-
 		let playerPosition: MovingPoint = {
-			x: 30,
-			y: 110,
 			dX: 2,
-			dY: -2
+			dY: -2,
+			x: 30,
+			y: 110
 		};
 		let playerDimensions: Point = {
 			x: 30,
@@ -85,15 +81,15 @@ class Renderer {
 		);
 
 		let platformPosition: MovingPoint = {
-			x: 30,
-			y: 690,
 			dX: 2,
-			dY: 2
+			dY: 2,
+			x: 30,
+			y: 690
 		};
 		let platformDimensions: Point = {
 			x: 90,
 			y: 20
-		}
+		};
 		this.platform = new Platform(
 			platformPosition,
 			platformDimensions,
@@ -102,29 +98,28 @@ class Renderer {
 			this.volume,
 			Renderer.gameWidth);
 		this.platform.onBounce = () => {
-			if(this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed)
-			{
+			if (this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed) {
 				this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
 			}
 		};
 
 		let scoreboardPosition: MovingPoint = {
-			x: 20,
-			y: 370,
 			dX: 0,
-			dY: 0
+			dY: 0,
+			x: 20,
+			y: 370
 		};
 		let scoreboardDimensions: Point = {
 			x: 0,
 			y: 0
-		}
+		};
 		this.scoreboard = new Scoreboard(
 			this.player,
 			scoreboardPosition,
 			scoreboardDimensions,
 			"rgba(255,255,255, 0.1)"
-		)
-		
+		);
+
 		this.menu = new Menu(
 			{
 				x: this.canvas.width,
@@ -148,69 +143,57 @@ class Renderer {
 			[this.background, this.scoreboard],
 			[],
 			[this.player, this.platform]
-		)
-		
+		);
+
 		this.platform.viewport = this.viewport;
 
-		let originalOnMove = this.player.onMove
+		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
 		this.player.onMove = (amountMoved: Point) => {
 			this.viewport.SlideUpTo(-this.player.yPosition + 50);
 			this.background.SlideUpTo(-this.player.yPosition);
 
-			if(this.player.yPosition > -(this.viewport.offset - this.canvas.height))
-			{
+			if (this.player.yPosition > -(this.viewport.offset - this.canvas.height)) {
 				this.isRunning = false;
 				this.deathSound.play();
 				this.menu.showMenu(this.scoreboard.totalPoints, this.player.fillColor);
 			}
 
-			if(originalOnMove)
-			{
+			if (originalOnMove) {
 				originalOnMove(amountMoved);
 			}
-		}
-		
-		this.Start();
+		};
 	}
 
-	public Start() {
+	public Start(): void {
 		requestAnimationFrame((time: number) => { this.Tick(time); });
 	}
 
-	private Tick(timestamp: number) {
-		let deltaTime = this.lastTimestamp ? (timestamp - this.lastTimestamp) : 0;
-		let scaledTime = deltaTime / Renderer.timescale
+	private Tick(timestamp: number): void {
+		let deltaTime: number = this.lastTimestamp ? (timestamp - this.lastTimestamp) : 0;
+		let scaledTime: number = deltaTime / Renderer.timescale;
 		this.lastTimestamp = timestamp;
 		this.lastFps = Math.round(1000 / deltaTime);
 
 		this.Draw();
 
-		if(this.isRunning === true)
-		{
+		if (this.isRunning === true) {
 			this.player.Tick(scaledTime);
 			this.platform.Tick(scaledTime);
 			Collider.processCollisions([this.player, this.platform]);
 		}
-		
+
 		this.controller.clearClick();
-		
+
 		requestAnimationFrame((time: number) => { this.Tick(time); });
 	}
 
-	private Draw() {
-		if(this.isRunning)
-		{
+	private Draw(): void {
+		if (this.isRunning) {
 			this.viewport.Render(this.lastFps);
-		}
-		else
-		{
+		} else {
 			this.menu.Render(this.context);
 		}
-		
+
 		this.volume.Render(this.context);
-	}
-	
-	private SetUpNewGame() {
-		
 	}
 }

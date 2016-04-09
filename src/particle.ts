@@ -1,22 +1,25 @@
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 
-class Particle implements IRenderable {
-	private static degrees = Math.PI / 180;
+class Particle implements Renderable {
+	private static degrees: number = Math.PI / 180;
+
+	public rotation: number;
+	public isAlive: boolean;
+
 	private xPosition: number;
 	private yPosition: number;
 	private width: number;
 	private height: number;
-	public rotation: number;
 	private color: string;
 	private opacity: number;
+
 	private get centerXPosition(): number {
 		return this.xPosition + (this.width / 2);
 	}
 	private get centerYPosition(): number {
 		return this.yPosition + (this.height / 2);
 	}
-	public isAlive: boolean;
-	
+
 	public constructor(
 		xPosition: number,
 		yPosition: number,
@@ -24,8 +27,8 @@ class Particle implements IRenderable {
 		height: number,
 		rotation: number,
 		color: string,
-		opacity: number)
-	{
+		opacity: number
+	) {
 		this.xPosition = xPosition;
 		this.yPosition = yPosition;
 		this.width = width;
@@ -36,21 +39,18 @@ class Particle implements IRenderable {
 		this.isAlive = true;
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
+	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
 		this.opacity -= 0.005;
-		if(this.opacity <= 0)
-		{
+		if (this.opacity <= 0) {
 			this.isAlive = false;
-		}
-		else
-		{
+		} else {
 			renderContext.save();
 			renderContext.globalAlpha = this.opacity;
-			
+
 			renderContext.translate(this.centerXPosition, this.centerYPosition);
 			renderContext.rotate(this.rotation * Particle.degrees);
 			renderContext.translate(-this.centerXPosition, -this.centerYPosition);
-			
+
 			renderContext.beginPath();
 
 			renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
@@ -59,11 +59,11 @@ class Particle implements IRenderable {
 			renderContext.fill();
 
 			renderContext.closePath();
-			
+
 			renderContext.globalAlpha = 1;
 			renderContext.restore();
 		}
-		
-		return [] as IRenderable[];
+
+		return [] as Renderable[];
 	}
 }

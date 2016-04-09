@@ -17,6 +17,14 @@ module.exports = function(grunt) {
 				}
 			}
 		},
+		tslint: {
+			options: {
+				configuration: "tslint.json"
+			},
+			files: {
+				src: ['src/**/*.ts']
+			}
+		},
 		sass: {
 			options: {
 				sourceMap: true,
@@ -39,7 +47,7 @@ module.exports = function(grunt) {
 			},
 			typescript: {
 				files: 'src/**/*.ts',
-				tasks: ['typescript']
+				tasks: ['lint']
 			},
 			css: {
 				files: 'css/**/*.scss',
@@ -51,7 +59,9 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-typescript');
 	grunt.loadNpmTasks('grunt-sass');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	
+	grunt.loadNpmTasks("grunt-tslint");
+
 	grunt.registerTask('build', ['typescript', 'sass']);
 	grunt.registerTask('default', ['build', 'watch']);
+	grunt.registerTask('lint', ['build', 'tslint']);
 };

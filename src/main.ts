@@ -6,12 +6,12 @@ let canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanva
 
 let controller: Controller = new Controller(canvas);
 
-let renderer: Renderer = new Renderer(canvas, controller);
+new Renderer(canvas, controller).Start();
 
 // Ensure keyboard events when loaded in an iframe (fix for itch.io)
-window.onload = function(){
+window.onload = function(): void {
 	window.focus();
-}
-window.onclick = function(){
+};
+window.onclick = function(): void {
 	window.focus();
-}
+};

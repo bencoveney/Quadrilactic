@@ -1,8 +1,4 @@
 /// <reference path="../typings/tsd.d.ts" />
-interface IRenderable {
-    isAlive: boolean;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
-}
 interface Point {
     x: number;
     y: number;
@@ -11,6 +7,10 @@ interface MovingPoint extends Point {
     dX: number;
     dY: number;
 }
+interface Rectangle extends Point {
+    width: number;
+    height: number;
+}
 declare class Controller {
     private static keyCodes;
     private isKeyPressedState;
@@ -18,45 +18,48 @@ declare class Controller {
     private clickLocation;
     private canvas;
     constructor(canvas: HTMLCanvasElement);
-    private handleKeyUp(event);
-    private handleKeyDown(event);
-    private handleMouseMove(event);
-    private handleMouseDown(event);
     isKeyPressed(key: string | string[]): boolean;
     getMousePosition(): Point;
     getClickPosition(): Point;
     clearClick(): void;
+    private handleKeyUp(event);
+    private handleKeyDown(event);
+    private handleMouseMove(event);
+    private handleMouseDown(event);
 }
-declare class Particle implements IRenderable {
+interface Renderable {
+    isAlive: boolean;
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
+}
+declare class Particle implements Renderable {
     private static degrees;
+    rotation: number;
+    isAlive: boolean;
     private xPosition;
     private yPosition;
     private width;
     private height;
-    rotation: number;
     private color;
     private opacity;
     private centerXPosition;
     private centerYPosition;
-    isAlive: boolean;
     constructor(xPosition: number, yPosition: number, width: number, height: number, rotation: number, color: string, opacity: number);
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
 }
-declare class Block implements IRenderable {
+declare class Block implements Renderable {
     private static verticalSpeedLimit;
     private static verticalSpeedLimitDelta;
-    private static horizontalSpeedSlowDown;
     private static skewScale;
     private static skewReduction;
+    isAlive: boolean;
+    protected skew: number;
     private worldPosition;
     private dimensions;
     private internalColor;
     private onMoveCallback;
     private initialWorldPosition;
     private verticalSpeedLimit;
-    protected skew: number;
     private horizontalSpeedLimit;
-    isAlive: boolean;
     xPosition: number;
     yPosition: number;
     xSpeed: number;
@@ -71,33 +74,28 @@ declare class Block implements IRenderable {
     centerXPosition: number;
     centerYPosition: number;
     onMove: (amountMoved: Point) => void;
-    skewedPosition: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
+    skewedPosition: Rectangle;
     direction: string;
-    private static strokeColor;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, xSpeedLimit: number);
     Tick(deltaTime: number): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     Reset(): void;
 }
-interface ISoundOptions {
+interface SoundOptions {
     volume?: number;
     isLooping?: boolean;
 }
 declare class Sound {
     private static defaultVolume;
     private sound;
-    constructor(path: string, options: ISoundOptions);
+    constructor(path: string, options: SoundOptions);
     play(): void;
     volume: number;
 }
-declare class Volume implements IRenderable {
+declare class Volume implements Renderable {
     private static opacityDecay;
     private static fadedOpacity;
+    isAlive: boolean;
     private soundButtonPosition;
     private soundButtonDimensions;
     private controller;
@@ -112,11 +110,10 @@ declare class Volume implements IRenderable {
     private isVolumeKeyPressed;
     private volumeChanged;
     constructor(renderDimensions: Point, controller: Controller);
-    isAlive: boolean;
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
+    createSound(path: string, options: SoundOptions): Sound;
     private isPointOnButton(point);
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
     private changeVolume();
-    createSound(path: string, options: ISoundOptions): Sound;
 }
 declare class PhysicsBlock extends Block {
     private internalGravity;
@@ -127,18 +124,18 @@ declare class PhysicsBlock extends Block {
     onBounce: () => void;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, xSpeedLimit: number, worldWidth?: number);
     Tick(deltaTime: number): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     VerticalBounce(newYSpeed: number): void;
     Reset(): void;
 }
-declare class Sprite implements IRenderable {
+declare class Sprite implements Renderable {
+    isAlive: boolean;
     private image;
     private internalDimensions;
-    isAlive: boolean;
     constructor(imagePath: string, dimensions: Point);
     dimensions: Point;
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     private loaded();
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
 }
 declare class Player extends PhysicsBlock {
     private static jumpSpeedIncrease;
@@ -159,30 +156,31 @@ declare class Player extends PhysicsBlock {
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, controller: Controller, gravity: number, worldWidth: number, volume: Volume);
     Tick(deltaTime: number): void;
     Bounce(): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     Reset(): void;
 }
-declare class Background implements IRenderable {
+declare class Background implements Renderable {
+    isAlive: boolean;
+    showArrow: boolean;
     private renderPosition;
     private renderDimensions;
     private color;
     private offset;
-    isAlive: boolean;
     private staticBackground;
     private stars1;
     private stars2;
     private upArrow;
-    showArrow: boolean;
     constructor(renderPosition: Point, renderDimensions: Point, color: string, player: Player);
     SlideUpTo(y: number): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     Reset(): void;
 }
 declare class Collider {
     static processCollisions(collidables: PhysicsBlock[]): void;
 }
-declare class ParticleText implements IRenderable {
+declare class ParticleText implements Renderable {
     private static degrees;
+    isAlive: boolean;
     private xPosition;
     private yPosition;
     private text;
@@ -191,9 +189,8 @@ declare class ParticleText implements IRenderable {
     private rotation;
     private color;
     private opacity;
-    isAlive: boolean;
     constructor(xPosition: number, yPosition: number, text: string, fontName: string, fontSize: number, rotation: number, color: string, opacity: number);
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
 }
 declare class Scoreboard extends Block {
     private static fontSizeInPx;
@@ -206,7 +203,7 @@ declare class Scoreboard extends Block {
     private multiplier;
     private points;
     constructor(player: Player, worldPosition: MovingPoint, dimensions: Point, color: string);
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     totalPoints: number;
     Reset(): void;
 }
@@ -220,19 +217,20 @@ declare class Viewport {
     private renderOffset;
     renderDimensions: Point;
     offset: number;
-    constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: IRenderable[], backgroundRenderables: IRenderable[], foregroundRenderables: IRenderable[]);
+    constructor(renderContext: CanvasRenderingContext2D, fixedRenderables: Renderable[], backgroundRenderables: Renderable[], foregroundRenderables: Renderable[]);
     SlideUpTo(y: number): void;
     Render(fps?: number): void;
-    private RenderSubSet(subSet);
     Reset(): void;
+    private RenderSubSet(subSet);
 }
-declare class Menu implements IRenderable {
+declare class Menu implements Renderable {
     private static titleFontSizeInPx;
     private static scoreFontSizeInPx;
     private static playFontSizeInPx;
     private static buttonWidth;
     private static buttonHeight;
     private static fadeInRate;
+    isAlive: boolean;
     private renderDimensions;
     private background;
     private isMenuOpen;
@@ -249,10 +247,9 @@ declare class Menu implements IRenderable {
     private controlPosition;
     private controlDiagram;
     constructor(renderDimensions: Point, controller: Controller, background: Background, onStartGame: () => void, volume: Volume);
-    isAlive: boolean;
-    private isPointOnButton(point);
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
     showMenu(totalPoints: number, scoreColor: string): void;
+    private isPointOnButton(point);
 }
 declare class Platform extends PhysicsBlock {
     private static platformSpeedIncrease;
@@ -261,13 +258,11 @@ declare class Platform extends PhysicsBlock {
     private offscreenAmount;
     constructor(worldPosition: MovingPoint, dimensions: Point, color: string, gravity: number, volume: Volume, worldWidth: number);
     Tick(deltaTime: number): void;
-    Render(renderContext: CanvasRenderingContext2D): IRenderable[];
+    Render(renderContext: CanvasRenderingContext2D): Renderable[];
 }
 declare class Renderer {
     private static defaultGravity;
-    private static millisecondsPerTick;
     private static gameWidth;
-    private static gameHeight;
     private static minimumPlatformReboundSpeed;
     private static timescale;
     private canvas;
@@ -289,8 +284,6 @@ declare class Renderer {
     Start(): void;
     private Tick(timestamp);
     private Draw();
-    private SetUpNewGame();
 }
 declare let canvas: HTMLCanvasElement;
 declare let controller: Controller;
-declare let renderer: Renderer;

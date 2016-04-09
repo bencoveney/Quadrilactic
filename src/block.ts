@@ -1,15 +1,18 @@
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="particle.ts"" />
 
-class Block implements IRenderable {
+class Block implements Renderable {
 	// Constants
-	private static verticalSpeedLimit = 10;
-	private static verticalSpeedLimitDelta = 0.01;
-	private static horizontalSpeedSlowDown = 0.1;
-	private static skewScale = 0.07;
-	private static skewReduction = 0.3;
+	private static verticalSpeedLimit: number = 10;
+	private static verticalSpeedLimitDelta: number = 0.01;
+	private static skewScale: number = 0.07;
+	private static skewReduction: number= 0.3;
+
+	public isAlive: boolean = true;
+
+	protected skew: number;
 
 	// Private members
 	private worldPosition: MovingPoint;
@@ -18,10 +21,7 @@ class Block implements IRenderable {
 	private onMoveCallback: (amountMoved: Point) => void;
 	private initialWorldPosition: MovingPoint;
 	private verticalSpeedLimit: number;
-	protected skew: number;
 	private horizontalSpeedLimit: number;
-
-	public isAlive = true;
 
 	// Position properties
 	get xPosition(): number {
@@ -89,25 +89,20 @@ class Block implements IRenderable {
 	set onMove(newValue: (amountMoved: Point) => void) {
 		this.onMoveCallback = newValue;
 	}
-	
-	get skewedPosition(): {
-		x: number,
-		y: number,
-		width: number,
-		height: number
-	}
+
+	get skewedPosition(): Rectangle
 	{
-		let skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
+		let skewAdjustment: number = this.skew === 0 ? 0 : Math.sin(this.skew);
 		skewAdjustment = skewAdjustment * this.skew;
 
-		let widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
-		let heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
+		let widthAdjustment: number = (skewAdjustment * this.width * Block.skewScale);
+		let heightAdjustment: number = (skewAdjustment * this.height * Block.skewScale);
 
 		return {
-			x: this.xPosition + (widthAdjustment / 2),
-			y: this.yPosition - (heightAdjustment / 2),
+			height: this.height + heightAdjustment,
 			width: this.width - widthAdjustment,
-			height: this.height + heightAdjustment
+			x: this.xPosition + (widthAdjustment / 2),
+			y: this.yPosition - (heightAdjustment / 2)
 		};
 	}
 
@@ -115,9 +110,6 @@ class Block implements IRenderable {
 	get direction(): string {
 		return this.xSpeed >= 0 ? "right" : "left";
 	}
-
-	// Constants
-	private static strokeColor: string = "#000000";
 
 	public constructor(worldPosition: MovingPoint, dimensions: Point, color: string, xSpeedLimit: number) {
 		this.worldPosition = worldPosition;
@@ -128,28 +120,27 @@ class Block implements IRenderable {
 		this.verticalSpeedLimit = Block.verticalSpeedLimit;
 
 		this.initialWorldPosition = {
-			x: worldPosition.x,
-			y: worldPosition.y,
 			dX: worldPosition.dX,
-			dY: worldPosition.dY
+			dY: worldPosition.dY,
+			x: worldPosition.x,
+			y: worldPosition.y
 		};
-		
+
 		this.skew = 0;
 	}
 
-	public Tick(deltaTime: number){
+	public Tick(deltaTime: number): void {
 		// Move "forward".
 		this.xPosition += (this.xSpeed * deltaTime);
 		this.yPosition += (this.ySpeed * deltaTime);
 
-		if(this.onMoveCallback)
-		{
+		if (this.onMoveCallback) {
 			// The amount moved this tick is the same as the speed.
 			this.onMoveCallback({ x: this.xSpeed, y: this.ySpeed });
 		}
-		
-		this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime))
-		
+
+		this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime));
+
 		this.verticalSpeedLimit += Block.verticalSpeedLimitDelta * deltaTime;
 
 		// Clamp the speed to the speed limit.
@@ -159,11 +150,11 @@ class Block implements IRenderable {
 		this.xSpeed = Math.max(this.xSpeed, -this.horizontalSpeedLimit );
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): IRenderable[] {
+	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
 
 		renderContext.beginPath();
-		
-		let skewedPosition = this.skewedPosition;
+
+		let skewedPosition: Rectangle = this.skewedPosition;
 
 		renderContext.rect(
 			skewedPosition.x,
@@ -176,7 +167,7 @@ class Block implements IRenderable {
 
 		renderContext.closePath();
 
-		let particle = new Particle(
+		let particle: Particle = new Particle(
 			skewedPosition.x,
 			skewedPosition.y,
 			skewedPosition.width,
@@ -185,16 +176,15 @@ class Block implements IRenderable {
 			this.fillColor,
 			0.1);
 
-		return [particle] as IRenderable[];
+		return [particle] as Renderable[];
 	}
 
-	public Reset()
-	{
+	public Reset(): void {
 		this.worldPosition = {
-			x: this.initialWorldPosition.x,
-			y: this.initialWorldPosition.y,
 			dX: this.initialWorldPosition.dX,
-			dY: this.initialWorldPosition.dY
+			dY: this.initialWorldPosition.dY,
+			x: this.initialWorldPosition.x,
+			y: this.initialWorldPosition.y
 		};
 
 		this.verticalSpeedLimit = Block.verticalSpeedLimit;

@@ -1,28 +1,28 @@
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="player.ts" />
 /// <reference path="sprite.ts" />
 
-class Background implements IRenderable {
+class Background implements Renderable {
+	public isAlive: boolean = true;
+	public showArrow: boolean = false;
+
 	private renderPosition: Point;
 	private renderDimensions: Point;
 	private color: string;
 	private offset: number = 0;
-	public isAlive: boolean = true;
-
 	private staticBackground: Sprite;
 	private stars1: Sprite;
 	private stars2: Sprite;
 	private upArrow: Sprite;
-	public showArrow: boolean = false;
 
 	public constructor(
 		renderPosition: Point,
 		renderDimensions: Point,
 		color: string,
-		player: Player)
-	{
+		player: Player
+	) {
 		this.renderPosition = renderPosition;
 		this.renderDimensions = renderDimensions;
 		this.color = color;
@@ -33,22 +33,20 @@ class Background implements IRenderable {
 		this.upArrow = new Sprite("img/upArrow.png", { x: 120, y: 99 });
 	}
 
-	public SlideUpTo(y: number)
-	{
-		if(y > this.offset)
-		{
+	public SlideUpTo(y: number): void {
+		if (y > this.offset) {
 			this.offset = y;
 		}
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): IRenderable[]{
+	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
 
-		var result = []
+		let result: Renderable[] = [];
 
 		result = result.concat(this.staticBackground.Render(renderContext));
 
-		let lowerYPosition1 = this.offset % (this.renderDimensions.y * 2);
-		let upperYPosition1 = lowerYPosition1 - (this.renderDimensions.y * 2);
+		let lowerYPosition1: number = this.offset % (this.renderDimensions.y * 2);
+		let upperYPosition1: number = lowerYPosition1 - (this.renderDimensions.y * 2);
 
 		renderContext.save();
 		renderContext.translate(0, lowerYPosition1);
@@ -60,8 +58,8 @@ class Background implements IRenderable {
 		result = result.concat(this.stars1.Render(renderContext));
 		renderContext.restore();
 
-		let lowerYPosition2 = (this.offset / 2) % (this.renderDimensions.y * 2);
-		let upperYPosition2 = lowerYPosition2 - (this.renderDimensions.y * 2);
+		let lowerYPosition2: number = (this.offset / 2) % (this.renderDimensions.y * 2);
+		let upperYPosition2: number = lowerYPosition2 - (this.renderDimensions.y * 2);
 
 		renderContext.save();
 		renderContext.translate(0, lowerYPosition2);
@@ -73,8 +71,7 @@ class Background implements IRenderable {
 		result = result.concat(this.stars2.Render(renderContext));
 		renderContext.restore();
 
-		if(this.showArrow && this.offset < (this.renderDimensions.y * 2))
-		{
+		if (this.showArrow && this.offset < (this.renderDimensions.y * 2)) {
 			renderContext.save();
 
 			renderContext.globalAlpha = 0.5;
@@ -87,8 +84,7 @@ class Background implements IRenderable {
 		return result;
 	}
 
-	public Reset()
-	{
+	public Reset(): void {
 		this.showArrow = true;
 		this.offset = 0;
 	}

@@ -7,9 +7,9 @@ A simple HTML5 canvas game built using typescript.
 ## Todo List
 
 - Tidy up codebase
-  - Refactor
-  - Linting
-  - Component Entity System
+	- Refactor
+	- Linting
+	- Component Entity System
 - Pickups
 - Make the title screen more exciting
 - Prompt for player to start jumping

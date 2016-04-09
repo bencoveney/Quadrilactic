@@ -1,32 +1,24 @@
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="point.ts" />
 
-class Sprite implements IRenderable {
+class Sprite implements Renderable {
+	public isAlive: boolean = true;
 	private image: HTMLImageElement;
 	private internalDimensions: Point;
-	public isAlive: boolean = true;
-	
-	constructor(imagePath: string, dimensions: Point)
-	{
+
+	constructor(imagePath: string, dimensions: Point) {
 		this.image = new Image();
-		this.image.addEventListener("load", () => { this.loaded() }, false);
+		this.image.addEventListener("load", () => { this.loaded(); }, false);
 		this.image.src = imagePath;
-		
+
 		this.dimensions = dimensions;
 	}
-	
-	public set dimensions(dimensions: Point)
-	{
+
+	public set dimensions(dimensions: Point) {
 		this.internalDimensions = dimensions;
 	}
-	
-	private loaded()
-	{
-		console.log("Loaded: " + this.image.src);
-	}
-	
-	public Render(renderContext: CanvasRenderingContext2D): IRenderable[]
-	{
+
+	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
 		renderContext.drawImage(
 			this.image,
 			// Source dimensions
@@ -41,5 +33,9 @@ class Sprite implements IRenderable {
 			this.internalDimensions.y);
 
 		return [];
+	}
+
+	private loaded(): void {
+		console.log("Loaded: " + this.image.src);
 	}
 }

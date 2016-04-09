@@ -3,17 +3,17 @@ var Controller = (function () {
     function Controller(canvas) {
         var _this = this;
         this.isKeyPressedState = {
-            enter: false,
-            space: false,
-            left: false,
-            up: false,
-            right: false,
-            a: false,
-            d: false,
-            e: false,
-            m: false,
-            v: false,
-            w: false
+            "enter": false,
+            "space": false,
+            "left": false,
+            "up": false,
+            "right": false,
+            "a": false,
+            "d": false,
+            "e": false,
+            "m": false,
+            "v": false,
+            "w": false
         };
         this.canvas = canvas;
         window.addEventListener("keyup", function (event) {
@@ -33,6 +33,22 @@ var Controller = (function () {
             _this.handleMouseDown(event);
         });
     }
+    Controller.prototype.isKeyPressed = function (key) {
+        var _this = this;
+        var keys = [].concat(key);
+        return keys.some(function (value) {
+            return _this.isKeyPressedState[value];
+        });
+    };
+    Controller.prototype.getMousePosition = function () {
+        return this.mousePosition;
+    };
+    Controller.prototype.getClickPosition = function () {
+        return this.clickLocation;
+    };
+    Controller.prototype.clearClick = function () {
+        this.clickLocation = undefined;
+    };
     Controller.prototype.handleKeyUp = function (event) {
         var key = Controller.keyCodes[event.keyCode];
         this.isKeyPressedState[key] = false;
@@ -56,22 +72,6 @@ var Controller = (function () {
         };
         event.preventDefault();
     };
-    Controller.prototype.isKeyPressed = function (key) {
-        var _this = this;
-        var keys = [].concat(key);
-        return keys.some(function (value) {
-            return _this.isKeyPressedState[value];
-        });
-    };
-    Controller.prototype.getMousePosition = function () {
-        return this.mousePosition;
-    };
-    Controller.prototype.getClickPosition = function () {
-        return this.clickLocation;
-    };
-    Controller.prototype.clearClick = function () {
-        this.clickLocation = undefined;
-    };
     Controller.keyCodes = {
         13: "enter",
         32: "space",
@@ -87,7 +87,7 @@ var Controller = (function () {
     };
     return Controller;
 })();
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 var Particle = (function () {
     function Particle(xPosition, yPosition, width, height, rotation, color, opacity) {
         this.xPosition = xPosition;
@@ -139,7 +139,7 @@ var Particle = (function () {
 })();
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="particle.ts"" />
 var Block = (function () {
     function Block(worldPosition, dimensions, color, xSpeedLimit) {
@@ -150,10 +150,10 @@ var Block = (function () {
         this.horizontalSpeedLimit = xSpeedLimit;
         this.verticalSpeedLimit = Block.verticalSpeedLimit;
         this.initialWorldPosition = {
-            x: worldPosition.x,
-            y: worldPosition.y,
             dX: worldPosition.dX,
-            dY: worldPosition.dY
+            dY: worldPosition.dY,
+            x: worldPosition.x,
+            y: worldPosition.y
         };
         this.skew = 0;
     }
@@ -276,15 +276,15 @@ var Block = (function () {
     });
     Object.defineProperty(Block.prototype, "skewedPosition", {
         get: function () {
-            var skewAdjustment = this.skew == 0 ? 0 : Math.sin(this.skew);
+            var skewAdjustment = this.skew === 0 ? 0 : Math.sin(this.skew);
             skewAdjustment = skewAdjustment * this.skew;
             var widthAdjustment = (skewAdjustment * this.width * Block.skewScale);
             var heightAdjustment = (skewAdjustment * this.height * Block.skewScale);
             return {
-                x: this.xPosition + (widthAdjustment / 2),
-                y: this.yPosition - (heightAdjustment / 2),
+                height: this.height + heightAdjustment,
                 width: this.width - widthAdjustment,
-                height: this.height + heightAdjustment
+                x: this.xPosition + (widthAdjustment / 2),
+                y: this.yPosition - (heightAdjustment / 2)
             };
         },
         enumerable: true,
@@ -326,21 +326,18 @@ var Block = (function () {
     };
     Block.prototype.Reset = function () {
         this.worldPosition = {
-            x: this.initialWorldPosition.x,
-            y: this.initialWorldPosition.y,
             dX: this.initialWorldPosition.dX,
-            dY: this.initialWorldPosition.dY
+            dY: this.initialWorldPosition.dY,
+            x: this.initialWorldPosition.x,
+            y: this.initialWorldPosition.y
         };
         this.verticalSpeedLimit = Block.verticalSpeedLimit;
     };
     // Constants
     Block.verticalSpeedLimit = 10;
     Block.verticalSpeedLimitDelta = 0.01;
-    Block.horizontalSpeedSlowDown = 0.1;
     Block.skewScale = 0.07;
     Block.skewReduction = 0.3;
-    // Constants
-    Block.strokeColor = "#000000";
     return Block;
 })();
 var Sound = (function () {
@@ -362,7 +359,7 @@ var Sound = (function () {
     Sound.defaultVolume = 0.3;
     return Sound;
 })();
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="sound.ts" />
 var Volume = (function () {
@@ -388,13 +385,6 @@ var Volume = (function () {
         this.sounds = [];
         this.volumeChanged = this.createSound("snd/volume.wav", {});
     }
-    Volume.prototype.isPointOnButton = function (point) {
-        return point
-            && point.x > this.soundButtonPosition.x
-            && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
-            && point.y > this.soundButtonPosition.y
-            && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
-    };
     Volume.prototype.Render = function (renderContext) {
         var mouseClick = this.controller.getClickPosition();
         if (mouseClick && this.isPointOnButton(mouseClick)) {
@@ -432,9 +422,25 @@ var Volume = (function () {
             case 4:
                 this.volume4.Render(renderContext);
                 break;
+            default:
+                this.volume4.Render(renderContext);
+                break;
         }
         renderContext.restore();
         return [];
+    };
+    Volume.prototype.createSound = function (path, options) {
+        var newSound = new Sound(path, options);
+        newSound.volume = this.level / 5;
+        this.sounds.push(newSound);
+        return newSound;
+    };
+    Volume.prototype.isPointOnButton = function (point) {
+        return point
+            && point.x > this.soundButtonPosition.x
+            && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
+            && point.y > this.soundButtonPosition.y
+            && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
     };
     Volume.prototype.changeVolume = function () {
         var _this = this;
@@ -445,19 +451,13 @@ var Volume = (function () {
         });
         this.volumeChanged.play();
     };
-    Volume.prototype.createSound = function (path, options) {
-        var newSound = new Sound(path, options);
-        newSound.volume = this.level / 5;
-        this.sounds.push(newSound);
-        return newSound;
-    };
     Volume.opacityDecay = 0.02;
     Volume.fadedOpacity = 0.4;
     return Volume;
 })();
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="sound.ts" />
 /// <reference path="volume.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
@@ -530,7 +530,7 @@ var PhysicsBlock = (function (_super) {
     };
     return PhysicsBlock;
 })(Block);
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="point.ts" />
 var Sprite = (function () {
     function Sprite(imagePath, dimensions) {
@@ -548,9 +548,6 @@ var Sprite = (function () {
         enumerable: true,
         configurable: true
     });
-    Sprite.prototype.loaded = function () {
-        console.log("Loaded: " + this.image.src);
-    };
     Sprite.prototype.Render = function (renderContext) {
         renderContext.drawImage(this.image, 
         // Source dimensions
@@ -559,12 +556,15 @@ var Sprite = (function () {
         0, 0, this.internalDimensions.x, this.internalDimensions.y);
         return [];
     };
+    Sprite.prototype.loaded = function () {
+        console.log("Loaded: " + this.image.src);
+    };
     return Sprite;
 })();
 /// <reference path="controller.ts" />
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="sprite.ts" />
 /// <reference path="sound.ts" />
 /// <reference path="volume.ts" />
@@ -589,7 +589,7 @@ var Player = (function (_super) {
             this.jump.play();
             this.ySpeed = Player.jumpSpeedIncrease * deltaTime;
             this.isJumping = true;
-            this.jumpRotationSpeed = this.direction == "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
+            this.jumpRotationSpeed = this.direction === "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
         }
         // Allow influence over horizontal direction
         if (this.controller.isKeyPressed(["left", "a"])) {
@@ -669,14 +669,14 @@ var Player = (function (_super) {
 })(PhysicsBlock);
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="player.ts" />
 /// <reference path="sprite.ts" />
 var Background = (function () {
     function Background(renderPosition, renderDimensions, color, player) {
-        this.offset = 0;
         this.isAlive = true;
         this.showArrow = false;
+        this.offset = 0;
         this.renderPosition = renderPosition;
         this.renderDimensions = renderDimensions;
         this.color = color;
@@ -770,7 +770,7 @@ var Collider = (function () {
     };
     return Collider;
 })();
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 var ParticleText = (function () {
     function ParticleText(xPosition, yPosition, text, fontName, fontSize, rotation, color, opacity) {
         this.xPosition = xPosition;
@@ -807,7 +807,7 @@ var ParticleText = (function () {
 })();
 /// <reference path="block.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="player.ts" />
 /// <reference path="particleText.ts" />
 var Scoreboard = (function (_super) {
@@ -875,7 +875,7 @@ var Scoreboard = (function (_super) {
     return Scoreboard;
 })(Block);
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 var Viewport = (function () {
     function Viewport(renderContext, fixedRenderables, backgroundRenderables, foregroundRenderables) {
         this.renderContext = renderContext;
@@ -919,9 +919,14 @@ var Viewport = (function () {
         this.foregroundRenderables = this.RenderSubSet(this.foregroundRenderables);
         this.renderContext.restore();
         if (fps) {
-            this.renderContext.fillStyle = '#FFFFFF';
+            this.renderContext.fillStyle = "#FFFFFF";
             this.renderContext.fillText("FPS: " + fps.toString(), 0, 10);
         }
+    };
+    Viewport.prototype.Reset = function () {
+        this.renderOffset = 0;
+        this.backgroundRenderables = [].concat(this.initialBackgroundRenderables);
+        this.foregroundRenderables = [].concat(this.initialForegroundRenderables);
     };
     Viewport.prototype.RenderSubSet = function (subSet) {
         var newRenderables = subSet;
@@ -932,14 +937,9 @@ var Viewport = (function () {
             return renderable.isAlive;
         });
     };
-    Viewport.prototype.Reset = function () {
-        this.renderOffset = 0;
-        this.backgroundRenderables = [].concat(this.initialBackgroundRenderables);
-        this.foregroundRenderables = [].concat(this.initialForegroundRenderables);
-    };
     return Viewport;
 })();
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="controller.ts" />
 /// <reference path="background.ts" />
 /// <reference path="sound.ts" />
@@ -965,13 +965,6 @@ var Menu = (function () {
         this.controlPosition = { x: 45, y: 300 };
         this.controlDiagram = new Sprite("img/controls.png", { x: 390, y: 237 });
     }
-    Menu.prototype.isPointOnButton = function (point) {
-        return point
-            && point.x > this.playButtonPosition.x
-            && point.x < this.playButtonPosition.x + Menu.buttonWidth
-            && point.y > this.playButtonPosition.y
-            && point.y < this.playButtonPosition.y + Menu.buttonHeight;
-    };
     Menu.prototype.Render = function (renderContext) {
         var mouseClick = this.controller.getClickPosition();
         if ((mouseClick && this.isPointOnButton(mouseClick))
@@ -1028,6 +1021,13 @@ var Menu = (function () {
         this.lastPoints = totalPoints;
         this.scoreColor = scoreColor;
     };
+    Menu.prototype.isPointOnButton = function (point) {
+        return point
+            && point.x > this.playButtonPosition.x
+            && point.x < this.playButtonPosition.x + Menu.buttonWidth
+            && point.y > this.playButtonPosition.y
+            && point.y < this.playButtonPosition.y + Menu.buttonHeight;
+    };
     Menu.titleFontSizeInPx = 90;
     Menu.scoreFontSizeInPx = 50;
     Menu.playFontSizeInPx = 50;
@@ -1038,7 +1038,7 @@ var Menu = (function () {
 })();
 /// <reference path="physicsBlock.ts" />
 /// <reference path="point.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="sprite.ts" />
 var Platform = (function (_super) {
     __extends(Platform, _super);
@@ -1085,7 +1085,7 @@ var Platform = (function (_super) {
 /// <reference path="controller.ts" />
 /// <reference path="point.ts" />
 /// <reference path="collider.ts" />
-/// <reference path="IRenderable.ts" />
+/// <reference path="renderable.ts" />
 /// <reference path="scoreboard.ts" />
 /// <reference path="background.ts" />
 /// <reference path="viewport.ts" />
@@ -1108,12 +1108,11 @@ var Renderer = (function () {
         this.backgroundMusic = this.volume.createSound("snd/music.wav", { isLooping: true });
         this.backgroundMusic.play();
         this.deathSound = this.volume.createSound("snd/death.wav", {});
-        var gameLeft = (this.canvas.width - Renderer.gameWidth) / 2;
         var playerPosition = {
-            x: 30,
-            y: 110,
             dX: 2,
-            dY: -2
+            dY: -2,
+            x: 30,
+            y: 110
         };
         var playerDimensions = {
             x: 30,
@@ -1122,10 +1121,10 @@ var Renderer = (function () {
         this.player = new Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, this.volume);
         this.background = new Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
         var platformPosition = {
-            x: 30,
-            y: 690,
             dX: 2,
-            dY: 2
+            dY: 2,
+            x: 30,
+            y: 690
         };
         var platformDimensions = {
             x: 90,
@@ -1138,10 +1137,10 @@ var Renderer = (function () {
             }
         };
         var scoreboardPosition = {
-            x: 20,
-            y: 370,
             dX: 0,
-            dY: 0
+            dY: 0,
+            x: 20,
+            y: 370
         };
         var scoreboardDimensions = {
             x: 0,
@@ -1174,7 +1173,6 @@ var Renderer = (function () {
                 originalOnMove(amountMoved);
             }
         };
-        this.Start();
     }
     Renderer.prototype.Start = function () {
         var _this = this;
@@ -1204,13 +1202,9 @@ var Renderer = (function () {
         }
         this.volume.Render(this.context);
     };
-    Renderer.prototype.SetUpNewGame = function () {
-    };
     // Constants
     Renderer.defaultGravity = 0.2;
-    Renderer.millisecondsPerTick = 13;
     Renderer.gameWidth = 480;
-    Renderer.gameHeight = 800;
     Renderer.minimumPlatformReboundSpeed = 10;
     Renderer.timescale = 16;
     return Renderer;
@@ -1220,7 +1214,7 @@ var Renderer = (function () {
 /// <reference path="controller.ts" />
 var canvas = document.getElementById("viewport");
 var controller = new Controller(canvas);
-var renderer = new Renderer(canvas, controller);
+new Renderer(canvas, controller).Start();
 // Ensure keyboard events when loaded in an iframe (fix for itch.io)
 window.onload = function () {
     window.focus();
