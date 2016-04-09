@@ -1221,4 +1221,11 @@ var Renderer = (function () {
 var canvas = document.getElementById("viewport");
 var controller = new Controller(canvas);
 var renderer = new Renderer(canvas, controller);
+// Ensure keyboard events when loaded in an iframe (fix for itch.io)
+window.onload = function () {
+    window.focus();
+};
+window.onclick = function () {
+    window.focus();
+};
 //# sourceMappingURL=source.js.map
