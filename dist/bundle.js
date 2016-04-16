@@ -44,10 +44,15 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(16)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(16), __webpack_require__(17), __webpack_require__(18), __webpack_require__(19)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, LocationSystem_1, RenderSystem_1) {
 	    var canvas = document.getElementById("viewport");
 	    var controller = new controller_1.Controller(canvas);
-	    new renderer_1.Renderer(canvas, controller).Start();
+	    var orchestrator = new orchestrator_1.Orchestrator([], {}, {
+	        "location": new LocationSystem_1.LocationSystem(),
+	    }, {
+	        "render": new RenderSystem_1.RenderSystem(),
+	    });
+	    new renderer_1.Renderer(canvas, controller, orchestrator).Start();
 	    window.onload = function () {
 	        window.focus();
 	    };
@@ -63,12 +68,13 @@
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(4), __webpack_require__(9), __webpack_require__(10), __webpack_require__(2), __webpack_require__(11), __webpack_require__(12), __webpack_require__(13), __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, collider_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1) {
 	    var Renderer = (function () {
-	        function Renderer(canvas, controller) {
+	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
 	            this.isRunning = false;
 	            this.canvas = canvas;
 	            this.context = canvas.getContext("2d");
 	            this.controller = controller;
+	            this.orchestrator = orchestrator;
 	            this.volume = new volume_1.Volume({
 	                x: this.canvas.width,
 	                y: this.canvas.height
@@ -87,6 +93,7 @@
 	                y: 30
 	            };
 	            this.player = new player_1.Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, this.volume);
+	            orchestrator.Add(this.player);
 	            this.background = new background_1.Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
 	            var platformPosition = {
 	                dX: 2,
@@ -104,6 +111,7 @@
 	                    _this.platform.locationComponent.ySpeed = Renderer.minimumPlatformReboundSpeed;
 	                }
 	            };
+	            orchestrator.Add(this.platform);
 	            var scoreboardPosition = {
 	                dX: 0,
 	                dY: 0,
@@ -115,6 +123,7 @@
 	                y: 0
 	            };
 	            this.scoreboard = new scoreboard_1.Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "rgba(255,255,255, 0.1)");
+	            orchestrator.Add(this.scoreboard);
 	            this.menu = new menu_1.Menu({
 	                x: this.canvas.width,
 	                y: this.canvas.height
@@ -152,6 +161,7 @@
 	            var scaledTime = deltaTime / Renderer.timescale;
 	            this.lastTimestamp = timestamp;
 	            this.lastFps = Math.round(1000 / deltaTime);
+	            this.orchestrator.Tick(deltaTime);
 	            this.Draw();
 	            if (this.isRunning === true) {
 	                this.player.Tick(scaledTime);
@@ -1313,6 +1323,100 @@
 	        return Controller;
 	    })();
 	    exports.Controller = Controller;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var Orchestrator = (function () {
+	        function Orchestrator(initialEntities, preSystems, mainSystems, postSystems) {
+	            if (preSystems === void 0) { preSystems = {}; }
+	            if (mainSystems === void 0) { mainSystems = {}; }
+	            if (postSystems === void 0) { postSystems = {}; }
+	            this._entities = initialEntities;
+	            this._preSystems = preSystems;
+	            this._mainSystems = mainSystems;
+	            this._postSystems = postSystems;
+	        }
+	        Object.defineProperty(Orchestrator.prototype, "entities", {
+	            get: function () {
+	                return this._entities;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Orchestrator.prototype.Tick = function (deltaTime) {
+	            var _this = this;
+	            this.RunSystems(this._preSystems, deltaTime);
+	            this.RunSystems(this._mainSystems, deltaTime);
+	            this.RunSystems(this._postSystems, deltaTime);
+	            this._entities = this._entities.concat(this._entitiesToAdd);
+	            this._entities = this._entities.filter(function (entity) {
+	                return _this._entitiesToRemove.indexOf(entity) < 0;
+	            });
+	        };
+	        Orchestrator.prototype.Add = function (entity) {
+	            this._entitiesToAdd.push(entity);
+	        };
+	        Orchestrator.prototype.Remove = function (entity) {
+	            this._entitiesToRemove.push(entity);
+	        };
+	        Orchestrator.prototype.GetSystem = function (name) {
+	            return this._mainSystems[name] || this._preSystems[name] || this._postSystems[name];
+	        };
+	        Orchestrator.prototype.RunSystems = function (systems, deltaTime) {
+	            for (var systemName in systems) {
+	                if (systems.hasOwnProperty(systemName)) {
+	                    this.RunSystem(systems[systemName], deltaTime);
+	                }
+	            }
+	        };
+	        Orchestrator.prototype.RunSystem = function (system, deltaTime) {
+	            var _this = this;
+	            this._entities.forEach(function (entity) {
+	                system.Update(entity, _this, deltaTime);
+	            });
+	        };
+	        return Orchestrator;
+	    })();
+	    exports.Orchestrator = Orchestrator;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var LocationSystem = (function () {
+	        function LocationSystem() {
+	        }
+	        LocationSystem.prototype.Update = function (entity, orchestrator, deltaTime) {
+	            console.log("TODO");
+	        };
+	        return LocationSystem;
+	    })();
+	    exports.LocationSystem = LocationSystem;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var RenderSystem = (function () {
+	        function RenderSystem() {
+	        }
+	        RenderSystem.prototype.Update = function (entity, orchestrator, deltaTime) {
+	            console.log("TODO");
+	        };
+	        return RenderSystem;
+	    })();
+	    exports.RenderSystem = RenderSystem;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 

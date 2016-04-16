@@ -1,8 +1,8 @@
 import {MovingPoint, Point, Rectangle} from "point";
 import {Renderable} from "renderable";
 import {Particle} from "particle";
-import {Entity} from "entity";
-import {LocationComponent} from "locationComponent";
+import {Entity} from "entitySystem/entity";
+import {LocationComponent} from "entitySystem/locationComponent";
 
 export class Block implements Renderable, Entity {
 	// Constants

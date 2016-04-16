@@ -1,5 +1,5 @@
 export class LocationComponent {
-	// Data members
+	// Data members.
 	private _x: number;
 	private _y: number;
 	private _xSpeed: number;
@@ -21,7 +21,7 @@ export class LocationComponent {
 		this._y = newValue;
 	}
 
-	// Size properties
+	// Size properties.
 	get width(): number {
 		return this._xSize;
 	}
@@ -29,7 +29,7 @@ export class LocationComponent {
 		return this._ySize;
 	}
 
-	// Position helper properties
+	// Position helper properties.
 	get left(): number {
 		return this._x;
 	}
@@ -49,7 +49,7 @@ export class LocationComponent {
 		return this._y + (this.height / 2);
 	}
 
-	// Velocity properties
+	// Velocity properties.
 	get xSpeed(): number {
 		return this._xSpeed;
 	}
@@ -69,8 +69,7 @@ export class LocationComponent {
 		width: number,
 		height: number,
 		xSpeed: number,
-		ySpeed: number,
-		gravity: number
+		ySpeed: number
 	) {
 		this._x = x;
 		this._y = y;

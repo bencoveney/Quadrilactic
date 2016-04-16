@@ -9,6 +9,7 @@ import {Sound} from "sound";
 import {Menu} from "menu";
 import {Volume} from "volume";
 import {Platform} from "platform";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Renderer {
 	// Constants
@@ -36,10 +37,13 @@ export class Renderer {
 	private volume: Volume;
 	private controller: Controller;
 
-	constructor(canvas: HTMLCanvasElement, controller: Controller) {
+	private orchestrator: Orchestrator;
+
+	constructor(canvas: HTMLCanvasElement, controller: Controller, orchestrator: Orchestrator) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
 		this.controller = controller;
+		this.orchestrator = orchestrator;
 
 		this.volume = new Volume(
 			{
@@ -71,6 +75,7 @@ export class Renderer {
 			Renderer.defaultGravity,
 			Renderer.gameWidth,
 			this.volume);
+		orchestrator.Add(this.player);
 
 		this.background = new Background(
 			{ x: 0, y: 0 },
@@ -101,6 +106,7 @@ export class Renderer {
 				this.platform.locationComponent.ySpeed = Renderer.minimumPlatformReboundSpeed;
 			}
 		};
+		orchestrator.Add(this.platform);
 
 		let scoreboardPosition: MovingPoint = {
 			dX: 0,
@@ -118,6 +124,7 @@ export class Renderer {
 			scoreboardDimensions,
 			"rgba(255,255,255, 0.1)"
 		);
+		orchestrator.Add(this.scoreboard);
 
 		this.menu = new Menu(
 			{
@@ -172,6 +179,8 @@ export class Renderer {
 		let scaledTime: number = deltaTime / Renderer.timescale;
 		this.lastTimestamp = timestamp;
 		this.lastFps = Math.round(1000 / deltaTime);
+
+		this.orchestrator.Tick(deltaTime);
 
 		this.Draw();
 

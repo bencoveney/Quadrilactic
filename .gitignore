@@ -34,6 +34,6 @@ node_modules
 
 # Project specific
 tsconfig.json
-src/*.js
-src/*.js.map
-src/*.d.ts
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
