@@ -29,7 +29,7 @@ export class Scoreboard extends Block {
 		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
 		this.player.onMove = (amountMoved: Point) => {
 
-			let currentHeight: number = -this.player.top;
+			let currentHeight: number = -this.player.locationComponent.top;
 			if (currentHeight > this.greatestHeightReached) {
 				this.greatestHeightReached = currentHeight;
 				this.multiplier = Math.round(this.greatestHeightReached / 10) / 100;
@@ -55,18 +55,27 @@ export class Scoreboard extends Block {
 		renderContext.fillStyle = this.fillColor;
 		renderContext.font = "" + Scoreboard.fontSizeInPx + "px Oswald";
 
-		renderContext.translate(this.centerXPosition, this.centerYPosition);
+		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
 		renderContext.rotate(Scoreboard.fontRotation * Scoreboard.degrees);
-		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 
-		renderContext.fillText(this.score.toString(), this.xPosition, this.yPosition + Scoreboard.fontSizeInPx);
+		renderContext.fillText(
+			this.score.toString(),
+			this.locationComponent.xPosition,
+			this.locationComponent.yPosition + Scoreboard.fontSizeInPx);
 
 		renderContext.font = "" + (Scoreboard.fontSizeInPx / 2) + "px Oswald";
-		renderContext.fillText("x " + this.multiplier.toString(), this.xPosition, this.yPosition + (1.5 * Scoreboard.fontSizeInPx));
+		renderContext.fillText(
+			"x " + this.multiplier.toString(),
+			this.locationComponent.xPosition,
+			this.locationComponent.yPosition + (1.5 * Scoreboard.fontSizeInPx));
 
 		renderContext.globalAlpha = 0.5;
 		renderContext.fillStyle = this.player.fillColor;
-		renderContext.fillText("~ " + this.points.toString(), this.xPosition, this.yPosition + (2 * Scoreboard.fontSizeInPx));
+		renderContext.fillText(
+			"~ " + this.points.toString(),
+			this.locationComponent.xPosition,
+			this.locationComponent.yPosition + (2 * Scoreboard.fontSizeInPx));
 
 		renderContext.restore();
 

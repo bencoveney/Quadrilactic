@@ -97,8 +97,8 @@ export class Renderer {
 			this.volume,
 			Renderer.gameWidth);
 		this.platform.onBounce = () => {
-			if (this.platform.ySpeed < Renderer.minimumPlatformReboundSpeed) {
-				this.platform.ySpeed = Renderer.minimumPlatformReboundSpeed;
+			if (this.platform.locationComponent.ySpeed < Renderer.minimumPlatformReboundSpeed) {
+				this.platform.locationComponent.ySpeed = Renderer.minimumPlatformReboundSpeed;
 			}
 		};
 
@@ -148,10 +148,10 @@ export class Renderer {
 
 		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
 		this.player.onMove = (amountMoved: Point) => {
-			this.viewport.SlideUpTo(-this.player.yPosition + 50);
-			this.background.SlideUpTo(-this.player.yPosition);
+			this.viewport.SlideUpTo(-this.player.locationComponent.yPosition + 50);
+			this.background.SlideUpTo(-this.player.locationComponent.yPosition);
 
-			if (this.player.yPosition > -(this.viewport.offset - this.canvas.height)) {
+			if (this.player.locationComponent.yPosition > -(this.viewport.offset - this.canvas.height)) {
 				this.isRunning = false;
 				this.deathSound.play();
 				this.menu.showMenu(this.scoreboard.totalPoints, this.player.fillColor);

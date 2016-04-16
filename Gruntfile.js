@@ -9,12 +9,13 @@ module.exports = function(grunt) {
 		typescript: {
 			base: {
 				src: ['src/**/*.ts'],
-				dest: './',
 				options: {
 					module: 'amd',
 					target: 'es5',
 					sourceMap: true,
-					generateTsConfig: true
+					generateTsConfig: true,
+					noImplicitAny: true,
+					removeComments: true
 				}
 			}
 		},

@@ -47,27 +47,27 @@ export class PhysicsBlock extends Block {
 		super.Tick(deltaTime);
 
 		// If off the right, bounce left
-		if (this.right > this.worldWidth) {
+		if (this.locationComponent.right > this.worldWidth) {
 			this.rebound.play();
 
 			// Clamp on screen, invert horizontal speed
 			this.skew += 3;
-			this.xPosition = this.worldWidth - this.width;
-			this.xSpeed = -Math.abs(this.xSpeed);
+			this.locationComponent.xPosition = this.worldWidth - this.locationComponent.width;
+			this.locationComponent.xSpeed = -Math.abs(this.locationComponent.xSpeed);
 		}
 
 		// If off the left, bounce right
-		if (this.left < 0) {
+		if (this.locationComponent.left < 0) {
 			this.rebound.play();
 
 			// Clamp on screen, invert horizontal speed
-			this.xPosition = 0;
+			this.locationComponent.xPosition = 0;
 			this.skew += 3;
-			this.xSpeed = Math.abs(this.xSpeed);
+			this.locationComponent.xSpeed = Math.abs(this.locationComponent.xSpeed);
 		}
 
 		// Apply acceleration due to gravity
-		this.ySpeed += (this.internalGravity * deltaTime);
+		this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
@@ -75,7 +75,7 @@ export class PhysicsBlock extends Block {
 	}
 
 	public VerticalBounce(newYSpeed: number): void {
-		this.ySpeed = newYSpeed;
+		this.locationComponent.ySpeed = newYSpeed;
 
 		this.skew += 10;
 

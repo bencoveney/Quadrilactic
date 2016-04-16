@@ -14,7 +14,7 @@ export class Platform extends PhysicsBlock {
 	}
 
 	private get offscreenAmount(): number {
-		return Math.max(this.top - this.bottomOfScreen, 0);
+		return Math.max(this.locationComponent.top - this.bottomOfScreen, 0);
 	}
 
 	public constructor(
@@ -29,7 +29,9 @@ export class Platform extends PhysicsBlock {
 	}
 
 	public Tick(deltaTime: number): void {
-		this.xSpeed = this.xSpeed * (( Platform.platformSpeedIncrease + deltaTime) / Platform.platformSpeedIncrease);
+		this.locationComponent.xSpeed =
+			this.locationComponent.xSpeed * (
+				(Platform.platformSpeedIncrease + deltaTime) / Platform.platformSpeedIncrease);
 
 		super.Tick(deltaTime);
 	}
@@ -44,18 +46,18 @@ export class Platform extends PhysicsBlock {
 
 			renderContext.globalAlpha = 0.2;
 			renderContext.fillRect(
-				this.left,
-				this.bottomOfScreen - this.height,
-				this.width,
-				this.height
+				this.locationComponent.left,
+				this.bottomOfScreen - this.locationComponent.height,
+				this.locationComponent.width,
+				this.locationComponent.height
 			);
 
 			renderContext.globalAlpha = 1;
 			renderContext.fillRect(
-				this.left,
-				this.bottomOfScreen - this.height,
-				((this.offscreenAmount / 10) % this.width),
-				this.height
+				this.locationComponent.left,
+				this.bottomOfScreen - this.locationComponent.height,
+				((this.offscreenAmount / 10) % this.locationComponent.width),
+				this.locationComponent.height
 			);
 
 			renderContext.restore();

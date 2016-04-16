@@ -57,17 +57,17 @@ export class Player extends PhysicsBlock {
 		// Perform the jump
 		if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
 			this.jump.play();
-			this.ySpeed = Player.jumpSpeedIncrease * deltaTime;
+			this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
 			this.isJumping = true;
 			this.jumpRotationSpeed = this.direction === "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
 		}
 
 		// Allow influence over horizontal direction
 		if (this.controller.isKeyPressed(["left", "a"])) {
-			this.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
+			this.locationComponent.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
 		}
 		if (this.controller.isKeyPressed(["right", "d"])) {
-			this.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
+			this.locationComponent.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
 		}
 
 		// Apply jump rotation
@@ -78,7 +78,7 @@ export class Player extends PhysicsBlock {
 			this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
 		}
 
-		this.jumpRotationAmount += this.xSpeed / 2;
+		this.jumpRotationAmount += this.locationComponent.xSpeed / 2;
 	}
 
 	public Bounce(): void {
@@ -92,22 +92,22 @@ export class Player extends PhysicsBlock {
 	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
 		renderContext.save();
 
-		renderContext.translate(this.centerXPosition, this.centerYPosition);
+		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
 		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
-		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 
 		let faceSprite: Sprite;
 
-		if (this.ySpeed > Player.faceSwapThreshold) {
+		if (this.locationComponent.ySpeed > Player.faceSwapThreshold) {
 			faceSprite = this.faceDown;
-		} else if (this.ySpeed < -Player.faceSwapThreshold) {
+		} else if (this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
 			faceSprite = this.faceUp;
 		} else {
 			faceSprite = this.faceHover;
 		}
 
-		let xHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.xSpeed)), 0).toString(16);
-		let yHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.ySpeed)), 0).toString(16);
+		let xHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.locationComponent.xSpeed)), 0).toString(16);
+		let yHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.locationComponent.ySpeed)), 0).toString(16);
 
 		this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
 
@@ -120,9 +120,9 @@ export class Player extends PhysicsBlock {
 		renderContext.restore();
 
 		renderContext.save();
-		renderContext.translate(this.centerXPosition, this.centerYPosition);
+		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
 		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
-		renderContext.translate(-this.centerXPosition, -this.centerYPosition);
+		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 
 		let skewedPosition: Rectangle = this.skewedPosition;
 
