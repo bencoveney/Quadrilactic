@@ -1,9 +1,8 @@
-/// <reference path="controller.ts" />
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="particle.ts"" />
+import {MovingPoint, Point, Rectangle} from "point";
+import {Renderable} from "renderable";
+import {Particle} from "particle";
 
-class Block implements Renderable {
+export class Block implements Renderable {
 	// Constants
 	private static verticalSpeedLimit: number = 10;
 	private static verticalSpeedLimitDelta: number = 0.01;

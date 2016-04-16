@@ -1,9 +1,10 @@
-/// <reference path="physicsBlock.ts" />
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="sprite.ts" />
+import {PhysicsBlock} from "physicsBlock";
+import {MovingPoint, Point} from "point";
+import {Renderable} from "renderable";
+import {Viewport} from "viewport";
+import {Volume} from "volume";
 
-class Platform extends PhysicsBlock {
+export class Platform extends PhysicsBlock {
 	private static platformSpeedIncrease: number = 1000;
 
 	public viewport: Viewport;

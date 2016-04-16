@@ -2,17 +2,18 @@ module.exports = function(grunt) {
 
 	// Display stats
 	require('time-grunt')(grunt);
+	var webpack = require("webpack");
+	var webpackConfig = require("./webpack.config.js");
 
 	grunt.initConfig({
 		typescript: {
 			base: {
 				src: ['src/**/*.ts'],
-				dest: 'dist/source.js',
+				dest: './',
 				options: {
-					module: 'amd', //or commonjs 
-					target: 'es5', //or es3 
+					module: 'amd',
+					target: 'es5',
 					sourceMap: true,
-					declaration: true,
 					generateTsConfig: true
 				}
 			}
@@ -47,11 +48,29 @@ module.exports = function(grunt) {
 			},
 			typescript: {
 				files: 'src/**/*.ts',
-				tasks: ['lint']
+				tasks: [
+					'typescript',
+					'webpack:build-dev',
+					'tslint'
+				]
 			},
 			css: {
 				files: 'css/**/*.scss',
-				tasks: ['sass:dev']
+				tasks: [
+					'sass'
+				]
+			}
+		},
+		webpack: {
+			options: webpackConfig,
+			"build-release": {
+				plugins: webpackConfig.plugins.concat(
+					new webpack.optimize.UglifyJsPlugin()
+				)
+			},
+			"build-dev": {
+				debug: true,
+				devtool: "sourcemap"
 			}
 		}
 	});
@@ -60,8 +79,20 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-sass');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks("grunt-tslint");
+	grunt.loadNpmTasks("grunt-webpack");
 
-	grunt.registerTask('build', ['typescript', 'sass']);
-	grunt.registerTask('default', ['build', 'watch']);
-	grunt.registerTask('lint', ['build', 'tslint']);
+	// Compile in dev mode and wait.
+	grunt.registerTask('default', [
+		'typescript',
+		'sass',
+		'webpack:build-dev',
+		'watch'
+	]);
+	
+	// Compile in release mode.
+	grunt.registerTask('release', [
+		'typescript',
+		'sass',
+		'webpack:build-release'
+	]);
 };

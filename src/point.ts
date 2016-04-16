@@ -1,14 +1,14 @@
-interface Point {
+export interface Point {
 	x: number;
 	y: number;
 }
 
-interface MovingPoint extends Point {
+export interface MovingPoint extends Point {
 	dX: number;
 	dY: number;
 }
 
-interface Rectangle extends Point {
+export interface Rectangle extends Point {
 	width: number;
 	height: number;
 }

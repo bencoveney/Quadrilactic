@@ -1,10 +1,10 @@
-/// <reference path="block.ts" />
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="sound.ts" />
-/// <reference path="volume.ts" />
+import {Block} from "block";
+import {MovingPoint, Point} from "point";
+import {Renderable} from "renderable";
+import {Sound} from "sound";
+import {Volume} from "volume";
 
-class PhysicsBlock extends Block {
+export class PhysicsBlock extends Block {
 
 	private internalGravity: number;
 	private onBounceCallback: () => void;

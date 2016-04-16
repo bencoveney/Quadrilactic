@@ -1,6 +1,6 @@
-/// <reference path="physicsBlock.ts" />
+import {PhysicsBlock} from "physicsBlock";
 
-class Collider {
+export class Collider {
 	public static processCollisions(collidables: PhysicsBlock[]): void {
 		if (collidables.length <= 1) {
 			// Need multiple objects to perform collisions

@@ -1,9 +1,9 @@
-interface SoundOptions {
+export interface SoundOptions {
 	volume?: number;
 	isLooping?: boolean;
 }
 
-class Sound {
+export class Sound {
 	private static defaultVolume: number = 0.3;
 
 	private sound: HTMLAudioElement;

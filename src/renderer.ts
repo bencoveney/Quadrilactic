@@ -1,17 +1,16 @@
-/// <reference path="player.ts" />
-/// <reference path="controller.ts" />
-/// <reference path="point.ts" />
-/// <reference path="collider.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="scoreboard.ts" />
-/// <reference path="background.ts" />
-/// <reference path="viewport.ts" />
-/// <reference path="sound.ts" />
-/// <reference path="menu.ts" />
-/// <reference path="volume.ts" />
-/// <reference path="platform.ts" />
+import {Player} from "player";
+import {Controller} from "controller";
+import {MovingPoint, Point} from "point";
+import {Collider} from "collider";
+import {Scoreboard} from "scoreboard";
+import {Background} from "background";
+import {Viewport} from "viewport";
+import {Sound} from "sound";
+import {Menu} from "menu";
+import {Volume} from "volume";
+import {Platform} from "platform";
 
-class Renderer {
+export class Renderer {
 	// Constants
 	private static defaultGravity: number = 0.2;
 	private static gameWidth: number = 480;

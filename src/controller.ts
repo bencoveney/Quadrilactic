@@ -1,6 +1,6 @@
-/// <reference path="point.ts" />
+import {Point} from "point";
 
-class Controller {
+export class Controller {
 	private static keyCodes: { [keyCode: number]: string } = {
 		13: "enter",
 		32: "space",

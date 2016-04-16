@@ -1,12 +1,13 @@
-/// <reference path="controller.ts" />
-/// <reference path="physicsBlock.ts" />
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="sprite.ts" />
-/// <reference path="sound.ts" />
-/// <reference path="volume.ts" />
+import {Controller} from "controller";
+import {PhysicsBlock} from "physicsBlock";
+import {MovingPoint, Point, Rectangle} from "point";
+import {Renderable} from "renderable";
+import {Sprite} from "sprite";
+import {Sound} from "sound";
+import {Volume} from "volume";
+import {Particle} from "particle";
 
-class Player extends PhysicsBlock {
+export class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease: number = -8;
 	private static degrees: number = Math.PI / 180;
 	private static jumpRotationSlowDown: number = 0.1;

@@ -1,10 +1,9 @@
-/// <reference path="block.ts" />
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="player.ts" />
-/// <reference path="particleText.ts" />
+import {Block} from "block";
+import {MovingPoint, Point} from "point";
+import {Renderable} from "renderable";
+import {Player} from "player";
 
-class Scoreboard extends Block {
+export class Scoreboard extends Block {
 	private static fontSizeInPx: number = 200;
 	private static fontRotation: number = 0;
 	private static bouncePoints: number = 1;

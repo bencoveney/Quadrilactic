@@ -1,6 +1,6 @@
-/// <reference path="renderable.ts" />
+import {Renderable} from "renderable";
 
-class Particle implements Renderable {
+export class Particle implements Renderable {
 	private static degrees: number = Math.PI / 180;
 
 	public rotation: number;
@@ -16,6 +16,7 @@ class Particle implements Renderable {
 	private get centerXPosition(): number {
 		return this.xPosition + (this.width / 2);
 	}
+
 	private get centerYPosition(): number {
 		return this.yPosition + (this.height / 2);
 	}

@@ -1,7 +1,7 @@
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
+import {Point} from "point";
+import {Renderable} from "renderable";
 
-class Viewport {
+export class Viewport {
 	private renderContext: CanvasRenderingContext2D;
 	private fixedRenderables: Renderable[];
 	private backgroundRenderables: Renderable[];

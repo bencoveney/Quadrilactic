@@ -1,10 +1,9 @@
-/// <reference path="block.ts" />
-/// <reference path="point.ts" />
-/// <reference path="renderable.ts" />
-/// <reference path="player.ts" />
-/// <reference path="sprite.ts" />
+import {Point} from "point";
+import {Renderable} from "renderable";
+import {Player} from "player";
+import {Sprite} from "sprite";
 
-class Background implements Renderable {
+export class Background implements Renderable {
 	public isAlive: boolean = true;
 	public showArrow: boolean = false;
 

@@ -1,6 +1,5 @@
-/// <reference path="../typings/tsd.d.ts" />
-/// <reference path="renderer.ts" />
-/// <reference path="controller.ts" />
+import {Renderer} from "renderer";
+import {Controller} from "controller";
 
 let canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement;
 

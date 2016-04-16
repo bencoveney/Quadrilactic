@@ -1,7 +1,7 @@
-/// <reference path="renderable.ts" />
-/// <reference path="point.ts" />
+import {Renderable} from "renderable";
+import {Point} from "point";
 
-class Sprite implements Renderable {
+export class Sprite implements Renderable {
 	public isAlive: boolean = true;
 	private image: HTMLImageElement;
 	private internalDimensions: Point;

@@ -1,11 +1,12 @@
-/// <reference path="renderable.ts" />
-/// <reference path="controller.ts" />
-/// <reference path="background.ts" />
-/// <reference path="sound.ts" />
-/// <reference path="volume.ts" />
-/// <reference path="sprite.ts" />
+import {Renderable} from "renderable";
+import {Controller} from "controller";
+import {Background} from "background";
+import {Sound} from "sound";
+import {Volume} from "volume";
+import {Sprite} from "sprite";
+import {Point} from "point";
 
-class Menu implements Renderable {
+export class Menu implements Renderable {
 	private static titleFontSizeInPx: number = 90;
 	private static scoreFontSizeInPx: number = 50;
 	private static playFontSizeInPx: number = 50;

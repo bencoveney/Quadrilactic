@@ -1,8 +1,10 @@
-/// <reference path="renderable.ts" />
-/// <reference path="controller.ts" />
-/// <reference path="sound.ts" />
+import {Renderable} from "renderable";
+import {Controller} from "controller";
+import {Sound, SoundOptions} from "sound";
+import {Point} from "point";
+import {Sprite} from "sprite";
 
-class Volume implements Renderable {
+export class Volume implements Renderable {
 	private static opacityDecay: number =  0.02;
 	private static fadedOpacity: number = 0.4;
 	public isAlive: boolean = true;

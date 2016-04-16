@@ -1,6 +1,6 @@
-/// <reference path="renderable.ts" />
+import {Renderable} from "renderable";
 
-class ParticleText implements Renderable {
+export class ParticleText implements Renderable {
 	private static degrees: number = Math.PI / 180;
 	public isAlive: boolean;
 	private xPosition: number;
