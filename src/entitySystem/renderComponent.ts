@@ -1,7 +1,10 @@
+import {LocationComponent} from "entitySystem/LocationComponent";
+
 export class RenderComponent {
 	// Data members.
 	private _fillColor: string;
 	private _opacity: number;
+	private _position: LocationComponent;
 
 	get fillColor(): string {
 		return this._fillColor;
@@ -17,8 +20,16 @@ export class RenderComponent {
 		this._opacity = newValue;
 	}
 
-	constructor(fillColor: string, opacity: number) {
+	get position(): LocationComponent {
+		return this._position;
+	}
+	set position(newValue: LocationComponent) {
+		this._position = newValue;
+	}
+
+	constructor(fillColor: string, opacity: number, position: LocationComponent) {
 		this._fillColor = fillColor;
 		this._opacity = opacity;
+		this._position = position;
 	}
 }

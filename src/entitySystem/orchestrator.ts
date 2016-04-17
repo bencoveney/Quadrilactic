@@ -32,9 +32,17 @@ export class Orchestrator {
 		this._preSystems = preSystems;
 		this._mainSystems = mainSystems;
 		this._postSystems = postSystems;
+
+		this._entitiesToAdd = [];
+		this._entitiesToRemove = [];
 	}
 
 	public Tick(deltaTime: number): void {
+		if (this._entities.length > 500)
+		{
+			throw new RangeError("Sanity check failed: Large number of entities");
+		}
+
 		this.RunSystems(this._preSystems, deltaTime);
 		this.RunSystems(this._mainSystems, deltaTime);
 		this.RunSystems(this._postSystems, deltaTime);
@@ -44,8 +52,17 @@ export class Orchestrator {
 
 		// Remove any dead entities.
 		this._entities = this._entities.filter((entity: Entity) => {
-			return this._entitiesToRemove.indexOf(entity) < 0;
-		});
+			if (this._entitiesToRemove.indexOf(entity) < 0)
+			{
+				return true;
+			}
+
+			return false;
+		}, this);
+
+		// Reset the add/remove lists
+		this._entitiesToAdd = [];
+		this._entitiesToRemove = [];
 	}
 
 	public Add(entity: Entity): void {

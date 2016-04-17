@@ -2,6 +2,7 @@ import {Point} from "point";
 import {Renderable} from "renderable";
 import {Player} from "player";
 import {Sprite} from "sprite";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Background implements Renderable {
 	public isAlive: boolean = true;
@@ -38,23 +39,23 @@ export class Background implements Renderable {
 		}
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 
 		let result: Renderable[] = [];
 
-		result = result.concat(this.staticBackground.Render(renderContext));
+		result = result.concat(this.staticBackground.Render(renderContext, orchestrator));
 
 		let lowerYPosition1: number = this.offset % (this.renderDimensions.y * 2);
 		let upperYPosition1: number = lowerYPosition1 - (this.renderDimensions.y * 2);
 
 		renderContext.save();
 		renderContext.translate(0, lowerYPosition1);
-		result = result.concat(this.stars1.Render(renderContext));
+		result = result.concat(this.stars1.Render(renderContext, orchestrator));
 		renderContext.restore();
 
 		renderContext.save();
 		renderContext.translate(0, upperYPosition1);
-		result = result.concat(this.stars1.Render(renderContext));
+		result = result.concat(this.stars1.Render(renderContext, orchestrator));
 		renderContext.restore();
 
 		let lowerYPosition2: number = (this.offset / 2) % (this.renderDimensions.y * 2);
@@ -62,12 +63,12 @@ export class Background implements Renderable {
 
 		renderContext.save();
 		renderContext.translate(0, lowerYPosition2);
-		result = result.concat(this.stars2.Render(renderContext));
+		result = result.concat(this.stars2.Render(renderContext, orchestrator));
 		renderContext.restore();
 
 		renderContext.save();
 		renderContext.translate(0, upperYPosition2);
-		result = result.concat(this.stars2.Render(renderContext));
+		result = result.concat(this.stars2.Render(renderContext, orchestrator));
 		renderContext.restore();
 
 		if (this.showArrow && this.offset < (this.renderDimensions.y * 2)) {
@@ -75,7 +76,7 @@ export class Background implements Renderable {
 
 			renderContext.globalAlpha = 0.5;
 			renderContext.translate(300, this.offset + 40);
-			this.upArrow.Render(renderContext);
+			this.upArrow.Render(renderContext, orchestrator);
 
 			renderContext.restore();
 		}

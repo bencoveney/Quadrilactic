@@ -1,4 +1,5 @@
 import {Renderable} from "renderable";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Particle implements Renderable {
 	private static degrees: number = Math.PI / 180;
@@ -40,7 +41,7 @@ export class Particle implements Renderable {
 		this.isAlive = true;
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		this.opacity -= 0.005;
 		if (this.opacity <= 0) {
 			this.isAlive = false;

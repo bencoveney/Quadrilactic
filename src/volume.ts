@@ -3,6 +3,7 @@ import {Controller} from "controller";
 import {Sound, SoundOptions} from "sound";
 import {Point} from "point";
 import {Sprite} from "sprite";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Volume implements Renderable {
 	private static opacityDecay: number =  0.02;
@@ -51,7 +52,7 @@ export class Volume implements Renderable {
 		this.volumeChanged = this.createSound("snd/volume.wav", {});
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		let mouseClick: Point = this.controller.getClickPosition();
 		if (mouseClick && this.isPointOnButton(mouseClick)) {
 			this.changeVolume();
@@ -80,22 +81,22 @@ export class Volume implements Renderable {
 
 		switch (this.level) {
 			case 0:
-				this.volume0.Render(renderContext);
+				this.volume0.Render(renderContext, orchestrator);
 				break;
 			case 1:
-				this.volume1.Render(renderContext);
+				this.volume1.Render(renderContext, orchestrator);
 				break;
 			case 2:
-				this.volume2.Render(renderContext);
+				this.volume2.Render(renderContext, orchestrator);
 				break;
 			case 3:
-				this.volume3.Render(renderContext);
+				this.volume3.Render(renderContext, orchestrator);
 				break;
 			case 4:
-				this.volume4.Render(renderContext);
+				this.volume4.Render(renderContext, orchestrator);
 				break;
 			default:
-				this.volume4.Render(renderContext);
+				this.volume4.Render(renderContext, orchestrator);
 				break;
 		}
 

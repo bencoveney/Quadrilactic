@@ -1,8 +1,9 @@
 import {MovingPoint, Point, Rectangle} from "point";
 import {Renderable} from "renderable";
-import {Particle} from "particle";
 import {Entity} from "entitySystem/entity";
 import {LocationComponent} from "entitySystem/locationComponent";
+import {RenderComponent} from "entitySystem/renderComponent";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Block implements Renderable, Entity {
 	// Constants
@@ -67,7 +68,8 @@ export class Block implements Renderable, Entity {
 			dimensions.x,
 			dimensions.y,
 			worldPosition.dX,
-			worldPosition.dY);
+			worldPosition.dY,
+			0);
 
 		this.internalColor = color;
 		this.horizontalSpeedLimit = xSpeedLimit;
@@ -105,7 +107,7 @@ export class Block implements Renderable, Entity {
 		this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit );
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 
 		renderContext.beginPath();
 
@@ -122,16 +124,19 @@ export class Block implements Renderable, Entity {
 
 		renderContext.closePath();
 
-		let particle: Particle = new Particle(
-			skewedPosition.x,
-			skewedPosition.y,
-			skewedPosition.width,
-			skewedPosition.height,
-			0,
-			this.fillColor,
-			0.1);
+		let particlePosition: LocationComponent = this.locationComponent.Duplicate();
+		particlePosition.xSpeed = 0;
+		particlePosition.ySpeed = 0;
 
-		return [particle] as Renderable[];
+		orchestrator.Add({
+			locationComponent: particlePosition,
+			renderComponent: new RenderComponent(
+				this.fillColor,
+				0.2,
+				particlePosition)
+		});
+
+		return [];
 	}
 
 	public Reset(): void {

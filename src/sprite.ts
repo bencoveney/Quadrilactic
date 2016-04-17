@@ -1,5 +1,6 @@
 import {Renderable} from "renderable";
 import {Point} from "point";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Sprite implements Renderable {
 	public isAlive: boolean = true;
@@ -18,7 +19,7 @@ export class Sprite implements Renderable {
 		this.internalDimensions = dimensions;
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		renderContext.drawImage(
 			this.image,
 			// Source dimensions

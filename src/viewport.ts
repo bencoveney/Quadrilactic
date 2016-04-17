@@ -1,5 +1,7 @@
 import {Point} from "point";
 import {Renderable} from "renderable";
+import {Orchestrator} from "entitySystem/orchestrator";
+import {RenderSystem} from "entitySystem/renderSystem";
 
 export class Viewport {
 	private renderContext: CanvasRenderingContext2D;
@@ -9,6 +11,7 @@ export class Viewport {
 	private initialBackgroundRenderables: Renderable[];
 	private initialForegroundRenderables: Renderable[];
 	private renderOffset: number;
+	private orchestrator: Orchestrator;
 
 	public get renderDimensions(): Point {
 		return {
@@ -25,7 +28,8 @@ export class Viewport {
 		renderContext: CanvasRenderingContext2D,
 		fixedRenderables: Renderable[],
 		backgroundRenderables: Renderable[],
-		foregroundRenderables: Renderable[]
+		foregroundRenderables: Renderable[],
+		orchestrator: Orchestrator
 	) {
 		this.renderContext = renderContext;
 		this.fixedRenderables = fixedRenderables;
@@ -34,11 +38,13 @@ export class Viewport {
 		this.initialBackgroundRenderables = [].concat(backgroundRenderables);
 		this.initialForegroundRenderables = [].concat(foregroundRenderables);
 		this.renderOffset = 0;
+		this.orchestrator = orchestrator;
 	}
 
 	public SlideUpTo(y: number): void {
 		if (y > this.renderOffset) {
 			this.renderOffset = y;
+			(this.orchestrator.GetSystem("render") as RenderSystem).viewportOffset = y;
 		}
 	}
 
@@ -76,7 +82,7 @@ export class Viewport {
 	private RenderSubSet(subSet: Renderable[]): Renderable[] {
 		let newRenderables: Renderable[] = subSet;
 		for (let i: number = 0; i < subSet.length; i++) {
-			newRenderables = subSet[i].Render(this.renderContext).concat(newRenderables);
+			newRenderables = subSet[i].Render(this.renderContext, this.orchestrator).concat(newRenderables);
 		}
 
 		return newRenderables.filter((renderable: Renderable) => {

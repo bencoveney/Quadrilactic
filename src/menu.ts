@@ -5,6 +5,7 @@ import {Sound} from "sound";
 import {Volume} from "volume";
 import {Sprite} from "sprite";
 import {Point} from "point";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Menu implements Renderable {
 	private static titleFontSizeInPx: number = 90;
@@ -61,7 +62,7 @@ export class Menu implements Renderable {
 		this.controlDiagram = new Sprite("img/controls.png", { x: 390, y: 237 });
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		let mouseClick: Point = this.controller.getClickPosition();
 		if ((mouseClick && this.isPointOnButton(mouseClick))
 			|| this.controller.isKeyPressed("enter")
@@ -81,7 +82,7 @@ export class Menu implements Renderable {
 
 		this.isButtonHovered = buttonIsNowHovered;
 
-		this.background.Render(renderContext);
+		this.background.Render(renderContext, orchestrator);
 
 		let horizontalCenter: number = (this.renderDimensions.x / 2);
 
@@ -127,7 +128,7 @@ export class Menu implements Renderable {
 		// Draw the controls
 		renderContext.globalAlpha = this.opacity;
 		renderContext.translate(this.controlPosition.x, this.controlPosition.y);
-		this.controlDiagram.Render(renderContext);
+		this.controlDiagram.Render(renderContext, orchestrator);
 
 		renderContext.restore();
 

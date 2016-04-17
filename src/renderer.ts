@@ -148,7 +148,8 @@ export class Renderer {
 			this.context,
 			[this.background, this.scoreboard],
 			[],
-			[this.player, this.platform]
+			[this.player, this.platform],
+			this.orchestrator
 		);
 
 		this.platform.viewport = this.viewport;
@@ -180,9 +181,9 @@ export class Renderer {
 		this.lastTimestamp = timestamp;
 		this.lastFps = Math.round(1000 / deltaTime);
 
-		this.orchestrator.Tick(deltaTime);
-
 		this.Draw();
+
+		this.orchestrator.Tick(1);
 
 		if (this.isRunning === true) {
 			this.player.Tick(scaledTime);
@@ -199,9 +200,9 @@ export class Renderer {
 		if (this.isRunning) {
 			this.viewport.Render(this.lastFps);
 		} else {
-			this.menu.Render(this.context);
+			this.menu.Render(this.context, this.orchestrator);
 		}
 
-		this.volume.Render(this.context);
+		this.volume.Render(this.context, this.orchestrator);
 	}
 }

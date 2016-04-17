@@ -15,7 +15,7 @@ let orchestrator: Orchestrator = new Orchestrator(
 		"location": new LocationSystem(),
 	},
 	{
-		"render": new RenderSystem(),
+		"render": new RenderSystem(canvas.getContext("2d")),
 	});
 
 new Renderer(canvas, controller, orchestrator).Start();

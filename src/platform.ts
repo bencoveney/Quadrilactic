@@ -3,6 +3,7 @@ import {MovingPoint, Point} from "point";
 import {Renderable} from "renderable";
 import {Viewport} from "viewport";
 import {Volume} from "volume";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Platform extends PhysicsBlock {
 	private static platformSpeedIncrease: number = 1000;
@@ -36,9 +37,9 @@ export class Platform extends PhysicsBlock {
 		super.Tick(deltaTime);
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		if (this.offscreenAmount <= 0) {
-			return super.Render(renderContext);
+			return super.Render(renderContext, orchestrator);
 		} else {
 			renderContext.save();
 

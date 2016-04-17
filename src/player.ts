@@ -6,6 +6,7 @@ import {Sprite} from "sprite";
 import {Sound} from "sound";
 import {Volume} from "volume";
 import {Particle} from "particle";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease: number = -8;
@@ -16,7 +17,6 @@ export class Player extends PhysicsBlock {
 	private static faceSwapThreshold: number = 3.5;
 
 	private isJumping: boolean;
-	private jumpRotationAmount: number;
 	private jumpRotationSpeed: number;
 	private controller: Controller;
 
@@ -41,7 +41,6 @@ export class Player extends PhysicsBlock {
 
 		this.controller = controller;
 		this.isJumping = false;
-		this.jumpRotationAmount = 0;
 
 		this.faceUp = new Sprite("img/faceHappy.png", dimensions);
 		this.faceDown = new Sprite("img/faceWorried.png", dimensions);
@@ -71,29 +70,29 @@ export class Player extends PhysicsBlock {
 		}
 
 		// Apply jump rotation
-		this.jumpRotationAmount += (this.jumpRotationSpeed * deltaTime);
+		this.locationComponent.rotation += (this.jumpRotationSpeed * deltaTime);
 		if (this.jumpRotationSpeed > 0) {
 			this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
 		} else if (this.jumpRotationSpeed < 0) {
 			this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
 		}
 
-		this.jumpRotationAmount += this.locationComponent.xSpeed / 2;
+		this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
 	}
 
 	public Bounce(): void {
 		// If we were jumping, thats over now
 		this.isJumping = false;
-		this.jumpRotationAmount = 0;
+		this.locationComponent.rotation = 0;
 		this.jumpRotationSpeed = 0;
 		this.bounce.play();
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		renderContext.save();
 
 		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+		renderContext.rotate(this.locationComponent.rotation * Player.degrees);
 		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 
 		let faceSprite: Sprite;
@@ -111,17 +110,17 @@ export class Player extends PhysicsBlock {
 
 		this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
 
-		let newRenderables: Renderable[] = super.Render(renderContext);
+		let newRenderables: Renderable[] = super.Render(renderContext, orchestrator);
 
 		newRenderables.forEach((renderable: Renderable) => {
-			(renderable as Particle).rotation = this.jumpRotationAmount;
+			(renderable as Particle).rotation = this.locationComponent.rotation;
 		});
 
 		renderContext.restore();
 
 		renderContext.save();
 		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-		renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+		renderContext.rotate(this.locationComponent.rotation * Player.degrees);
 		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 
 		let skewedPosition: Rectangle = this.skewedPosition;
@@ -133,7 +132,7 @@ export class Player extends PhysicsBlock {
 			y: skewedPosition.height
 		};
 
-		newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
+		newRenderables = newRenderables.concat(faceSprite.Render(renderContext, orchestrator));
 
 		renderContext.restore();
 
@@ -144,7 +143,7 @@ export class Player extends PhysicsBlock {
 		super.Reset();
 
 		this.isJumping = false;
-		this.jumpRotationAmount = 0;
+		this.locationComponent.rotation = 0;
 		this.jumpRotationSpeed = 0;
 	}
 }

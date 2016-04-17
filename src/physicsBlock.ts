@@ -3,6 +3,7 @@ import {MovingPoint, Point} from "point";
 import {Renderable} from "renderable";
 import {Sound} from "sound";
 import {Volume} from "volume";
+import {Orchestrator} from "entitySystem/orchestrator";
 
 export class PhysicsBlock extends Block {
 
@@ -70,8 +71,8 @@ export class PhysicsBlock extends Block {
 		this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D): Renderable[] {
-		return super.Render(renderContext);
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
+		return super.Render(renderContext, orchestrator);
 	}
 
 	public VerticalBounce(newYSpeed: number): void {

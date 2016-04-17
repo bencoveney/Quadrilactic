@@ -50,7 +50,7 @@
 	    var orchestrator = new orchestrator_1.Orchestrator([], {}, {
 	        "location": new LocationSystem_1.LocationSystem(),
 	    }, {
-	        "render": new RenderSystem_1.RenderSystem(),
+	        "render": new RenderSystem_1.RenderSystem(canvas.getContext("2d")),
 	    });
 	    new renderer_1.Renderer(canvas, controller, orchestrator).Start();
 	    window.onload = function () {
@@ -135,7 +135,7 @@
 	                _this.background.Reset();
 	                _this.isRunning = true;
 	            }, this.volume);
-	            this.viewport = new viewport_1.Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform]);
+	            this.viewport = new viewport_1.Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform], this.orchestrator);
 	            this.platform.viewport = this.viewport;
 	            var originalOnMove = this.player.onMove;
 	            this.player.onMove = function (amountMoved) {
@@ -161,8 +161,8 @@
 	            var scaledTime = deltaTime / Renderer.timescale;
 	            this.lastTimestamp = timestamp;
 	            this.lastFps = Math.round(1000 / deltaTime);
-	            this.orchestrator.Tick(deltaTime);
 	            this.Draw();
+	            this.orchestrator.Tick(1);
 	            if (this.isRunning === true) {
 	                this.player.Tick(scaledTime);
 	                this.platform.Tick(scaledTime);
@@ -176,9 +176,9 @@
 	                this.viewport.Render(this.lastFps);
 	            }
 	            else {
-	                this.menu.Render(this.context);
+	                this.menu.Render(this.context, this.orchestrator);
 	            }
-	            this.volume.Render(this.context);
+	            this.volume.Render(this.context, this.orchestrator);
 	        };
 	        Renderer.defaultGravity = 0.2;
 	        Renderer.gameWidth = 480;
@@ -213,34 +213,34 @@
 	                this.offset = y;
 	            }
 	        };
-	        Background.prototype.Render = function (renderContext) {
+	        Background.prototype.Render = function (renderContext, orchestrator) {
 	            var result = [];
-	            result = result.concat(this.staticBackground.Render(renderContext));
+	            result = result.concat(this.staticBackground.Render(renderContext, orchestrator));
 	            var lowerYPosition1 = this.offset % (this.renderDimensions.y * 2);
 	            var upperYPosition1 = lowerYPosition1 - (this.renderDimensions.y * 2);
 	            renderContext.save();
 	            renderContext.translate(0, lowerYPosition1);
-	            result = result.concat(this.stars1.Render(renderContext));
+	            result = result.concat(this.stars1.Render(renderContext, orchestrator));
 	            renderContext.restore();
 	            renderContext.save();
 	            renderContext.translate(0, upperYPosition1);
-	            result = result.concat(this.stars1.Render(renderContext));
+	            result = result.concat(this.stars1.Render(renderContext, orchestrator));
 	            renderContext.restore();
 	            var lowerYPosition2 = (this.offset / 2) % (this.renderDimensions.y * 2);
 	            var upperYPosition2 = lowerYPosition2 - (this.renderDimensions.y * 2);
 	            renderContext.save();
 	            renderContext.translate(0, lowerYPosition2);
-	            result = result.concat(this.stars2.Render(renderContext));
+	            result = result.concat(this.stars2.Render(renderContext, orchestrator));
 	            renderContext.restore();
 	            renderContext.save();
 	            renderContext.translate(0, upperYPosition2);
-	            result = result.concat(this.stars2.Render(renderContext));
+	            result = result.concat(this.stars2.Render(renderContext, orchestrator));
 	            renderContext.restore();
 	            if (this.showArrow && this.offset < (this.renderDimensions.y * 2)) {
 	                renderContext.save();
 	                renderContext.globalAlpha = 0.5;
 	                renderContext.translate(300, this.offset + 40);
-	                this.upArrow.Render(renderContext);
+	                this.upArrow.Render(renderContext, orchestrator);
 	                renderContext.restore();
 	            }
 	            return result;
@@ -276,7 +276,7 @@
 	            enumerable: true,
 	            configurable: true
 	        });
-	        Sprite.prototype.Render = function (renderContext) {
+	        Sprite.prototype.Render = function (renderContext, orchestrator) {
 	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
 	            return [];
 	        };
@@ -306,7 +306,6 @@
 	            this.onBounce = this.Bounce;
 	            this.controller = controller;
 	            this.isJumping = false;
-	            this.jumpRotationAmount = 0;
 	            this.faceUp = new sprite_1.Sprite("img/faceHappy.png", dimensions);
 	            this.faceDown = new sprite_1.Sprite("img/faceWorried.png", dimensions);
 	            this.faceHover = new sprite_1.Sprite("img/faceChill.png", dimensions);
@@ -327,26 +326,26 @@
 	            if (this.controller.isKeyPressed(["right", "d"])) {
 	                this.locationComponent.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
 	            }
-	            this.jumpRotationAmount += (this.jumpRotationSpeed * deltaTime);
+	            this.locationComponent.rotation += (this.jumpRotationSpeed * deltaTime);
 	            if (this.jumpRotationSpeed > 0) {
 	                this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
 	            }
 	            else if (this.jumpRotationSpeed < 0) {
 	                this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
 	            }
-	            this.jumpRotationAmount += this.locationComponent.xSpeed / 2;
+	            this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
 	        };
 	        Player.prototype.Bounce = function () {
 	            this.isJumping = false;
-	            this.jumpRotationAmount = 0;
+	            this.locationComponent.rotation = 0;
 	            this.jumpRotationSpeed = 0;
 	            this.bounce.play();
 	        };
-	        Player.prototype.Render = function (renderContext) {
+	        Player.prototype.Render = function (renderContext, orchestrator) {
 	            var _this = this;
 	            renderContext.save();
 	            renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-	            renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+	            renderContext.rotate(this.locationComponent.rotation * Player.degrees);
 	            renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 	            var faceSprite;
 	            if (this.locationComponent.ySpeed > Player.faceSwapThreshold) {
@@ -361,14 +360,14 @@
 	            var xHexidecimal = Math.max(Math.round(15 - Math.abs(this.locationComponent.xSpeed)), 0).toString(16);
 	            var yHexidecimal = Math.max(Math.round(15 - Math.abs(this.locationComponent.ySpeed)), 0).toString(16);
 	            this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
-	            var newRenderables = _super.prototype.Render.call(this, renderContext);
+	            var newRenderables = _super.prototype.Render.call(this, renderContext, orchestrator);
 	            newRenderables.forEach(function (renderable) {
-	                renderable.rotation = _this.jumpRotationAmount;
+	                renderable.rotation = _this.locationComponent.rotation;
 	            });
 	            renderContext.restore();
 	            renderContext.save();
 	            renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-	            renderContext.rotate(this.jumpRotationAmount * Player.degrees);
+	            renderContext.rotate(this.locationComponent.rotation * Player.degrees);
 	            renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
 	            var skewedPosition = this.skewedPosition;
 	            renderContext.translate(skewedPosition.x, skewedPosition.y);
@@ -376,14 +375,14 @@
 	                x: skewedPosition.width,
 	                y: skewedPosition.height
 	            };
-	            newRenderables = newRenderables.concat(faceSprite.Render(renderContext));
+	            newRenderables = newRenderables.concat(faceSprite.Render(renderContext, orchestrator));
 	            renderContext.restore();
 	            return newRenderables;
 	        };
 	        Player.prototype.Reset = function () {
 	            _super.prototype.Reset.call(this);
 	            this.isJumping = false;
-	            this.jumpRotationAmount = 0;
+	            this.locationComponent.rotation = 0;
 	            this.jumpRotationSpeed = 0;
 	        };
 	        Player.jumpSpeedIncrease = -8;
@@ -452,8 +451,8 @@
 	            }
 	            this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
 	        };
-	        PhysicsBlock.prototype.Render = function (renderContext) {
-	            return _super.prototype.Render.call(this, renderContext);
+	        PhysicsBlock.prototype.Render = function (renderContext, orchestrator) {
+	            return _super.prototype.Render.call(this, renderContext, orchestrator);
 	        };
 	        PhysicsBlock.prototype.VerticalBounce = function (newYSpeed) {
 	            this.locationComponent.ySpeed = newYSpeed;
@@ -475,11 +474,11 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, particle_1, locationComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1) {
 	    var Block = (function () {
 	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
 	            this.isAlive = true;
-	            this.locationComponent = new locationComponent_1.LocationComponent(worldPosition.x, worldPosition.y, dimensions.x, dimensions.y, worldPosition.dX, worldPosition.dY);
+	            this.locationComponent = new locationComponent_1.LocationComponent(worldPosition.x, worldPosition.y, dimensions.x, dimensions.y, worldPosition.dX, worldPosition.dY, 0);
 	            this.internalColor = color;
 	            this.horizontalSpeedLimit = xSpeedLimit;
 	            this.verticalSpeedLimit = Block.verticalSpeedLimit;
@@ -547,15 +546,21 @@
 	            this.locationComponent.xSpeed = Math.min(this.locationComponent.xSpeed, this.horizontalSpeedLimit);
 	            this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit);
 	        };
-	        Block.prototype.Render = function (renderContext) {
+	        Block.prototype.Render = function (renderContext, orchestrator) {
 	            renderContext.beginPath();
 	            var skewedPosition = this.skewedPosition;
 	            renderContext.rect(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height);
 	            renderContext.fillStyle = this.fillColor;
 	            renderContext.fill();
 	            renderContext.closePath();
-	            var particle = new particle_1.Particle(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height, 0, this.fillColor, 0.1);
-	            return [particle];
+	            var particlePosition = this.locationComponent.Duplicate();
+	            particlePosition.xSpeed = 0;
+	            particlePosition.ySpeed = 0;
+	            orchestrator.Add({
+	                locationComponent: particlePosition,
+	                renderComponent: new renderComponent_1.RenderComponent(this.fillColor, 0.2, particlePosition)
+	            });
+	            return [];
 	        };
 	        Block.prototype.Reset = function () {
 	            this.locationComponent.xPosition = this.initialWorldPosition.x;
@@ -579,72 +584,15 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Particle = (function () {
-	        function Particle(xPosition, yPosition, width, height, rotation, color, opacity) {
-	            this.xPosition = xPosition;
-	            this.yPosition = yPosition;
-	            this.width = width;
-	            this.height = height;
-	            this.rotation = rotation;
-	            this.color = color;
-	            this.opacity = opacity;
-	            this.isAlive = true;
-	        }
-	        Object.defineProperty(Particle.prototype, "centerXPosition", {
-	            get: function () {
-	                return this.xPosition + (this.width / 2);
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Object.defineProperty(Particle.prototype, "centerYPosition", {
-	            get: function () {
-	                return this.yPosition + (this.height / 2);
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Particle.prototype.Render = function (renderContext) {
-	            this.opacity -= 0.005;
-	            if (this.opacity <= 0) {
-	                this.isAlive = false;
-	            }
-	            else {
-	                renderContext.save();
-	                renderContext.globalAlpha = this.opacity;
-	                renderContext.translate(this.centerXPosition, this.centerYPosition);
-	                renderContext.rotate(this.rotation * Particle.degrees);
-	                renderContext.translate(-this.centerXPosition, -this.centerYPosition);
-	                renderContext.beginPath();
-	                renderContext.rect(this.xPosition, this.yPosition, this.width, this.height);
-	                renderContext.fillStyle = this.color;
-	                renderContext.fill();
-	                renderContext.closePath();
-	                renderContext.globalAlpha = 1;
-	                renderContext.restore();
-	            }
-	            return [];
-	        };
-	        Particle.degrees = Math.PI / 180;
-	        return Particle;
-	    })();
-	    exports.Particle = Particle;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
 	    var LocationComponent = (function () {
-	        function LocationComponent(x, y, width, height, xSpeed, ySpeed) {
+	        function LocationComponent(x, y, width, height, xSpeed, ySpeed, rotation) {
 	            this._x = x;
 	            this._y = y;
 	            this._xSize = width;
 	            this._ySize = height;
 	            this._xSpeed = xSpeed;
 	            this._ySpeed = ySpeed;
+	            this._rotation = rotation;
 	        }
 	        Object.defineProperty(LocationComponent.prototype, "xPosition", {
 	            get: function () {
@@ -676,6 +624,36 @@
 	        Object.defineProperty(LocationComponent.prototype, "height", {
 	            get: function () {
 	                return this._ySize;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(LocationComponent.prototype, "xSpeed", {
+	            get: function () {
+	                return this._xSpeed;
+	            },
+	            set: function (newValue) {
+	                this._xSpeed = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(LocationComponent.prototype, "ySpeed", {
+	            get: function () {
+	                return this._ySpeed;
+	            },
+	            set: function (newValue) {
+	                this._ySpeed = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(LocationComponent.prototype, "rotation", {
+	            get: function () {
+	                return this._rotation;
+	            },
+	            set: function (newValue) {
+	                this._rotation = newValue;
 	            },
 	            enumerable: true,
 	            configurable: true
@@ -722,29 +700,67 @@
 	            enumerable: true,
 	            configurable: true
 	        });
-	        Object.defineProperty(LocationComponent.prototype, "xSpeed", {
+	        Object.defineProperty(LocationComponent.prototype, "rotationInDegrees", {
 	            get: function () {
-	                return this._xSpeed;
-	            },
-	            set: function (newValue) {
-	                this._xSpeed = newValue;
+	                return this.rotation * LocationComponent.degrees;
 	            },
 	            enumerable: true,
 	            configurable: true
 	        });
-	        Object.defineProperty(LocationComponent.prototype, "ySpeed", {
-	            get: function () {
-	                return this._ySpeed;
-	            },
-	            set: function (newValue) {
-	                this._ySpeed = newValue;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
+	        LocationComponent.prototype.Duplicate = function () {
+	            return new LocationComponent(this._x, this._y, this._xSize, this._ySize, this._xSpeed, this._ySpeed, this._rotation);
+	        };
+	        LocationComponent.degrees = Math.PI / 180;
 	        return LocationComponent;
 	    })();
 	    exports.LocationComponent = LocationComponent;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var RenderComponent = (function () {
+	        function RenderComponent(fillColor, opacity, position) {
+	            this._fillColor = fillColor;
+	            this._opacity = opacity;
+	            this._position = position;
+	        }
+	        Object.defineProperty(RenderComponent.prototype, "fillColor", {
+	            get: function () {
+	                return this._fillColor;
+	            },
+	            set: function (newValue) {
+	                this._fillColor = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(RenderComponent.prototype, "opacity", {
+	            get: function () {
+	                return this._opacity;
+	            },
+	            set: function (newValue) {
+	                this._opacity = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(RenderComponent.prototype, "position", {
+	            get: function () {
+	                return this._position;
+	            },
+	            set: function (newValue) {
+	                this._position = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        return RenderComponent;
+	    })();
+	    exports.RenderComponent = RenderComponent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
@@ -879,7 +895,7 @@
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
 	    var Viewport = (function () {
-	        function Viewport(renderContext, fixedRenderables, backgroundRenderables, foregroundRenderables) {
+	        function Viewport(renderContext, fixedRenderables, backgroundRenderables, foregroundRenderables, orchestrator) {
 	            this.renderContext = renderContext;
 	            this.fixedRenderables = fixedRenderables;
 	            this.backgroundRenderables = backgroundRenderables;
@@ -887,6 +903,7 @@
 	            this.initialBackgroundRenderables = [].concat(backgroundRenderables);
 	            this.initialForegroundRenderables = [].concat(foregroundRenderables);
 	            this.renderOffset = 0;
+	            this.orchestrator = orchestrator;
 	        }
 	        Object.defineProperty(Viewport.prototype, "renderDimensions", {
 	            get: function () {
@@ -908,6 +925,7 @@
 	        Viewport.prototype.SlideUpTo = function (y) {
 	            if (y > this.renderOffset) {
 	                this.renderOffset = y;
+	                this.orchestrator.GetSystem("render").viewportOffset = y;
 	            }
 	        };
 	        Viewport.prototype.Render = function (fps) {
@@ -933,7 +951,7 @@
 	        Viewport.prototype.RenderSubSet = function (subSet) {
 	            var newRenderables = subSet;
 	            for (var i = 0; i < subSet.length; i++) {
-	                newRenderables = subSet[i].Render(this.renderContext).concat(newRenderables);
+	                newRenderables = subSet[i].Render(this.renderContext, this.orchestrator).concat(newRenderables);
 	            }
 	            return newRenderables.filter(function (renderable) {
 	                return renderable.isAlive;
@@ -970,7 +988,7 @@
 	            this.controlPosition = { x: 45, y: 300 };
 	            this.controlDiagram = new sprite_1.Sprite("img/controls.png", { x: 390, y: 237 });
 	        }
-	        Menu.prototype.Render = function (renderContext) {
+	        Menu.prototype.Render = function (renderContext, orchestrator) {
 	            var mouseClick = this.controller.getClickPosition();
 	            if ((mouseClick && this.isPointOnButton(mouseClick))
 	                || this.controller.isKeyPressed("enter")
@@ -986,7 +1004,7 @@
 	                this.buttonUnhover.play();
 	            }
 	            this.isButtonHovered = buttonIsNowHovered;
-	            this.background.Render(renderContext);
+	            this.background.Render(renderContext, orchestrator);
 	            var horizontalCenter = (this.renderDimensions.x / 2);
 	            renderContext.save();
 	            renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
@@ -1014,7 +1032,7 @@
 	            renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
 	            renderContext.globalAlpha = this.opacity;
 	            renderContext.translate(this.controlPosition.x, this.controlPosition.y);
-	            this.controlDiagram.Render(renderContext);
+	            this.controlDiagram.Render(renderContext, orchestrator);
 	            renderContext.restore();
 	            this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
 	            return [];
@@ -1072,7 +1090,7 @@
 	            this.sounds = [];
 	            this.volumeChanged = this.createSound("snd/volume.wav", {});
 	        }
-	        Volume.prototype.Render = function (renderContext) {
+	        Volume.prototype.Render = function (renderContext, orchestrator) {
 	            var mouseClick = this.controller.getClickPosition();
 	            if (mouseClick && this.isPointOnButton(mouseClick)) {
 	                this.changeVolume();
@@ -1095,22 +1113,22 @@
 	            renderContext.translate(this.soundButtonPosition.x, this.soundButtonPosition.y);
 	            switch (this.level) {
 	                case 0:
-	                    this.volume0.Render(renderContext);
+	                    this.volume0.Render(renderContext, orchestrator);
 	                    break;
 	                case 1:
-	                    this.volume1.Render(renderContext);
+	                    this.volume1.Render(renderContext, orchestrator);
 	                    break;
 	                case 2:
-	                    this.volume2.Render(renderContext);
+	                    this.volume2.Render(renderContext, orchestrator);
 	                    break;
 	                case 3:
-	                    this.volume3.Render(renderContext);
+	                    this.volume3.Render(renderContext, orchestrator);
 	                    break;
 	                case 4:
-	                    this.volume4.Render(renderContext);
+	                    this.volume4.Render(renderContext, orchestrator);
 	                    break;
 	                default:
-	                    this.volume4.Render(renderContext);
+	                    this.volume4.Render(renderContext, orchestrator);
 	                    break;
 	            }
 	            renderContext.restore();
@@ -1208,9 +1226,9 @@
 	                this.locationComponent.xSpeed * ((Platform.platformSpeedIncrease + deltaTime) / Platform.platformSpeedIncrease);
 	            _super.prototype.Tick.call(this, deltaTime);
 	        };
-	        Platform.prototype.Render = function (renderContext) {
+	        Platform.prototype.Render = function (renderContext, orchestrator) {
 	            if (this.offscreenAmount <= 0) {
-	                return _super.prototype.Render.call(this, renderContext);
+	                return _super.prototype.Render.call(this, renderContext, orchestrator);
 	            }
 	            else {
 	                renderContext.save();
@@ -1340,6 +1358,8 @@
 	            this._preSystems = preSystems;
 	            this._mainSystems = mainSystems;
 	            this._postSystems = postSystems;
+	            this._entitiesToAdd = [];
+	            this._entitiesToRemove = [];
 	        }
 	        Object.defineProperty(Orchestrator.prototype, "entities", {
 	            get: function () {
@@ -1350,13 +1370,21 @@
 	        });
 	        Orchestrator.prototype.Tick = function (deltaTime) {
 	            var _this = this;
+	            if (this._entities.length > 500) {
+	                throw new RangeError("Sanity check failed: Large number of entities");
+	            }
 	            this.RunSystems(this._preSystems, deltaTime);
 	            this.RunSystems(this._mainSystems, deltaTime);
 	            this.RunSystems(this._postSystems, deltaTime);
 	            this._entities = this._entities.concat(this._entitiesToAdd);
 	            this._entities = this._entities.filter(function (entity) {
-	                return _this._entitiesToRemove.indexOf(entity) < 0;
-	            });
+	                if (_this._entitiesToRemove.indexOf(entity) < 0) {
+	                    return true;
+	                }
+	                return false;
+	            }, this);
+	            this._entitiesToAdd = [];
+	            this._entitiesToRemove = [];
 	        };
 	        Orchestrator.prototype.Add = function (entity) {
 	            this._entitiesToAdd.push(entity);
@@ -1395,7 +1423,6 @@
 	        function LocationSystem() {
 	        }
 	        LocationSystem.prototype.Update = function (entity, orchestrator, deltaTime) {
-	            console.log("TODO");
 	        };
 	        return LocationSystem;
 	    })();
@@ -1409,10 +1436,53 @@
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
 	    var RenderSystem = (function () {
-	        function RenderSystem() {
+	        function RenderSystem(renderContext) {
+	            this._renderContext = renderContext;
 	        }
+	        Object.defineProperty(RenderSystem.prototype, "viewportOffset", {
+	            get: function () {
+	                return this._viewportOffset;
+	            },
+	            set: function (newValue) {
+	                this._viewportOffset = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
 	        RenderSystem.prototype.Update = function (entity, orchestrator, deltaTime) {
-	            console.log("TODO");
+	            if (!entity.renderComponent) {
+	                return;
+	            }
+	            this._renderContext.save();
+	            var renderComponent = entity.renderComponent;
+	            this._renderContext.globalAlpha = renderComponent.opacity;
+	            this.OffsetViewport();
+	            this.RotateAroundCenter(renderComponent.position);
+	            this.MoveToPosition(renderComponent.position);
+	            this.DrawRect(renderComponent);
+	            this._renderContext.restore();
+	            renderComponent.opacity -= 0.01;
+	            if (renderComponent.opacity <= 0) {
+	                orchestrator.Remove(entity);
+	            }
+	        };
+	        RenderSystem.prototype.RotateAroundCenter = function (position) {
+	            this._renderContext.translate(position.centerXPosition, position.centerYPosition);
+	            this._renderContext.rotate(position.rotationInDegrees);
+	            this._renderContext.translate(-position.centerXPosition, -position.centerYPosition);
+	        };
+	        RenderSystem.prototype.MoveToPosition = function (position) {
+	            this._renderContext.translate(position.xPosition, position.yPosition);
+	        };
+	        RenderSystem.prototype.OffsetViewport = function () {
+	            this._renderContext.translate(0, this._viewportOffset);
+	        };
+	        RenderSystem.prototype.DrawRect = function (renderComponent) {
+	            this._renderContext.beginPath();
+	            this._renderContext.rect(0, 0, renderComponent.position.width, renderComponent.position.height);
+	            this._renderContext.fillStyle = renderComponent.fillColor;
+	            this._renderContext.fill();
+	            this._renderContext.closePath();
 	        };
 	        return RenderSystem;
 	    })();

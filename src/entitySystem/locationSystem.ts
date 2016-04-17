@@ -4,6 +4,6 @@ import {Orchestrator} from "entitySystem/orchestrator";
 
 export class LocationSystem implements System {
 	public Update(entity: Entity, orchestrator: Orchestrator, deltaTime: number): void {
-		console.log("TODO");
+		// Console.log("TODO");
 	}
 }

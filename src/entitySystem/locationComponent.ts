@@ -1,4 +1,6 @@
 export class LocationComponent {
+	private static degrees: number = Math.PI / 180;
+
 	// Data members.
 	private _x: number;
 	private _y: number;
@@ -6,6 +8,7 @@ export class LocationComponent {
 	private _ySpeed: number;
 	private _xSize: number;
 	private _ySize: number;
+	private _rotation: number;
 
 	// Position properties.
 	get xPosition(): number {
@@ -29,7 +32,29 @@ export class LocationComponent {
 		return this._ySize;
 	}
 
-	// Position helper properties.
+	// Velocity properties.
+	get xSpeed(): number {
+		return this._xSpeed;
+	}
+	set xSpeed(newValue: number) {
+		this._xSpeed = newValue;
+	}
+	get ySpeed(): number {
+		return this._ySpeed;
+	}
+	set ySpeed(newValue: number) {
+		this._ySpeed = newValue;
+	}
+
+	// Rotation properties.
+	get rotation(): number {
+		return this._rotation;
+	}
+	set rotation(newValue: number) {
+		this._rotation = newValue;
+	}
+
+	// Helper properties.
 	get left(): number {
 		return this._x;
 	}
@@ -48,19 +73,8 @@ export class LocationComponent {
 	get centerYPosition(): number {
 		return this._y + (this.height / 2);
 	}
-
-	// Velocity properties.
-	get xSpeed(): number {
-		return this._xSpeed;
-	}
-	set xSpeed(newValue: number) {
-		this._xSpeed = newValue;
-	}
-	get ySpeed(): number {
-		return this._ySpeed;
-	}
-	set ySpeed(newValue: number) {
-		this._ySpeed = newValue;
+	get rotationInDegrees(): number {
+		return this.rotation * LocationComponent.degrees;
 	}
 
 	constructor(
@@ -69,7 +83,8 @@ export class LocationComponent {
 		width: number,
 		height: number,
 		xSpeed: number,
-		ySpeed: number
+		ySpeed: number,
+		rotation: number
 	) {
 		this._x = x;
 		this._y = y;
@@ -77,5 +92,18 @@ export class LocationComponent {
 		this._ySize = height;
 		this._xSpeed = xSpeed;
 		this._ySpeed = ySpeed;
+		this._rotation = rotation;
+	}
+
+	public Duplicate(): LocationComponent {
+		return new LocationComponent(
+			this._x,
+			this._y,
+			this._xSize,
+			this._ySize,
+			this._xSpeed,
+			this._ySpeed,
+			this._rotation
+		);
 	}
 }
