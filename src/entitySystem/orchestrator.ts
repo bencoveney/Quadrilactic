@@ -38,8 +38,7 @@ export class Orchestrator {
 	}
 
 	public Tick(deltaTime: number): void {
-		if (this._entities.length > 500)
-		{
+		if (this._entities.length > 500) {
 			throw new RangeError("Sanity check failed: Large number of entities");
 		}
 
@@ -51,14 +50,11 @@ export class Orchestrator {
 		this._entities = this._entities.concat(this._entitiesToAdd);
 
 		// Remove any dead entities.
-		this._entities = this._entities.filter((entity: Entity) => {
-			if (this._entitiesToRemove.indexOf(entity) < 0)
-			{
-				return true;
-			}
-
-			return false;
-		}, this);
+		this._entities = this._entities.filter(
+			(entity: Entity) => {
+				return this._entitiesToRemove.indexOf(entity) < 0;
+			},
+			this);
 
 		// Reset the add/remove lists
 		this._entitiesToAdd = [];
@@ -80,14 +76,8 @@ export class Orchestrator {
 	private RunSystems(systems: Systems, deltaTime: number): void {
 		for (let systemName in systems) {
 			if (systems.hasOwnProperty(systemName)) {
-				this.RunSystem(systems[systemName], deltaTime);
+				systems[systemName].Run(this._entities, this, deltaTime);
 			}
 		}
-	}
-
-	private RunSystem(system: System, deltaTime: number): void {
-		this._entities.forEach((entity: Entity) => {
-			system.Update(entity, this, deltaTime);
-		});
 	}
 }

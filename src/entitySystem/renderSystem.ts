@@ -4,22 +4,43 @@ import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationComponent} from "entitySystem/locationComponent";
 import {RenderComponent} from "entitySystem/renderComponent";
 
-export class RenderSystem implements System {
+export class RenderSystem extends System {
 	private _renderContext: CanvasRenderingContext2D;
-	private _viewportOffset: number;
+	private _offsetX: number = 0;
+	private _offsetY: number = 0;
 
-	public get viewportOffset(): number {
-		return this._viewportOffset;
+	public get offsetX(): number {
+		return this._offsetX;
 	}
-	public set viewportOffset(newValue) {
-		this._viewportOffset = newValue;
+	public set offsetX(newValue: number) {
+		this._offsetX = newValue;
+	}
+	public get offsetY(): number {
+		return this._offsetY;
+	}
+	public set offsetY(newValue: number) {
+		this._offsetY = newValue;
 	}
 
 	constructor(renderContext: CanvasRenderingContext2D) {
+		super();
+
 		this._renderContext = renderContext;
 	}
 
-	public Update(entity: Entity, orchestrator: Orchestrator, deltaTime: number): void {
+	public Run(entities: Entity[], orchestrator: Orchestrator, deltaTime: number ): void {
+		System.ApplyToIndividuals(
+			entities,
+			(entity: Entity): boolean => {
+				return !!entity.renderComponent;
+			},
+			(entity: Entity): void => {
+				this.Draw(entity, orchestrator, deltaTime);
+			}
+		);
+	}
+
+	private Draw(entity: Entity, orchestrator: Orchestrator, deltaTime: number): void {
 		// TODO: Orchestrator shouldn't invoke if there isn't a relevant component.
 		if (!entity.renderComponent) {
 			return;
@@ -67,9 +88,11 @@ export class RenderSystem implements System {
 			position.xPosition,
 			position.yPosition);
 	}
-	
-	private OffsetViewport() {
-		this._renderContext.translate(0, this._viewportOffset);
+
+	private OffsetViewport(): void {
+		this._renderContext.translate(
+			this._offsetX,
+			this._offsetY);
 	}
 
 	private DrawRect(renderComponent: RenderComponent): void {

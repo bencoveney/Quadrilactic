@@ -3,6 +3,7 @@ import {Controller} from "controller";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationSystem} from "entitySystem/LocationSystem";
 import {RenderSystem} from "entitySystem/RenderSystem";
+import {CollisionSystem} from "entitySystem/CollisionSystem";
 
 let canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement;
 
@@ -10,12 +11,14 @@ let controller: Controller = new Controller(canvas);
 
 let orchestrator: Orchestrator = new Orchestrator(
 	[],
-	{},
 	{
-		"location": new LocationSystem(),
+		"location": new LocationSystem()
 	},
 	{
-		"render": new RenderSystem(canvas.getContext("2d")),
+		"collision": new CollisionSystem()
+	},
+	{
+		"render": new RenderSystem(canvas.getContext("2d"))
 	});
 
 new Renderer(canvas, controller, orchestrator).Start();

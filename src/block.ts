@@ -4,6 +4,7 @@ import {Entity} from "entitySystem/entity";
 import {LocationComponent} from "entitySystem/locationComponent";
 import {RenderComponent} from "entitySystem/renderComponent";
 import {Orchestrator} from "entitySystem/orchestrator";
+import {CollisionComponent} from "entitySystem/collisionComponent";
 
 export class Block implements Renderable, Entity {
 	// Constants
@@ -18,6 +19,7 @@ export class Block implements Renderable, Entity {
 
 	// Private members
 	public locationComponent: LocationComponent;
+	public collisionComponent: CollisionComponent;
 
 	private internalColor: string;
 	private onMoveCallback: (amountMoved: Point) => void;
@@ -70,6 +72,8 @@ export class Block implements Renderable, Entity {
 			worldPosition.dX,
 			worldPosition.dY,
 			0);
+
+		this.collisionComponent = new CollisionComponent(this.locationComponent);
 
 		this.internalColor = color;
 		this.horizontalSpeedLimit = xSpeedLimit;

@@ -33,7 +33,7 @@ export class Collider {
 					collisionAction(subject, targetYSpeed);
 					collisionAction(target, subjectYSpeed);
 
-					// Only simulate a horizontal bound if the x overlap has just started
+					// Only simulate a horizontal bounce if the x overlap has just started
 					let subjectPreviousLeft: number = subject.locationComponent.xPosition - subject.locationComponent.xSpeed;
 					let subjectPreviousRight: number = subjectPreviousLeft + subject.locationComponent.width;
 					let targetPreviousLeft: number = target.locationComponent.xPosition - target.locationComponent.xSpeed;

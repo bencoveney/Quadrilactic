@@ -76,8 +76,6 @@ export class PhysicsBlock extends Block {
 	}
 
 	public VerticalBounce(newYSpeed: number): void {
-		this.locationComponent.ySpeed = newYSpeed;
-
 		this.skew += 10;
 
 		// Allow insertion of bouncing code

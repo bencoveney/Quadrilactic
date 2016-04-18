@@ -44,7 +44,7 @@ export class Viewport {
 	public SlideUpTo(y: number): void {
 		if (y > this.renderOffset) {
 			this.renderOffset = y;
-			(this.orchestrator.GetSystem("render") as RenderSystem).viewportOffset = y;
+			(this.orchestrator.GetSystem("render") as RenderSystem).offsetY = y;
 		}
 	}
 
@@ -75,6 +75,7 @@ export class Viewport {
 
 	public Reset(): void {
 		this.renderOffset = 0;
+		(this.orchestrator.GetSystem("render") as RenderSystem).offsetY = 0;
 		this.backgroundRenderables = [].concat(this.initialBackgroundRenderables);
 		this.foregroundRenderables = [].concat(this.initialForegroundRenderables);
 	}
