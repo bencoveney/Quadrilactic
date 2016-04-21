@@ -1119,7 +1119,7 @@
 	                y: 30
 	            };
 	            this.opacity = Volume.fadedOpacity;
-	            this.level = 2;
+	            this.level = parseInt(localStorage.getItem("volumePosition") || 2);
 	            this.volume0 = new sprite_1.Sprite("img/volume0.png", this.soundButtonDimensions);
 	            this.volume1 = new sprite_1.Sprite("img/volume1.png", this.soundButtonDimensions);
 	            this.volume2 = new sprite_1.Sprite("img/volume2.png", this.soundButtonDimensions);
@@ -1190,6 +1190,7 @@
 	            var _this = this;
 	            this.opacity = 1;
 	            this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
+	            localStorage.setItem("volumePosition", this.level.toString());
 	            this.sounds.forEach(function (sound) {
 	                sound.volume = _this.level / 5;
 	            });

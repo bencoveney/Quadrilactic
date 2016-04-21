@@ -37,7 +37,7 @@ export class Volume implements Renderable {
 		};
 
 		this.opacity = Volume.fadedOpacity;
-		this.level = 2;
+		this.level = parseInt(localStorage.getItem("volumePosition") || 2);
 
 		this.volume0 = new Sprite("img/volume0.png", this.soundButtonDimensions);
 		this.volume1 = new Sprite("img/volume1.png", this.soundButtonDimensions);
@@ -127,6 +127,8 @@ export class Volume implements Renderable {
 		this.opacity = 1;
 
 		this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
+
+		localStorage.setItem("volumePosition", this.level.toString());
 
 		this.sounds.forEach((sound: Sound) => {
 			sound.volume = this.level / 5;
