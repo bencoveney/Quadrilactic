@@ -20,11 +20,9 @@ export class Scoreboard extends Block {
 
 		this.player = player;
 
-		let originalBounceHandler: Function = this.player.collisionComponent.collisionCallback;
-		this.player.collisionComponent.collisionCallback = () => {
+		this.player.collisionComponent.onCollide.push(() => {
 			this.score = Math.round((this.score + Scoreboard.bouncePoints) * 10) / 10;
-			originalBounceHandler();
-		};
+		});
 
 		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
 		this.player.onMove = (amountMoved: Point) => {

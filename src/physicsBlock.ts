@@ -35,9 +35,9 @@ export class PhysicsBlock extends Block {
 
 		this.rebound = volume.createSound("snd/blip.wav", {});
 
-		this.collisionComponent.collisionCallback = () => {
+		this.collisionComponent.onCollide.push(() => {
 			this.skew += 10;
-		};
+		});
 	}
 
 	public Tick(deltaTime: number): void {

@@ -37,16 +37,13 @@ export class Player extends PhysicsBlock {
 	) {
 		super(worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
 
-		let originalCollisionHandler: Function = this.collisionComponent.collisionCallback;
-		this.collisionComponent.collisionCallback = () => {
-			originalCollisionHandler();
-
+		this.collisionComponent.onCollide.push(() => {
 			// If we were jumping, thats over now
 			this.isJumping = false;
 			this.locationComponent.rotation = 0;
 			this.jumpRotationSpeed = 0;
 			this.bounce.play();
-		};
+		});
 
 		this.controller = controller;
 		this.isJumping = false;

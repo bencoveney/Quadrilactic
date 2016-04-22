@@ -1,9 +1,10 @@
 import {LocationComponent} from "entitySystem/LocationComponent";
+import {CallbackArray} from "entitySystem/callbackArray";
 
 export class CollisionComponent {
 	// Data members.
 	private _position: LocationComponent;
-	private _collisionCallback: Function;
+	private _onCollide: CallbackArray = new CallbackArray();
 
 	get position(): LocationComponent {
 		return this._position;
@@ -12,15 +13,11 @@ export class CollisionComponent {
 		this._position = newValue;
 	}
 
-	get collisionCallback(): Function {
-		return this._collisionCallback;
-	}
-	set collisionCallback(newValue: Function) {
-		this._collisionCallback = newValue;
+	get onCollide(): CallbackArray {
+		return this._onCollide;
 	}
 
-	constructor(position: LocationComponent, collisionCallback?: Function) {
+	constructor(position: LocationComponent) {
 		this._position = position;
-		this._collisionCallback = collisionCallback;
 	}
 }

@@ -29,14 +29,11 @@ export class Platform extends PhysicsBlock {
 	) {
 		super(worldPosition, dimensions, color, gravity, volume, 10, worldWidth);
 
-		let originalCollisionCallback: Function = this.collisionComponent.collisionCallback;
-		this.collisionComponent.collisionCallback = () => {
-			originalCollisionCallback();
-
+		this.collisionComponent.onCollide.push(() => {
 			if (this.locationComponent.ySpeed < Platform.minimumReboundSpeed) {
 				this.locationComponent.ySpeed = Platform.minimumReboundSpeed;
 			}
-		};
+		});
 	}
 
 	public Tick(deltaTime: number): void {
