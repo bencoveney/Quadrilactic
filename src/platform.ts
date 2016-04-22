@@ -7,6 +7,7 @@ import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Platform extends PhysicsBlock {
 	private static platformSpeedIncrease: number = 1000;
+	private static minimumReboundSpeed: number = 10;
 
 	public viewport: Viewport;
 
@@ -27,6 +28,15 @@ export class Platform extends PhysicsBlock {
 		worldWidth: number
 	) {
 		super(worldPosition, dimensions, color, gravity, volume, 10, worldWidth);
+
+		let originalCollisionCallback: Function = this.collisionComponent.collisionCallback;
+		this.collisionComponent.collisionCallback = () => {
+			originalCollisionCallback();
+
+			if (this.locationComponent.ySpeed < Platform.minimumReboundSpeed) {
+				this.locationComponent.ySpeed = Platform.minimumReboundSpeed;
+			}
+		};
 	}
 
 	public Tick(deltaTime: number): void {

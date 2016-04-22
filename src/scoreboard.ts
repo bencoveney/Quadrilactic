@@ -20,10 +20,10 @@ export class Scoreboard extends Block {
 
 		this.player = player;
 
-		// Shouldn't have to insert the nested function like this.
-		this.player.onBounce = () => {
+		let originalBounceHandler: Function = this.player.collisionComponent.collisionCallback;
+		this.player.collisionComponent.collisionCallback = () => {
 			this.score = Math.round((this.score + Scoreboard.bouncePoints) * 10) / 10;
-			this.player.Bounce();
+			originalBounceHandler();
 		};
 
 		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;

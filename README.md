@@ -15,7 +15,6 @@ A simple HTML5 canvas game built using typescript.
 - Prompt for player to start jumping
 - Screenshake on bounce
 - More particles (eg on bounce)
-- Save volume setting to storage
 
 ## Bugs
 

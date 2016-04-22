@@ -8,7 +8,6 @@ import {Orchestrator} from "entitySystem/orchestrator";
 export class PhysicsBlock extends Block {
 
 	private internalGravity: number;
-	private onBounceCallback: () => void;
 	private worldWidth: number;
 
 	private rebound: Sound;
@@ -18,13 +17,6 @@ export class PhysicsBlock extends Block {
 	}
 	public set gravity(newValue: number) {
 		this.internalGravity = newValue;
-	}
-
-	get onBounce(): () => void {
-		return this.onBounceCallback;
-	}
-	set onBounce(newValue: () => void) {
-		this.onBounceCallback = newValue;
 	}
 
 	public constructor(
@@ -42,6 +34,10 @@ export class PhysicsBlock extends Block {
 		this.worldWidth = worldWidth;
 
 		this.rebound = volume.createSound("snd/blip.wav", {});
+
+		this.collisionComponent.collisionCallback = () => {
+			this.skew += 10;
+		};
 	}
 
 	public Tick(deltaTime: number): void {
@@ -73,15 +69,6 @@ export class PhysicsBlock extends Block {
 
 	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 		return super.Render(renderContext, orchestrator);
-	}
-
-	public VerticalBounce(newYSpeed: number): void {
-		this.skew += 10;
-
-		// Allow insertion of bouncing code
-		if (this.onBounceCallback) {
-			this.onBounceCallback();
-		}
 	}
 
 	public Reset(): void {

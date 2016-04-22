@@ -1,7 +1,6 @@
 import {Player} from "player";
 import {Controller} from "controller";
 import {MovingPoint, Point} from "point";
-import {Collider} from "collider";
 import {Scoreboard} from "scoreboard";
 import {Background} from "background";
 import {Viewport} from "viewport";
@@ -15,7 +14,6 @@ export class Renderer {
 	// Constants
 	private static defaultGravity: number = 0.2;
 	private static gameWidth: number = 480;
-	private static minimumPlatformReboundSpeed: number = 10;
 	private static timescale: number = 16;
 
 	// Rendering references
@@ -101,11 +99,6 @@ export class Renderer {
 			-Renderer.defaultGravity,
 			this.volume,
 			Renderer.gameWidth);
-		this.platform.onBounce = () => {
-			if (this.platform.locationComponent.ySpeed < Renderer.minimumPlatformReboundSpeed) {
-				this.platform.locationComponent.ySpeed = Renderer.minimumPlatformReboundSpeed;
-			}
-		};
 		orchestrator.Add(this.platform);
 
 		let scoreboardPosition: MovingPoint = {
@@ -188,7 +181,7 @@ export class Renderer {
 		if (this.isRunning === true) {
 			this.player.Tick(scaledTime);
 			this.platform.Tick(scaledTime);
-			Collider.processCollisions([this.player, this.platform]);
+			// Collider.processCollisions([this.player, this.platform]);
 		}
 
 		this.controller.clearClick();

@@ -37,7 +37,7 @@ export class Volume implements Renderable {
 		};
 
 		this.opacity = Volume.fadedOpacity;
-		this.level = parseInt(localStorage.getItem("volumePosition") || 2);
+		this.level = parseInt(localStorage.getItem("volumePosition") || 2, 10);
 
 		this.volume0 = new Sprite("img/volume0.png", this.soundButtonDimensions);
 		this.volume1 = new Sprite("img/volume1.png", this.soundButtonDimensions);
