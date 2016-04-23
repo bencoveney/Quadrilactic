@@ -52,7 +52,7 @@ export class CollisionSystem extends System {
 			entityB.locationComponent.xSpeed = -entityB.locationComponent.xSpeed;
 		}
 
-		entityA.collisionComponent.onCollide.trigger();
-		entityB.collisionComponent.onCollide.trigger();
+		entityA.collisionComponent.onCollide.trigger(entityA, orchestrator, deltaTime);
+		entityB.collisionComponent.onCollide.trigger(entityB, orchestrator, deltaTime);
 	}
 }

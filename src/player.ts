@@ -7,6 +7,7 @@ import {Sound} from "sound";
 import {Volume} from "volume";
 import {Particle} from "particle";
 import {Orchestrator} from "entitySystem/orchestrator";
+import {Entity} from "entitySystem/entity";
 
 export class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease: number = -8;
@@ -18,7 +19,6 @@ export class Player extends PhysicsBlock {
 
 	private isJumping: boolean;
 	private jumpRotationSpeed: number;
-	private controller: Controller;
 
 	private jump: Sound;
 	private bounce: Sound;
@@ -45,7 +45,29 @@ export class Player extends PhysicsBlock {
 			this.bounce.play();
 		});
 
-		this.controller = controller;
+		let jump: Function = (entity: Entity, orchestrator: Orchestrator, deltaTime: number) => {
+			this.jump.play();
+			this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
+			this.isJumping = true;
+			this.jumpRotationSpeed = this.direction === "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
+		};
+		let moveLeft: Function = (entity: Entity, orchestrator: Orchestrator, deltaTime: number) => {
+			this.locationComponent.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
+		};
+		let moveRight: Function = (entity: Entity, orchestrator: Orchestrator, deltaTime: number) => {
+			this.locationComponent.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
+		};
+
+		this.inputComponent.getKeyHandler("up").push(jump);
+		this.inputComponent.getKeyHandler("space").push(jump);
+		this.inputComponent.getKeyHandler("w").push(jump);
+
+		this.inputComponent.getKeyHandler("left").push(moveLeft);
+		this.inputComponent.getKeyHandler("a").push(moveLeft);
+
+		this.inputComponent.getKeyHandler("right").push(moveRight);
+		this.inputComponent.getKeyHandler("d").push(moveRight);
+
 		this.isJumping = false;
 
 		this.faceUp = new Sprite("img/faceHappy.png", dimensions);
@@ -58,22 +80,6 @@ export class Player extends PhysicsBlock {
 
 	public Tick(deltaTime: number): void {
 		super.Tick(deltaTime);
-
-		// Perform the jump
-		if (!this.isJumping && this.controller.isKeyPressed(["up", "space", "w"])) {
-			this.jump.play();
-			this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
-			this.isJumping = true;
-			this.jumpRotationSpeed = this.direction === "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
-		}
-
-		// Allow influence over horizontal direction
-		if (this.controller.isKeyPressed(["left", "a"])) {
-			this.locationComponent.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
-		}
-		if (this.controller.isKeyPressed(["right", "d"])) {
-			this.locationComponent.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
-		}
 
 		// Apply jump rotation
 		this.locationComponent.rotation += (this.jumpRotationSpeed * deltaTime);

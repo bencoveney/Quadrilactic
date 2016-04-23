@@ -1,9 +1,10 @@
 import {Renderer} from "renderer";
 import {Controller} from "controller";
 import {Orchestrator} from "entitySystem/orchestrator";
-import {LocationSystem} from "entitySystem/LocationSystem";
-import {RenderSystem} from "entitySystem/RenderSystem";
-import {CollisionSystem} from "entitySystem/CollisionSystem";
+import {LocationSystem} from "entitySystem/locationSystem";
+import {RenderSystem} from "entitySystem/renderSystem";
+import {CollisionSystem} from "entitySystem/collisionSystem";
+import {InputSystem} from "entitySystem/inputSystem";
 
 let canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement;
 
@@ -15,6 +16,7 @@ let orchestrator: Orchestrator = new Orchestrator(
 		"location": new LocationSystem()
 	},
 	{
+		"input": new InputSystem(controller),
 		"collision": new CollisionSystem()
 	},
 	{
