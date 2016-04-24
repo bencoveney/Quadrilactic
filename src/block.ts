@@ -2,7 +2,7 @@ import {MovingPoint, Point, Rectangle} from "point";
 import {Renderable} from "renderable";
 import {Entity} from "entitySystem/entity";
 import {LocationComponent} from "entitySystem/locationComponent";
-import {RenderComponent} from "entitySystem/renderComponent";
+import {RenderComponent, RenderLayer, RectangleLayer} from "entitySystem/renderComponent";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {CollisionComponent} from "entitySystem/collisionComponent";
 import {InputComponent} from "entitySystem/inputComponent";
@@ -18,11 +18,12 @@ export class Block implements Renderable, Entity {
 
 	protected skew: number;
 
-	// Private members
 	public locationComponent: LocationComponent;
 	public collisionComponent: CollisionComponent;
 	public inputComponent: InputComponent;
+	public renderComponent: RenderComponent;
 
+	// Private members
 	private internalColor: string;
 	private onMoveCallback: (amountMoved: Point) => void;
 	private initialWorldPosition: MovingPoint;
@@ -117,32 +118,38 @@ export class Block implements Renderable, Entity {
 
 	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
 
-		renderContext.beginPath();
-
-		let skewedPosition: Rectangle = this.skewedPosition;
-
-		renderContext.rect(
-			skewedPosition.x,
-			skewedPosition.y,
-			skewedPosition.width,
-			skewedPosition.height);
-
-		renderContext.fillStyle = this.fillColor;
-		renderContext.fill();
-
-		renderContext.closePath();
-
 		let particlePosition: LocationComponent = this.locationComponent.Duplicate();
 		particlePosition.xSpeed = 0;
 		particlePosition.ySpeed = 0;
 
-		orchestrator.Add({
+		let anyColor: string = "red";
+		this.renderComponent.layers.forEach((layer: RenderLayer) => {
+			let possibleRectangleLayer: RectangleLayer = layer as RectangleLayer;
+
+			if (possibleRectangleLayer.fillColorValue) {
+				anyColor = possibleRectangleLayer.fillColorValue;
+			}
+		});
+
+		let particleOpacity: number = 0.2;
+		let particle: Entity = {
 			locationComponent: particlePosition,
 			renderComponent: new RenderComponent(
-				this.fillColor,
-				0.2,
-				particlePosition)
-		});
+				particlePosition,
+				new RectangleLayer(anyColor),
+				(): number => {
+					// Fade out.
+					particleOpacity -= 0.01;
+
+					// Delete if too faded.
+					if (particleOpacity <= 0) {
+						orchestrator.Remove(particle);
+						return 0;
+					}
+					return particleOpacity;
+				})
+		};
+		orchestrator.Add(particle);
 
 		return [];
 	}

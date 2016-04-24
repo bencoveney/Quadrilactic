@@ -2,7 +2,7 @@ import {Entity} from "entitySystem/entity";
 import {System} from "entitySystem/system";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationComponent} from "entitySystem/locationComponent";
-import {RenderComponent} from "entitySystem/renderComponent";
+import {RenderComponent, RenderLayer, RectangleLayer, SpriteLayer} from "entitySystem/renderComponent";
 
 export class RenderSystem extends System {
 	private _renderContext: CanvasRenderingContext2D;
@@ -50,22 +50,27 @@ export class RenderSystem extends System {
 
 		let renderComponent: RenderComponent = entity.renderComponent;
 
-		this._renderContext.globalAlpha = renderComponent.opacity;
+		this._renderContext.globalAlpha = renderComponent.opacityValue;
 
 		this.OffsetViewport();
 
 		this.RotateAroundCenter(renderComponent.position);
 		this.MoveToPosition(renderComponent.position);
 
-		this.DrawRect(renderComponent);
+		// Layers can be a function so access it once upfront to ensure a single set of results.
+		let layers: RenderLayer[] = renderComponent.layers;
+
+		for (let layerIndex: number = 0; layerIndex < layers.length; layerIndex++) {
+			let layer: RenderLayer = layers[layerIndex];
+
+			if (layer instanceof RectangleLayer) {
+				this.DrawRect(renderComponent, layer as RectangleLayer);
+			} else if (layer instanceof SpriteLayer) {
+				this.DrawSprite(renderComponent, layer as SpriteLayer);
+			}
+		}
 
 		this._renderContext.restore();
-
-		// Fade out.
-		renderComponent.opacity -= 0.01;
-		if (renderComponent.opacity <= 0) {
-			orchestrator.Remove(entity);
-		}
 	}
 
 	private RotateAroundCenter(position: LocationComponent): void {
@@ -95,7 +100,10 @@ export class RenderSystem extends System {
 			this._offsetY);
 	}
 
-	private DrawRect(renderComponent: RenderComponent): void {
+	private DrawRect(renderComponent: RenderComponent, rectangleLayer: RectangleLayer): void {
+
+		let skewedPosition: LocationComponent = renderComponent.skewedPosition;
+
 		// Begin the shape.
 		this._renderContext.beginPath();
 
@@ -103,14 +111,32 @@ export class RenderSystem extends System {
 		this._renderContext.rect(
 			0,
 			0,
-			renderComponent.position.width,
-			renderComponent.position.height);
+			skewedPosition.width,
+			skewedPosition.height);
 
 		// Fill it in.
-		this._renderContext.fillStyle = renderComponent.fillColor;
+		this._renderContext.fillStyle = rectangleLayer.fillColorValue;
 		this._renderContext.fill();
 
 		// End the shape.
 		this._renderContext.closePath();
+	}
+
+	private DrawSprite(renderComponent: RenderComponent, spriteLayer: SpriteLayer): void {
+
+		let skewedPosition: LocationComponent = renderComponent.skewedPosition;
+
+		this._renderContext.drawImage(
+			spriteLayer.image,
+			// Source dimensions
+			0,
+			0,
+			spriteLayer.image.width,
+			spriteLayer.image.height,
+			// Destination dimensions
+			0,
+			0,
+			skewedPosition.width,
+			skewedPosition.height);
 	}
 }

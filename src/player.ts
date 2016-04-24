@@ -1,17 +1,15 @@
 import {Controller} from "controller";
 import {PhysicsBlock} from "physicsBlock";
-import {MovingPoint, Point, Rectangle} from "point";
+import {MovingPoint, Point} from "point";
 import {Renderable} from "renderable";
-import {Sprite} from "sprite";
 import {Sound} from "sound";
 import {Volume} from "volume";
-import {Particle} from "particle";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {Entity} from "entitySystem/entity";
+import {RenderComponent, RenderLayer, RectangleLayer, SpriteLayer} from "entitySystem/renderComponent";
 
 export class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease: number = -8;
-	private static degrees: number = Math.PI / 180;
 	private static jumpRotationSlowDown: number = 0.1;
 	private static initialJumpRotationSpeed: number = 15;
 	private static horizontalSpeedIncrease: number = 0.5;
@@ -22,9 +20,6 @@ export class Player extends PhysicsBlock {
 
 	private jump: Sound;
 	private bounce: Sound;
-	private faceUp: Sprite;
-	private faceDown: Sprite;
-	private faceHover: Sprite;
 
 	public constructor(
 		worldPosition: MovingPoint,
@@ -44,6 +39,32 @@ export class Player extends PhysicsBlock {
 			this.jumpRotationSpeed = 0;
 			this.bounce.play();
 		});
+
+		let backgroundLayer: RectangleLayer = new RectangleLayer(() => {
+			let xHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.locationComponent.xSpeed)), 0).toString(16);
+			let yHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.locationComponent.ySpeed)), 0).toString(16);
+
+			return "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
+		});
+		let upSprite: SpriteLayer = SpriteLayer.FromPath("img/faceHappy.png");
+		let downSprite: SpriteLayer = SpriteLayer.FromPath("img/faceWorried.png");
+		let hoverSprite: SpriteLayer = SpriteLayer.FromPath("img/faceChill.png");
+
+		let layerComposer: () => RenderLayer = () => {
+			let layers: RenderLayer[] = [backgroundLayer];
+
+			if (this.locationComponent.ySpeed > Player.faceSwapThreshold) {
+				layers.push(downSprite);
+			} else if (this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
+				layers.push(upSprite);
+			} else {
+				layers.push(hoverSprite);
+			}
+
+			return layers;
+		};
+
+		this.renderComponent = new RenderComponent(this.locationComponent, layerComposer, 1);
 
 		let jump: Function = (entity: Entity, orchestrator: Orchestrator, deltaTime: number) => {
 			this.jump.play();
@@ -70,10 +91,6 @@ export class Player extends PhysicsBlock {
 
 		this.isJumping = false;
 
-		this.faceUp = new Sprite("img/faceHappy.png", dimensions);
-		this.faceDown = new Sprite("img/faceWorried.png", dimensions);
-		this.faceHover = new Sprite("img/faceChill.png", dimensions);
-
 		this.jump = volume.createSound("snd/jump.wav", {});
 		this.bounce = volume.createSound("snd/blip3.wav", {});
 	}
@@ -93,54 +110,7 @@ export class Player extends PhysicsBlock {
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
-		renderContext.save();
-
-		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-		renderContext.rotate(this.locationComponent.rotation * Player.degrees);
-		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
-
-		let faceSprite: Sprite;
-
-		if (this.locationComponent.ySpeed > Player.faceSwapThreshold) {
-			faceSprite = this.faceDown;
-		} else if (this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
-			faceSprite = this.faceUp;
-		} else {
-			faceSprite = this.faceHover;
-		}
-
-		let xHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.locationComponent.xSpeed)), 0).toString(16);
-		let yHexidecimal: string = Math.max(Math.round(15 - Math.abs(this.locationComponent.ySpeed)), 0).toString(16);
-
-		this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
-
-		let newRenderables: Renderable[] = super.Render(renderContext, orchestrator);
-
-		newRenderables.forEach((renderable: Renderable) => {
-			(renderable as Particle).rotation = this.locationComponent.rotation;
-		});
-
-		renderContext.restore();
-
-		renderContext.save();
-		renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-		renderContext.rotate(this.locationComponent.rotation * Player.degrees);
-		renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
-
-		let skewedPosition: Rectangle = this.skewedPosition;
-
-		renderContext.translate(skewedPosition.x, skewedPosition.y);
-
-		faceSprite.dimensions = {
-			x: skewedPosition.width,
-			y: skewedPosition.height
-		};
-
-		newRenderables = newRenderables.concat(faceSprite.Render(renderContext, orchestrator));
-
-		renderContext.restore();
-
-		return newRenderables;
+		return super.Render(renderContext, orchestrator);
 	}
 
 	public Reset(): void {

@@ -9,7 +9,6 @@ export class Sprite implements Renderable {
 
 	constructor(imagePath: string, dimensions: Point) {
 		this.image = new Image();
-		this.image.addEventListener("load", () => { this.loaded(); }, false);
 		this.image.src = imagePath;
 
 		this.dimensions = dimensions;
@@ -34,9 +33,5 @@ export class Sprite implements Renderable {
 			this.internalDimensions.y);
 
 		return [];
-	}
-
-	private loaded(): void {
-		console.log("Loaded: " + this.image.src);
 	}
 }

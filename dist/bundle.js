@@ -69,7 +69,7 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(11), __webpack_require__(12), __webpack_require__(13), __webpack_require__(14), __webpack_require__(15), __webpack_require__(17)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(10), __webpack_require__(11), __webpack_require__(13), __webpack_require__(14), __webpack_require__(15), __webpack_require__(17)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -195,7 +195,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, sprite_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
 	    var Player = (function (_super) {
 	        __extends(Player, _super);
 	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
@@ -207,6 +207,28 @@
 	                _this.jumpRotationSpeed = 0;
 	                _this.bounce.play();
 	            });
+	            var backgroundLayer = new renderComponent_1.RectangleLayer(function () {
+	                var xHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.xSpeed)), 0).toString(16);
+	                var yHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.ySpeed)), 0).toString(16);
+	                return "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
+	            });
+	            var upSprite = renderComponent_1.SpriteLayer.FromPath("img/faceHappy.png");
+	            var downSprite = renderComponent_1.SpriteLayer.FromPath("img/faceWorried.png");
+	            var hoverSprite = renderComponent_1.SpriteLayer.FromPath("img/faceChill.png");
+	            var layerComposer = function () {
+	                var layers = [backgroundLayer];
+	                if (_this.locationComponent.ySpeed > Player.faceSwapThreshold) {
+	                    layers.push(downSprite);
+	                }
+	                else if (_this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
+	                    layers.push(upSprite);
+	                }
+	                else {
+	                    layers.push(hoverSprite);
+	                }
+	                return layers;
+	            };
+	            this.renderComponent = new renderComponent_1.RenderComponent(this.locationComponent, layerComposer, 1);
 	            var jump = function (entity, orchestrator, deltaTime) {
 	                _this.jump.play();
 	                _this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
@@ -227,9 +249,6 @@
 	            this.inputComponent.getKeyHandler("right").push(moveRight);
 	            this.inputComponent.getKeyHandler("d").push(moveRight);
 	            this.isJumping = false;
-	            this.faceUp = new sprite_1.Sprite("img/faceHappy.png", dimensions);
-	            this.faceDown = new sprite_1.Sprite("img/faceWorried.png", dimensions);
-	            this.faceHover = new sprite_1.Sprite("img/faceChill.png", dimensions);
 	            this.jump = volume.createSound("snd/jump.wav", {});
 	            this.bounce = volume.createSound("snd/blip3.wav", {});
 	        }
@@ -245,42 +264,7 @@
 	            this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
 	        };
 	        Player.prototype.Render = function (renderContext, orchestrator) {
-	            var _this = this;
-	            renderContext.save();
-	            renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-	            renderContext.rotate(this.locationComponent.rotation * Player.degrees);
-	            renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
-	            var faceSprite;
-	            if (this.locationComponent.ySpeed > Player.faceSwapThreshold) {
-	                faceSprite = this.faceDown;
-	            }
-	            else if (this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
-	                faceSprite = this.faceUp;
-	            }
-	            else {
-	                faceSprite = this.faceHover;
-	            }
-	            var xHexidecimal = Math.max(Math.round(15 - Math.abs(this.locationComponent.xSpeed)), 0).toString(16);
-	            var yHexidecimal = Math.max(Math.round(15 - Math.abs(this.locationComponent.ySpeed)), 0).toString(16);
-	            this.fillColor = "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
-	            var newRenderables = _super.prototype.Render.call(this, renderContext, orchestrator);
-	            newRenderables.forEach(function (renderable) {
-	                renderable.rotation = _this.locationComponent.rotation;
-	            });
-	            renderContext.restore();
-	            renderContext.save();
-	            renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-	            renderContext.rotate(this.locationComponent.rotation * Player.degrees);
-	            renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
-	            var skewedPosition = this.skewedPosition;
-	            renderContext.translate(skewedPosition.x, skewedPosition.y);
-	            faceSprite.dimensions = {
-	                x: skewedPosition.width,
-	                y: skewedPosition.height
-	            };
-	            newRenderables = newRenderables.concat(faceSprite.Render(renderContext, orchestrator));
-	            renderContext.restore();
-	            return newRenderables;
+	            return _super.prototype.Render.call(this, renderContext, orchestrator);
 	        };
 	        Player.prototype.Reset = function () {
 	            _super.prototype.Reset.call(this);
@@ -289,7 +273,6 @@
 	            this.jumpRotationSpeed = 0;
 	        };
 	        Player.jumpSpeedIncrease = -8;
-	        Player.degrees = Math.PI / 180;
 	        Player.jumpRotationSlowDown = 0.1;
 	        Player.initialJumpRotationSpeed = 15;
 	        Player.horizontalSpeedIncrease = 0.5;
@@ -439,19 +422,29 @@
 	            this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit);
 	        };
 	        Block.prototype.Render = function (renderContext, orchestrator) {
-	            renderContext.beginPath();
-	            var skewedPosition = this.skewedPosition;
-	            renderContext.rect(skewedPosition.x, skewedPosition.y, skewedPosition.width, skewedPosition.height);
-	            renderContext.fillStyle = this.fillColor;
-	            renderContext.fill();
-	            renderContext.closePath();
 	            var particlePosition = this.locationComponent.Duplicate();
 	            particlePosition.xSpeed = 0;
 	            particlePosition.ySpeed = 0;
-	            orchestrator.Add({
-	                locationComponent: particlePosition,
-	                renderComponent: new renderComponent_1.RenderComponent(this.fillColor, 0.2, particlePosition)
+	            var anyColor = "red";
+	            this.renderComponent.layers.forEach(function (layer) {
+	                var possibleRectangleLayer = layer;
+	                if (possibleRectangleLayer.fillColorValue) {
+	                    anyColor = possibleRectangleLayer.fillColorValue;
+	                }
 	            });
+	            var particleOpacity = 0.2;
+	            var particle = {
+	                locationComponent: particlePosition,
+	                renderComponent: new renderComponent_1.RenderComponent(particlePosition, new renderComponent_1.RectangleLayer(anyColor), function () {
+	                    particleOpacity -= 0.01;
+	                    if (particleOpacity <= 0) {
+	                        orchestrator.Remove(particle);
+	                        return 0;
+	                    }
+	                    return particleOpacity;
+	                })
+	            };
+	            orchestrator.Add(particle);
 	            return [];
 	        };
 	        Block.prototype.Reset = function () {
@@ -613,19 +606,31 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
 	    var RenderComponent = (function () {
-	        function RenderComponent(fillColor, opacity, position) {
-	            this._fillColor = fillColor;
-	            this._opacity = opacity;
+	        function RenderComponent(position, layers, opacity) {
 	            this._position = position;
+	            this._layers = layers;
+	            this._opacity = opacity;
+	            this._skew = 0;
 	        }
-	        Object.defineProperty(RenderComponent.prototype, "fillColor", {
+	        Object.defineProperty(RenderComponent.prototype, "position", {
 	            get: function () {
-	                return this._fillColor;
+	                return this._position;
 	            },
 	            set: function (newValue) {
-	                this._fillColor = newValue;
+	                this._position = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(RenderComponent.prototype, "skewedPosition", {
+	            get: function () {
+	                var skewAdjustment = this.skew === 0 ? 0 : Math.sin(this.skew);
+	                skewAdjustment = skewAdjustment * this.skew;
+	                var widthAdjustment = (skewAdjustment * this._position.width * RenderComponent.skewScale);
+	                var heightAdjustment = (skewAdjustment * this._position.height * RenderComponent.skewScale);
+	                return new locationComponent_1.LocationComponent(this._position.xPosition + (widthAdjustment / 2), this._position.yPosition - (heightAdjustment / 2), this._position.width - widthAdjustment, this._position.height + heightAdjustment, this._position.xSpeed, this._position.ySpeed, this._position.rotation);
 	            },
 	            enumerable: true,
 	            configurable: true
@@ -640,19 +645,92 @@
 	            enumerable: true,
 	            configurable: true
 	        });
-	        Object.defineProperty(RenderComponent.prototype, "position", {
+	        Object.defineProperty(RenderComponent.prototype, "opacityValue", {
 	            get: function () {
-	                return this._position;
-	            },
-	            set: function (newValue) {
-	                this._position = newValue;
+	                if (typeof this._opacity === "function") {
+	                    return this._opacity();
+	                }
+	                else {
+	                    return this._opacity;
+	                }
 	            },
 	            enumerable: true,
 	            configurable: true
 	        });
+	        Object.defineProperty(RenderComponent.prototype, "skew", {
+	            get: function () {
+	                return this._skew;
+	            },
+	            set: function (newValue) {
+	                this._skew = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(RenderComponent.prototype, "layers", {
+	            get: function () {
+	                if (typeof this._layers === "function") {
+	                    return this._layers();
+	                }
+	                else {
+	                    return [].concat(this._layers);
+	                }
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        RenderComponent.skewScale = 0.07;
 	        return RenderComponent;
 	    })();
 	    exports.RenderComponent = RenderComponent;
+	    var RectangleLayer = (function () {
+	        function RectangleLayer(fillColor) {
+	            this._fillColor = fillColor;
+	        }
+	        Object.defineProperty(RectangleLayer.prototype, "fillColor", {
+	            get: function () {
+	                return this._fillColor;
+	            },
+	            set: function (newValue) {
+	                this._fillColor = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(RectangleLayer.prototype, "fillColorValue", {
+	            get: function () {
+	                if (typeof this._fillColor === "function") {
+	                    return this._fillColor();
+	                }
+	                else {
+	                    return this._fillColor;
+	                }
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        return RectangleLayer;
+	    })();
+	    exports.RectangleLayer = RectangleLayer;
+	    var SpriteLayer = (function () {
+	        function SpriteLayer(image) {
+	            this._image = image;
+	        }
+	        Object.defineProperty(SpriteLayer.prototype, "image", {
+	            get: function () {
+	                return this._image;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        SpriteLayer.FromPath = function (imagePath) {
+	            var image = new Image();
+	            image.src = imagePath;
+	            return new SpriteLayer(image);
+	        };
+	        return SpriteLayer;
+	    })();
+	    exports.SpriteLayer = SpriteLayer;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
@@ -749,40 +827,6 @@
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Sprite = (function () {
-	        function Sprite(imagePath, dimensions) {
-	            var _this = this;
-	            this.isAlive = true;
-	            this.image = new Image();
-	            this.image.addEventListener("load", function () { _this.loaded(); }, false);
-	            this.image.src = imagePath;
-	            this.dimensions = dimensions;
-	        }
-	        Object.defineProperty(Sprite.prototype, "dimensions", {
-	            set: function (dimensions) {
-	                this.internalDimensions = dimensions;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Sprite.prototype.Render = function (renderContext, orchestrator) {
-	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
-	            return [];
-	        };
-	        Sprite.prototype.loaded = function () {
-	            console.log("Loaded: " + this.image.src);
-	        };
-	        return Sprite;
-	    })();
-	    exports.Sprite = Sprite;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
@@ -856,10 +900,10 @@
 
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Background = (function () {
 	        function Background(renderPosition, renderDimensions, color, player) {
 	            this.isAlive = true;
@@ -917,6 +961,35 @@
 	        return Background;
 	    })();
 	    exports.Background = Background;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var Sprite = (function () {
+	        function Sprite(imagePath, dimensions) {
+	            this.isAlive = true;
+	            this.image = new Image();
+	            this.image.src = imagePath;
+	            this.dimensions = dimensions;
+	        }
+	        Object.defineProperty(Sprite.prototype, "dimensions", {
+	            set: function (dimensions) {
+	                this.internalDimensions = dimensions;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Sprite.prototype.Render = function (renderContext, orchestrator) {
+	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
+	            return [];
+	        };
+	        return Sprite;
+	    })();
+	    exports.Sprite = Sprite;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
@@ -999,7 +1072,7 @@
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Menu = (function () {
 	        function Menu(renderDimensions, controller, background, onStartGame, volume) {
 	            this.isAlive = true;
@@ -1098,7 +1171,7 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(16), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(16), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
 	    var Volume = (function () {
 	        function Volume(renderDimensions, controller) {
 	            this.isAlive = true;
@@ -1234,7 +1307,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
 	    var Platform = (function (_super) {
 	        __extends(Platform, _super);
 	        function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
@@ -1245,6 +1318,7 @@
 	                    _this.locationComponent.ySpeed = Platform.minimumReboundSpeed;
 	                }
 	            });
+	            this.renderComponent = new renderComponent_1.RenderComponent(this.locationComponent, new renderComponent_1.RectangleLayer(color), 1);
 	        }
 	        Object.defineProperty(Platform.prototype, "bottomOfScreen", {
 	            get: function () {
@@ -1510,7 +1584,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(21)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(21), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, renderComponent_1) {
 	    var RenderSystem = (function (_super) {
 	        __extends(RenderSystem, _super);
 	        function RenderSystem(renderContext) {
@@ -1553,16 +1627,21 @@
 	            }
 	            this._renderContext.save();
 	            var renderComponent = entity.renderComponent;
-	            this._renderContext.globalAlpha = renderComponent.opacity;
+	            this._renderContext.globalAlpha = renderComponent.opacityValue;
 	            this.OffsetViewport();
 	            this.RotateAroundCenter(renderComponent.position);
 	            this.MoveToPosition(renderComponent.position);
-	            this.DrawRect(renderComponent);
-	            this._renderContext.restore();
-	            renderComponent.opacity -= 0.01;
-	            if (renderComponent.opacity <= 0) {
-	                orchestrator.Remove(entity);
+	            var layers = renderComponent.layers;
+	            for (var layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+	                var layer = layers[layerIndex];
+	                if (layer instanceof renderComponent_1.RectangleLayer) {
+	                    this.DrawRect(renderComponent, layer);
+	                }
+	                else if (layer instanceof renderComponent_1.SpriteLayer) {
+	                    this.DrawSprite(renderComponent, layer);
+	                }
 	            }
+	            this._renderContext.restore();
 	        };
 	        RenderSystem.prototype.RotateAroundCenter = function (position) {
 	            this._renderContext.translate(position.centerXPosition, position.centerYPosition);
@@ -1575,12 +1654,17 @@
 	        RenderSystem.prototype.OffsetViewport = function () {
 	            this._renderContext.translate(this._offsetX, this._offsetY);
 	        };
-	        RenderSystem.prototype.DrawRect = function (renderComponent) {
+	        RenderSystem.prototype.DrawRect = function (renderComponent, rectangleLayer) {
+	            var skewedPosition = renderComponent.skewedPosition;
 	            this._renderContext.beginPath();
-	            this._renderContext.rect(0, 0, renderComponent.position.width, renderComponent.position.height);
-	            this._renderContext.fillStyle = renderComponent.fillColor;
+	            this._renderContext.rect(0, 0, skewedPosition.width, skewedPosition.height);
+	            this._renderContext.fillStyle = rectangleLayer.fillColorValue;
 	            this._renderContext.fill();
 	            this._renderContext.closePath();
+	        };
+	        RenderSystem.prototype.DrawSprite = function (renderComponent, spriteLayer) {
+	            var skewedPosition = renderComponent.skewedPosition;
+	            this._renderContext.drawImage(spriteLayer.image, 0, 0, spriteLayer.image.width, spriteLayer.image.height, 0, 0, skewedPosition.width, skewedPosition.height);
 	        };
 	        return RenderSystem;
 	    })(system_1.System);

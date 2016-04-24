@@ -1,4 +1,4 @@
-import {LocationComponent} from "entitySystem/LocationComponent";
+import {LocationComponent} from "entitySystem/locationComponent";
 import {CallbackArray} from "entitySystem/callbackArray";
 
 export class CollisionComponent {

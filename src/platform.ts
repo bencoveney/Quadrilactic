@@ -4,6 +4,7 @@ import {Renderable} from "renderable";
 import {Viewport} from "viewport";
 import {Volume} from "volume";
 import {Orchestrator} from "entitySystem/orchestrator";
+import {RenderComponent, RectangleLayer} from "entitySystem/renderComponent";
 
 export class Platform extends PhysicsBlock {
 	private static platformSpeedIncrease: number = 1000;
@@ -34,6 +35,12 @@ export class Platform extends PhysicsBlock {
 				this.locationComponent.ySpeed = Platform.minimumReboundSpeed;
 			}
 		});
+
+		this.renderComponent = new RenderComponent(
+			this.locationComponent,
+			new RectangleLayer(color),
+			1
+		);
 	}
 
 	public Tick(deltaTime: number): void {
