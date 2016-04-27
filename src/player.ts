@@ -67,6 +67,10 @@ export class Player extends PhysicsBlock {
 		this.renderComponent = new RenderComponent(this.locationComponent, layerComposer, 1);
 
 		let jump: Function = (entity: Entity, orchestrator: Orchestrator, deltaTime: number) => {
+			if (this.isJumping) {
+				return;
+			}
+
 			this.jump.play();
 			this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
 			this.isJumping = true;

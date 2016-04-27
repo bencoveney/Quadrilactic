@@ -230,6 +230,9 @@
 	            };
 	            this.renderComponent = new renderComponent_1.RenderComponent(this.locationComponent, layerComposer, 1);
 	            var jump = function (entity, orchestrator, deltaTime) {
+	                if (_this.isJumping) {
+	                    return;
+	                }
 	                _this.jump.play();
 	                _this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
 	                _this.isJumping = true;
