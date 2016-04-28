@@ -1,7 +1,7 @@
 import {Entity} from "entitySystem/entity";
 import {System} from "entitySystem/system";
 import {Orchestrator} from "entitySystem/orchestrator";
-import {LocationComponent} from "entitySystem/locationComponent";
+import {LocationComponent, LocationType} from "entitySystem/locationComponent";
 import {RenderComponent, RenderLayer, RectangleLayer, SpriteLayer} from "entitySystem/renderComponent";
 
 export class RenderSystem extends System {
@@ -52,7 +52,9 @@ export class RenderSystem extends System {
 
 		this._renderContext.globalAlpha = renderComponent.opacityValue;
 
-		this.OffsetViewport();
+		if (renderComponent.position.type === LocationType.world) {
+			this.OffsetViewport();
+		}
 
 		this.RotateAroundCenter(renderComponent.position);
 		this.MoveToPosition(renderComponent.position);

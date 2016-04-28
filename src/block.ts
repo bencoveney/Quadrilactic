@@ -6,6 +6,7 @@ import {RenderComponent, RenderLayer, RectangleLayer} from "entitySystem/renderC
 import {Orchestrator} from "entitySystem/orchestrator";
 import {CollisionComponent} from "entitySystem/collisionComponent";
 import {InputComponent} from "entitySystem/inputComponent";
+import {ScoreComponent} from "entitySystem/scoreComponent";
 
 export class Block implements Renderable, Entity {
 	// Constants
@@ -22,6 +23,7 @@ export class Block implements Renderable, Entity {
 	public collisionComponent: CollisionComponent;
 	public inputComponent: InputComponent;
 	public renderComponent: RenderComponent;
+	public scoreComponent: ScoreComponent;
 
 	// Private members
 	private internalColor: string;

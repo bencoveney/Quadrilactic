@@ -7,6 +7,7 @@ import {Volume} from "volume";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {Entity} from "entitySystem/entity";
 import {RenderComponent, RenderLayer, RectangleLayer, SpriteLayer} from "entitySystem/renderComponent";
+import {ScoreComponent} from "entitySystem/scoreComponent";
 
 export class Player extends PhysicsBlock {
 	private static jumpSpeedIncrease: number = -8;
@@ -32,12 +33,15 @@ export class Player extends PhysicsBlock {
 	) {
 		super(worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
 
+		let bounceCount: number = 0;
+
 		this.collisionComponent.onCollide.push(() => {
 			// If we were jumping, thats over now
 			this.isJumping = false;
 			this.locationComponent.rotation = 0;
 			this.jumpRotationSpeed = 0;
 			this.bounce.play();
+			bounceCount++;
 		});
 
 		let backgroundLayer: RectangleLayer = new RectangleLayer(() => {
@@ -92,6 +96,15 @@ export class Player extends PhysicsBlock {
 
 		this.inputComponent.getKeyHandler("right").push(moveRight);
 		this.inputComponent.getKeyHandler("d").push(moveRight);
+
+		this.scoreComponent = new ScoreComponent(
+			() => {
+				return -this.locationComponent.top / 1000;
+			},
+			() => {
+				return bounceCount;
+			}
+		);
 
 		this.isJumping = false;
 

@@ -1,3 +1,9 @@
+export enum LocationType {
+	unknown = 0,
+	world = 1,
+	ui = 2
+}
+
 export class LocationComponent {
 	private static degrees: number = Math.PI / 180;
 
@@ -9,6 +15,7 @@ export class LocationComponent {
 	private _xSize: number;
 	private _ySize: number;
 	private _rotation: number;
+	private _type: LocationType;
 
 	// Position properties.
 	get xPosition(): number {
@@ -77,6 +84,10 @@ export class LocationComponent {
 		return this.rotation * LocationComponent.degrees;
 	}
 
+	get type(): LocationType {
+		return this._type;
+	}
+
 	constructor(
 		x: number,
 		y: number,
@@ -84,7 +95,8 @@ export class LocationComponent {
 		height: number,
 		xSpeed: number,
 		ySpeed: number,
-		rotation: number
+		rotation: number,
+		type: LocationType = LocationType.world
 	) {
 		this._x = x;
 		this._y = y;
@@ -93,6 +105,7 @@ export class LocationComponent {
 		this._xSpeed = xSpeed;
 		this._ySpeed = ySpeed;
 		this._rotation = rotation;
+		this._type = type;
 	}
 
 	public Duplicate(): LocationComponent {
@@ -103,7 +116,8 @@ export class LocationComponent {
 			this._ySize,
 			this._xSpeed,
 			this._ySpeed,
-			this._rotation
+			this._rotation,
+			this._type
 		);
 	}
 }

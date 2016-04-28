@@ -44,14 +44,15 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(18), __webpack_require__(19), __webpack_require__(20), __webpack_require__(22), __webpack_require__(23), __webpack_require__(24)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(21), __webpack_require__(22), __webpack_require__(1), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25), __webpack_require__(26)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1) {
 	    var canvas = document.getElementById("viewport");
 	    var controller = new controller_1.Controller(canvas);
 	    var orchestrator = new orchestrator_1.Orchestrator([], {
 	        "location": new locationSystem_1.LocationSystem()
 	    }, {
 	        "input": new inputSystem_1.InputSystem(controller),
-	        "collision": new collisionSystem_1.CollisionSystem()
+	        "collision": new collisionSystem_1.CollisionSystem(),
+	        "score": new scoreSystem_1.ScoreSystem()
 	    }, {
 	        "render": new renderSystem_1.RenderSystem(canvas.getContext("2d"))
 	    });
@@ -69,7 +70,63 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(10), __webpack_require__(11), __webpack_require__(13), __webpack_require__(14), __webpack_require__(15), __webpack_require__(17)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	    var LocationSystem = (function (_super) {
+	        __extends(LocationSystem, _super);
+	        function LocationSystem() {
+	            _super.apply(this, arguments);
+	        }
+	        LocationSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
+	            "noOp".toString();
+	        };
+	        return LocationSystem;
+	    })(system_1.System);
+	    exports.LocationSystem = LocationSystem;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var System = (function () {
+	        function System() {
+	        }
+	        System.ApplyToIndividuals = function (entities, predicate, logic) {
+	            entities.filter(function (entity) {
+	                return predicate(entity);
+	            }).forEach(function (entity) {
+	                logic(entity);
+	            });
+	        };
+	        System.ApplyToPairs = function (entities, predicate, logic) {
+	            var filteredEntities = entities.filter(function (entity) {
+	                return predicate(entity);
+	            });
+	            for (var i = 0; i < filteredEntities.length - 1; i++) {
+	                var entityA = filteredEntities[i];
+	                for (var j = i + 1; j < filteredEntities.length; j++) {
+	                    logic(entityA, filteredEntities[j]);
+	                }
+	            }
+	        };
+	        return System;
+	    })();
+	    exports.System = System;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(4), __webpack_require__(13), __webpack_require__(14), __webpack_require__(16), __webpack_require__(17), __webpack_require__(18), __webpack_require__(20)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -187,7 +244,7 @@
 
 
 /***/ },
-/* 2 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -195,17 +252,19 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(8), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
 	    var Player = (function (_super) {
 	        __extends(Player, _super);
 	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
 	            var _this = this;
 	            _super.call(this, worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
+	            var bounceCount = 0;
 	            this.collisionComponent.onCollide.push(function () {
 	                _this.isJumping = false;
 	                _this.locationComponent.rotation = 0;
 	                _this.jumpRotationSpeed = 0;
 	                _this.bounce.play();
+	                bounceCount++;
 	            });
 	            var backgroundLayer = new renderComponent_1.RectangleLayer(function () {
 	                var xHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.xSpeed)), 0).toString(16);
@@ -251,6 +310,11 @@
 	            this.inputComponent.getKeyHandler("a").push(moveLeft);
 	            this.inputComponent.getKeyHandler("right").push(moveRight);
 	            this.inputComponent.getKeyHandler("d").push(moveRight);
+	            this.scoreComponent = new scoreComponent_1.ScoreComponent(function () {
+	                return -_this.locationComponent.top / 1000;
+	            }, function () {
+	                return bounceCount;
+	            });
 	            this.isJumping = false;
 	            this.jump = volume.createSound("snd/jump.wav", {});
 	            this.bounce = volume.createSound("snd/blip3.wav", {});
@@ -287,7 +351,7 @@
 
 
 /***/ },
-/* 3 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -295,7 +359,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
 	    var PhysicsBlock = (function (_super) {
 	        __extends(PhysicsBlock, _super);
 	        function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, xSpeedLimit, worldWidth) {
@@ -347,10 +411,10 @@
 
 
 /***/ },
-/* 4 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(6), __webpack_require__(7), __webpack_require__(9)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(8), __webpack_require__(9), __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
 	    var Block = (function () {
 	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
 	            this.isAlive = true;
@@ -468,12 +532,19 @@
 
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    (function (LocationType) {
+	        LocationType[LocationType["unknown"] = 0] = "unknown";
+	        LocationType[LocationType["world"] = 1] = "world";
+	        LocationType[LocationType["ui"] = 2] = "ui";
+	    })(exports.LocationType || (exports.LocationType = {}));
+	    var LocationType = exports.LocationType;
 	    var LocationComponent = (function () {
-	        function LocationComponent(x, y, width, height, xSpeed, ySpeed, rotation) {
+	        function LocationComponent(x, y, width, height, xSpeed, ySpeed, rotation, type) {
+	            if (type === void 0) { type = LocationType.world; }
 	            this._x = x;
 	            this._y = y;
 	            this._xSize = width;
@@ -481,6 +552,7 @@
 	            this._xSpeed = xSpeed;
 	            this._ySpeed = ySpeed;
 	            this._rotation = rotation;
+	            this._type = type;
 	        }
 	        Object.defineProperty(LocationComponent.prototype, "xPosition", {
 	            get: function () {
@@ -595,8 +667,15 @@
 	            enumerable: true,
 	            configurable: true
 	        });
+	        Object.defineProperty(LocationComponent.prototype, "type", {
+	            get: function () {
+	                return this._type;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
 	        LocationComponent.prototype.Duplicate = function () {
-	            return new LocationComponent(this._x, this._y, this._xSize, this._ySize, this._xSpeed, this._ySpeed, this._rotation);
+	            return new LocationComponent(this._x, this._y, this._xSize, this._ySize, this._xSpeed, this._ySpeed, this._rotation, this._type);
 	        };
 	        LocationComponent.degrees = Math.PI / 180;
 	        return LocationComponent;
@@ -606,10 +685,10 @@
 
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
 	    var RenderComponent = (function () {
 	        function RenderComponent(position, layers, opacity) {
 	            this._position = position;
@@ -738,10 +817,10 @@
 
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
 	    var CollisionComponent = (function () {
 	        function CollisionComponent(position) {
 	            this._onCollide = new callbackArray_1.CallbackArray();
@@ -771,7 +850,7 @@
 
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -797,10 +876,10 @@
 
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
 	    var InputComponent = (function () {
 	        function InputComponent() {
 	            this._keyHandlers = {};
@@ -827,7 +906,67 @@
 
 
 /***/ },
-/* 10 */
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var ScoreComponent = (function () {
+	        function ScoreComponent(points, multiplier) {
+	            this._points = points;
+	            this._multiplier = multiplier;
+	        }
+	        Object.defineProperty(ScoreComponent.prototype, "points", {
+	            get: function () {
+	                return this._points;
+	            },
+	            set: function (newPoints) {
+	                this._points = newPoints;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(ScoreComponent.prototype, "pointsValue", {
+	            get: function () {
+	                if (typeof this._points === "function") {
+	                    return this._points();
+	                }
+	                else {
+	                    return this._points;
+	                }
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(ScoreComponent.prototype, "multiplier", {
+	            get: function () {
+	                return this._multiplier;
+	            },
+	            set: function (newMultiplier) {
+	                this._multiplier = newMultiplier;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(ScoreComponent.prototype, "multiplierValue", {
+	            get: function () {
+	                if (typeof this._multiplier === "function") {
+	                    return this._multiplier();
+	                }
+	                else {
+	                    return this._multiplier;
+	                }
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        return ScoreComponent;
+	    })();
+	    exports.ScoreComponent = ScoreComponent;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -835,7 +974,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
 	    var Scoreboard = (function (_super) {
 	        __extends(Scoreboard, _super);
 	        function Scoreboard(player, worldPosition, dimensions, color) {
@@ -903,10 +1042,10 @@
 
 
 /***/ },
-/* 11 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Background = (function () {
 	        function Background(renderPosition, renderDimensions, color, player) {
 	            this.isAlive = true;
@@ -968,7 +1107,7 @@
 
 
 /***/ },
-/* 12 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -997,7 +1136,7 @@
 
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1072,10 +1211,10 @@
 
 
 /***/ },
-/* 14 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Menu = (function () {
 	        function Menu(renderDimensions, controller, background, onStartGame, volume) {
 	            this.isAlive = true;
@@ -1171,10 +1310,10 @@
 
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(16), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(19), __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
 	    var Volume = (function () {
 	        function Volume(renderDimensions, controller) {
 	            this.isAlive = true;
@@ -1274,7 +1413,7 @@
 
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1302,7 +1441,7 @@
 
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1310,7 +1449,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
 	    var Platform = (function (_super) {
 	        __extends(Platform, _super);
 	        function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
@@ -1366,7 +1505,7 @@
 
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1462,7 +1601,7 @@
 
 
 /***/ },
-/* 19 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1523,7 +1662,7 @@
 
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1531,63 +1670,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(21)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
-	    var LocationSystem = (function (_super) {
-	        __extends(LocationSystem, _super);
-	        function LocationSystem() {
-	            _super.apply(this, arguments);
-	        }
-	        LocationSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
-	            "noOp".toString();
-	        };
-	        return LocationSystem;
-	    })(system_1.System);
-	    exports.LocationSystem = LocationSystem;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var System = (function () {
-	        function System() {
-	        }
-	        System.ApplyToIndividuals = function (entities, predicate, logic) {
-	            entities.filter(function (entity) {
-	                return predicate(entity);
-	            }).forEach(function (entity) {
-	                logic(entity);
-	            });
-	        };
-	        System.ApplyToPairs = function (entities, predicate, logic) {
-	            var filteredEntities = entities.filter(function (entity) {
-	                return predicate(entity);
-	            });
-	            for (var i = 0; i < filteredEntities.length - 1; i++) {
-	                var entityA = filteredEntities[i];
-	                for (var j = i + 1; j < filteredEntities.length; j++) {
-	                    logic(entityA, filteredEntities[j]);
-	                }
-	            }
-	        };
-	        return System;
-	    })();
-	    exports.System = System;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(21), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, locationComponent_1, renderComponent_1) {
 	    var RenderSystem = (function (_super) {
 	        __extends(RenderSystem, _super);
 	        function RenderSystem(renderContext) {
@@ -1631,7 +1714,9 @@
 	            this._renderContext.save();
 	            var renderComponent = entity.renderComponent;
 	            this._renderContext.globalAlpha = renderComponent.opacityValue;
-	            this.OffsetViewport();
+	            if (renderComponent.position.type === locationComponent_1.LocationType.world) {
+	                this.OffsetViewport();
+	            }
 	            this.RotateAroundCenter(renderComponent.position);
 	            this.MoveToPosition(renderComponent.position);
 	            var layers = renderComponent.layers;
@@ -1676,7 +1761,7 @@
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1684,7 +1769,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(21)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
 	    var CollisionSystem = (function (_super) {
 	        __extends(CollisionSystem, _super);
 	        function CollisionSystem() {
@@ -1730,7 +1815,7 @@
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1738,7 +1823,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(21)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
 	    var InputSystem = (function (_super) {
 	        __extends(InputSystem, _super);
 	        function InputSystem(controller) {
@@ -1763,6 +1848,67 @@
 	        return InputSystem;
 	    })(system_1.System);
 	    exports.InputSystem = InputSystem;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	    var ScoreSystem = (function (_super) {
+	        __extends(ScoreSystem, _super);
+	        function ScoreSystem() {
+	            _super.call(this);
+	            this._points = 0;
+	            this._multiplier = 0;
+	        }
+	        Object.defineProperty(ScoreSystem.prototype, "points", {
+	            get: function () {
+	                return this._points;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(ScoreSystem.prototype, "multiplier", {
+	            get: function () {
+	                return this._multiplier;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(ScoreSystem.prototype, "totalScore", {
+	            get: function () {
+	                return this._points * this._multiplier;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        ScoreSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
+	            var currentPoints = 0;
+	            var currentMultiplier = 0;
+	            system_1.System.ApplyToIndividuals(entities, function (entity) {
+	                return !!entity.scoreComponent;
+	            }, function (entity) {
+	                currentPoints += entity.scoreComponent.pointsValue;
+	                currentMultiplier += entity.scoreComponent.multiplierValue;
+	            });
+	            if (currentPoints > this._points) {
+	                this._points = currentPoints;
+	            }
+	            if (currentMultiplier > this._multiplier) {
+	                this._multiplier = currentMultiplier;
+	            }
+	            console.log(this._points.toString() + " * " + this._multiplier.toString() + " = " + this.totalScore.toString());
+	        };
+	        return ScoreSystem;
+	    })(system_1.System);
+	    exports.ScoreSystem = ScoreSystem;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
