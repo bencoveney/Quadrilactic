@@ -114,3 +114,52 @@ export class SpriteLayer implements RenderLayer {
 		return new SpriteLayer(image);
 	}
 }
+
+export class TextLayer implements RenderLayer {
+	private _text: string | Function;
+	private _fillColor: string | Function;
+	private _font: string;
+	private _sizeInPixels: number;
+
+	get text(): string | Function {
+		return this._text;
+	}
+
+	get textValue(): string {
+		if (typeof this._text === "function") {
+			return (this._text as Function)() as string;
+		} else {
+			return this._text as string;
+		}
+	}
+
+	get fillColor(): string | Function {
+		return this._fillColor;
+	}
+	set fillColor(newValue: string | Function) {
+		this._fillColor = newValue;
+	}
+
+	get fillColorValue(): string {
+		if (typeof this._fillColor === "function") {
+			return (this._fillColor as Function)() as string;
+		} else {
+			return this._fillColor as string;
+		}
+	}
+
+	get font(): string {
+		return this._font;
+	}
+
+	get sizeInPixels(): number {
+		return this._sizeInPixels;
+	}
+
+	constructor(text: string | Function, fillColor: string | Function, font: string, sizeInPixels: number) {
+		this._text = text;
+		this._fillColor = fillColor;
+		this._font = font;
+		this._sizeInPixels = sizeInPixels;
+	}
+}

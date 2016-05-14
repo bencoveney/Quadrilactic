@@ -126,7 +126,7 @@
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(4), __webpack_require__(13), __webpack_require__(14), __webpack_require__(16), __webpack_require__(17), __webpack_require__(18), __webpack_require__(20)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(15), __webpack_require__(16), __webpack_require__(17), __webpack_require__(4), __webpack_require__(18), __webpack_require__(20), __webpack_require__(9), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -154,6 +154,19 @@
 	            };
 	            this.player = new player_1.Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, this.volume);
 	            orchestrator.Add(this.player);
+	            var scoreDisplayFactory = function (text, size, verticalOffset) {
+	                var scoreDisplayPosition = new locationComponent_1.LocationComponent(0, canvas.height - verticalOffset, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                orchestrator.Add({
+	                    locationComponent: scoreDisplayPosition,
+	                    renderComponent: new renderComponent_1.RenderComponent(scoreDisplayPosition, [
+	                        new renderComponent_1.TextLayer(text, "ffffff", "Oswald", size),
+	                    ], 0.8)
+	                });
+	            };
+	            var scoreSystem = orchestrator.GetSystem("score");
+	            scoreDisplayFactory(function () { return scoreSystem.points.toString(); }, 200, 200);
+	            scoreDisplayFactory(function () { return "x " + scoreSystem.multiplier.toString(); }, 100, 100);
+	            scoreDisplayFactory(function () { return "~ " + scoreSystem.totalScore.toString(); }, 100, 0);
 	            this.background = new background_1.Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
 	            var platformPosition = {
 	                dX: 2,
@@ -247,12 +260,140 @@
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	    var Menu = (function () {
+	        function Menu(renderDimensions, controller, background, onStartGame, volume) {
+	            this.isAlive = true;
+	            this.renderDimensions = renderDimensions;
+	            this.background = background;
+	            this.isMenuOpen = true;
+	            this.isButtonHovered = false;
+	            this.controller = controller;
+	            this.onStartGame = onStartGame;
+	            this.opacity = 0;
+	            this.playButtonPosition = {
+	                x: (renderDimensions.x - Menu.buttonWidth) / 2,
+	                y: (renderDimensions.y - (Menu.buttonHeight * 2)) + 0.5
+	            };
+	            this.buttonHover = volume.createSound("snd/button_on.wav", {});
+	            this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
+	            this.buttonClick = volume.createSound("snd/button_click.wav", {});
+	            this.controlPosition = { x: 45, y: 300 };
+	            this.controlDiagram = new sprite_1.Sprite("img/controls.png", { x: 390, y: 237 });
+	        }
+	        Menu.prototype.Render = function (renderContext, orchestrator) {
+	            var mouseClick = this.controller.getClickPosition();
+	            if ((mouseClick && this.isPointOnButton(mouseClick))
+	                || this.controller.isKeyPressed("enter")
+	                || this.controller.isKeyPressed("e")) {
+	                this.buttonClick.play();
+	                this.onStartGame();
+	            }
+	            var buttonIsNowHovered = this.isPointOnButton(this.controller.getMousePosition());
+	            if (buttonIsNowHovered && !this.isButtonHovered) {
+	                this.buttonHover.play();
+	            }
+	            else if (!buttonIsNowHovered && this.isButtonHovered) {
+	                this.buttonUnhover.play();
+	            }
+	            this.isButtonHovered = buttonIsNowHovered;
+	            this.background.Render(renderContext, orchestrator);
+	            var horizontalCenter = (this.renderDimensions.x / 2);
+	            renderContext.save();
+	            renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
+	            renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
+	            renderContext.textAlign = "center";
+	            renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
+	            if (this.lastPoints) {
+	                renderContext.save();
+	                renderContext.font = "" + Menu.scoreFontSizeInPx + "px Oswald";
+	                renderContext.fillStyle = this.scoreColor;
+	                renderContext.globalAlpha = this.opacity;
+	                renderContext.textAlign = "center";
+	                renderContext.fillText("Score: " + this.lastPoints, horizontalCenter, Menu.titleFontSizeInPx + Menu.scoreFontSizeInPx + 70);
+	                renderContext.restore();
+	            }
+	            if (this.isButtonHovered) {
+	                renderContext.fillRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+	            }
+	            renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
+	            renderContext.lineWidth = 3;
+	            renderContext.strokeRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+	            renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
+	            renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
+	            renderContext.textAlign = "center";
+	            renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
+	            renderContext.globalAlpha = this.opacity;
+	            renderContext.translate(this.controlPosition.x, this.controlPosition.y);
+	            this.controlDiagram.Render(renderContext, orchestrator);
+	            renderContext.restore();
+	            this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
+	            return [];
+	        };
+	        Menu.prototype.showMenu = function (totalPoints, scoreColor) {
+	            this.isMenuOpen = true;
+	            this.opacity = 0;
+	            this.lastPoints = totalPoints;
+	            this.scoreColor = scoreColor;
+	        };
+	        Menu.prototype.isPointOnButton = function (point) {
+	            return point
+	                && point.x > this.playButtonPosition.x
+	                && point.x < this.playButtonPosition.x + Menu.buttonWidth
+	                && point.y > this.playButtonPosition.y
+	                && point.y < this.playButtonPosition.y + Menu.buttonHeight;
+	        };
+	        Menu.titleFontSizeInPx = 90;
+	        Menu.scoreFontSizeInPx = 50;
+	        Menu.playFontSizeInPx = 50;
+	        Menu.buttonWidth = 225;
+	        Menu.buttonHeight = 100;
+	        Menu.fadeInRate = 0.02;
+	        return Menu;
+	    })();
+	    exports.Menu = Menu;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var Sprite = (function () {
+	        function Sprite(imagePath, dimensions) {
+	            this.isAlive = true;
+	            this.image = new Image();
+	            this.image.src = imagePath;
+	            this.dimensions = dimensions;
+	        }
+	        Object.defineProperty(Sprite.prototype, "dimensions", {
+	            set: function (dimensions) {
+	                this.internalDimensions = dimensions;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Sprite.prototype.Render = function (renderContext, orchestrator) {
+	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
+	            return [];
+	        };
+	        return Sprite;
+	    })();
+	    exports.Sprite = Sprite;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(8), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(10), __webpack_require__(14)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
 	    var Player = (function (_super) {
 	        __extends(Player, _super);
 	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
@@ -351,7 +492,7 @@
 
 
 /***/ },
-/* 5 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -359,7 +500,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
 	    var PhysicsBlock = (function (_super) {
 	        __extends(PhysicsBlock, _super);
 	        function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, xSpeedLimit, worldWidth) {
@@ -411,10 +552,10 @@
 
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(8), __webpack_require__(9), __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(9), __webpack_require__(10), __webpack_require__(11), __webpack_require__(13)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
 	    var Block = (function () {
 	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
 	            this.isAlive = true;
@@ -532,7 +673,7 @@
 
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -685,10 +826,10 @@
 
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(9)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
 	    var RenderComponent = (function () {
 	        function RenderComponent(position, layers, opacity) {
 	            this._position = position;
@@ -813,14 +954,79 @@
 	        return SpriteLayer;
 	    })();
 	    exports.SpriteLayer = SpriteLayer;
+	    var TextLayer = (function () {
+	        function TextLayer(text, fillColor, font, sizeInPixels) {
+	            this._text = text;
+	            this._fillColor = fillColor;
+	            this._font = font;
+	            this._sizeInPixels = sizeInPixels;
+	        }
+	        Object.defineProperty(TextLayer.prototype, "text", {
+	            get: function () {
+	                return this._text;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(TextLayer.prototype, "textValue", {
+	            get: function () {
+	                if (typeof this._text === "function") {
+	                    return this._text();
+	                }
+	                else {
+	                    return this._text;
+	                }
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(TextLayer.prototype, "fillColor", {
+	            get: function () {
+	                return this._fillColor;
+	            },
+	            set: function (newValue) {
+	                this._fillColor = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(TextLayer.prototype, "fillColorValue", {
+	            get: function () {
+	                if (typeof this._fillColor === "function") {
+	                    return this._fillColor();
+	                }
+	                else {
+	                    return this._fillColor;
+	                }
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(TextLayer.prototype, "font", {
+	            get: function () {
+	                return this._font;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(TextLayer.prototype, "sizeInPixels", {
+	            get: function () {
+	                return this._sizeInPixels;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        return TextLayer;
+	    })();
+	    exports.TextLayer = TextLayer;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
 	    var CollisionComponent = (function () {
 	        function CollisionComponent(position) {
 	            this._onCollide = new callbackArray_1.CallbackArray();
@@ -850,7 +1056,7 @@
 
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -876,10 +1082,10 @@
 
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
 	    var InputComponent = (function () {
 	        function InputComponent() {
 	            this._keyHandlers = {};
@@ -906,7 +1112,7 @@
 
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -966,7 +1172,7 @@
 
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -974,7 +1180,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
 	    var Scoreboard = (function (_super) {
 	        __extends(Scoreboard, _super);
 	        function Scoreboard(player, worldPosition, dimensions, color) {
@@ -1042,10 +1248,10 @@
 
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Background = (function () {
 	        function Background(renderPosition, renderDimensions, color, player) {
 	            this.isAlive = true;
@@ -1107,36 +1313,7 @@
 
 
 /***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Sprite = (function () {
-	        function Sprite(imagePath, dimensions) {
-	            this.isAlive = true;
-	            this.image = new Image();
-	            this.image.src = imagePath;
-	            this.dimensions = dimensions;
-	        }
-	        Object.defineProperty(Sprite.prototype, "dimensions", {
-	            set: function (dimensions) {
-	                this.internalDimensions = dimensions;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Sprite.prototype.Render = function (renderContext, orchestrator) {
-	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
-	            return [];
-	        };
-	        return Sprite;
-	    })();
-	    exports.Sprite = Sprite;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1211,109 +1388,10 @@
 
 
 /***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
-	    var Menu = (function () {
-	        function Menu(renderDimensions, controller, background, onStartGame, volume) {
-	            this.isAlive = true;
-	            this.renderDimensions = renderDimensions;
-	            this.background = background;
-	            this.isMenuOpen = true;
-	            this.isButtonHovered = false;
-	            this.controller = controller;
-	            this.onStartGame = onStartGame;
-	            this.opacity = 0;
-	            this.playButtonPosition = {
-	                x: (renderDimensions.x - Menu.buttonWidth) / 2,
-	                y: (renderDimensions.y - (Menu.buttonHeight * 2)) + 0.5
-	            };
-	            this.buttonHover = volume.createSound("snd/button_on.wav", {});
-	            this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
-	            this.buttonClick = volume.createSound("snd/button_click.wav", {});
-	            this.controlPosition = { x: 45, y: 300 };
-	            this.controlDiagram = new sprite_1.Sprite("img/controls.png", { x: 390, y: 237 });
-	        }
-	        Menu.prototype.Render = function (renderContext, orchestrator) {
-	            var mouseClick = this.controller.getClickPosition();
-	            if ((mouseClick && this.isPointOnButton(mouseClick))
-	                || this.controller.isKeyPressed("enter")
-	                || this.controller.isKeyPressed("e")) {
-	                this.buttonClick.play();
-	                this.onStartGame();
-	            }
-	            var buttonIsNowHovered = this.isPointOnButton(this.controller.getMousePosition());
-	            if (buttonIsNowHovered && !this.isButtonHovered) {
-	                this.buttonHover.play();
-	            }
-	            else if (!buttonIsNowHovered && this.isButtonHovered) {
-	                this.buttonUnhover.play();
-	            }
-	            this.isButtonHovered = buttonIsNowHovered;
-	            this.background.Render(renderContext, orchestrator);
-	            var horizontalCenter = (this.renderDimensions.x / 2);
-	            renderContext.save();
-	            renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
-	            renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
-	            renderContext.textAlign = "center";
-	            renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
-	            if (this.lastPoints) {
-	                renderContext.save();
-	                renderContext.font = "" + Menu.scoreFontSizeInPx + "px Oswald";
-	                renderContext.fillStyle = this.scoreColor;
-	                renderContext.globalAlpha = this.opacity;
-	                renderContext.textAlign = "center";
-	                renderContext.fillText("Score: " + this.lastPoints, horizontalCenter, Menu.titleFontSizeInPx + Menu.scoreFontSizeInPx + 70);
-	                renderContext.restore();
-	            }
-	            if (this.isButtonHovered) {
-	                renderContext.fillRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
-	            }
-	            renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
-	            renderContext.lineWidth = 3;
-	            renderContext.strokeRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
-	            renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
-	            renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
-	            renderContext.textAlign = "center";
-	            renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
-	            renderContext.globalAlpha = this.opacity;
-	            renderContext.translate(this.controlPosition.x, this.controlPosition.y);
-	            this.controlDiagram.Render(renderContext, orchestrator);
-	            renderContext.restore();
-	            this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
-	            return [];
-	        };
-	        Menu.prototype.showMenu = function (totalPoints, scoreColor) {
-	            this.isMenuOpen = true;
-	            this.opacity = 0;
-	            this.lastPoints = totalPoints;
-	            this.scoreColor = scoreColor;
-	        };
-	        Menu.prototype.isPointOnButton = function (point) {
-	            return point
-	                && point.x > this.playButtonPosition.x
-	                && point.x < this.playButtonPosition.x + Menu.buttonWidth
-	                && point.y > this.playButtonPosition.y
-	                && point.y < this.playButtonPosition.y + Menu.buttonHeight;
-	        };
-	        Menu.titleFontSizeInPx = 90;
-	        Menu.scoreFontSizeInPx = 50;
-	        Menu.playFontSizeInPx = 50;
-	        Menu.buttonWidth = 225;
-	        Menu.buttonHeight = 100;
-	        Menu.fadeInRate = 0.02;
-	        return Menu;
-	    })();
-	    exports.Menu = Menu;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
 /* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(19), __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(19), __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
 	    var Volume = (function () {
 	        function Volume(renderDimensions, controller) {
 	            this.isAlive = true;
@@ -1449,7 +1527,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
 	    var Platform = (function (_super) {
 	        __extends(Platform, _super);
 	        function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
@@ -1670,7 +1748,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, locationComponent_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(9), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, locationComponent_1, renderComponent_1) {
 	    var RenderSystem = (function (_super) {
 	        __extends(RenderSystem, _super);
 	        function RenderSystem(renderContext) {
@@ -1728,6 +1806,9 @@
 	                else if (layer instanceof renderComponent_1.SpriteLayer) {
 	                    this.DrawSprite(renderComponent, layer);
 	                }
+	                else if (layer instanceof renderComponent_1.TextLayer) {
+	                    this.DrawText(renderComponent, layer);
+	                }
 	            }
 	            this._renderContext.restore();
 	        };
@@ -1753,6 +1834,11 @@
 	        RenderSystem.prototype.DrawSprite = function (renderComponent, spriteLayer) {
 	            var skewedPosition = renderComponent.skewedPosition;
 	            this._renderContext.drawImage(spriteLayer.image, 0, 0, spriteLayer.image.width, spriteLayer.image.height, 0, 0, skewedPosition.width, skewedPosition.height);
+	        };
+	        RenderSystem.prototype.DrawText = function (renderComponent, textLayer) {
+	            this._renderContext.font = textLayer.sizeInPixels.toString() + "px " + textLayer.font;
+	            this._renderContext.fillStyle = textLayer.fillColorValue;
+	            this._renderContext.fillText(textLayer.textValue, 0, 0);
 	        };
 	        return RenderSystem;
 	    })(system_1.System);
@@ -1865,8 +1951,7 @@
 	        __extends(ScoreSystem, _super);
 	        function ScoreSystem() {
 	            _super.call(this);
-	            this._points = 0;
-	            this._multiplier = 0;
+	            this.ResetScore();
 	        }
 	        Object.defineProperty(ScoreSystem.prototype, "points", {
 	            get: function () {
@@ -1904,7 +1989,10 @@
 	            if (currentMultiplier > this._multiplier) {
 	                this._multiplier = currentMultiplier;
 	            }
-	            console.log(this._points.toString() + " * " + this._multiplier.toString() + " = " + this.totalScore.toString());
+	        };
+	        ScoreSystem.prototype.ResetScore = function () {
+	            this._points = 0;
+	            this._multiplier = 0;
 	        };
 	        return ScoreSystem;
 	    })(system_1.System);

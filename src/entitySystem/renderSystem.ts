@@ -2,7 +2,7 @@ import {Entity} from "entitySystem/entity";
 import {System} from "entitySystem/system";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationComponent, LocationType} from "entitySystem/locationComponent";
-import {RenderComponent, RenderLayer, RectangleLayer, SpriteLayer} from "entitySystem/renderComponent";
+import {RenderComponent, RenderLayer, RectangleLayer, SpriteLayer, TextLayer} from "entitySystem/renderComponent";
 
 export class RenderSystem extends System {
 	private _renderContext: CanvasRenderingContext2D;
@@ -69,6 +69,8 @@ export class RenderSystem extends System {
 				this.DrawRect(renderComponent, layer as RectangleLayer);
 			} else if (layer instanceof SpriteLayer) {
 				this.DrawSprite(renderComponent, layer as SpriteLayer);
+			} else if (layer instanceof TextLayer) {
+				this.DrawText(renderComponent, layer as TextLayer);
 			}
 		}
 
@@ -140,5 +142,14 @@ export class RenderSystem extends System {
 			0,
 			skewedPosition.width,
 			skewedPosition.height);
+	}
+
+	private DrawText(renderComponent: RenderComponent, textLayer: TextLayer): void {
+
+		this._renderContext.font = textLayer.sizeInPixels.toString() + "px " + textLayer.font;
+
+		this._renderContext.fillStyle = textLayer.fillColorValue;
+
+		this._renderContext.fillText(textLayer.textValue, 0, 0);
 	}
 }

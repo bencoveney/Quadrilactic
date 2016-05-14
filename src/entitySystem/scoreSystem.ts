@@ -21,8 +21,7 @@ export class ScoreSystem extends System {
 	constructor() {
 		super();
 
-		this._points = 0;
-		this._multiplier = 0;
+		this.ResetScore();
 	}
 
 	public Run(entities: Entity[], orchestrator: Orchestrator, deltaTime: number ): void {
@@ -47,7 +46,10 @@ export class ScoreSystem extends System {
 		if (currentMultiplier > this._multiplier) {
 			this._multiplier = currentMultiplier;
 		}
+	}
 
-		console.log(this._points.toString() + " * " + this._multiplier.toString() + " = " + this.totalScore.toString());
+	public ResetScore(): void {
+		this._points = 0;
+		this._multiplier = 0;
 	}
 }

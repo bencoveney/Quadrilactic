@@ -9,6 +9,9 @@ import {Menu} from "menu";
 import {Volume} from "volume";
 import {Platform} from "platform";
 import {Orchestrator} from "entitySystem/orchestrator";
+import {LocationComponent, LocationType} from "entitySystem/locationComponent";
+import {RenderComponent, TextLayer} from "entitySystem/renderComponent";
+import {ScoreSystem} from "entitySystem/scoreSystem";
 
 export class Renderer {
 	// Constants
@@ -74,6 +77,33 @@ export class Renderer {
 			Renderer.gameWidth,
 			this.volume);
 		orchestrator.Add(this.player);
+
+		let scoreDisplayFactory = (text: () => string, size: number, verticalOffset: number) => {
+			let scoreDisplayPosition = new LocationComponent(
+				0,
+				canvas.height - verticalOffset,
+				0,
+				0,
+				0,
+				0,
+				0,
+				LocationType.ui);
+
+			orchestrator.Add({
+				locationComponent: scoreDisplayPosition,
+				renderComponent: new RenderComponent(
+					scoreDisplayPosition,
+					[
+						new TextLayer(text, "ffffff", "Oswald", size),
+					],
+					0.8)
+			});
+		}
+
+		let scoreSystem = orchestrator.GetSystem("score") as ScoreSystem;
+		scoreDisplayFactory(() => { return scoreSystem.points.toString(); }, 200, 200);
+		scoreDisplayFactory(() => { return "x " + scoreSystem.multiplier.toString(); }, 100, 100);
+		scoreDisplayFactory(() => { return "~ " + scoreSystem.totalScore.toString(); }, 100, 0);
 
 		this.background = new Background(
 			{ x: 0, y: 0 },
