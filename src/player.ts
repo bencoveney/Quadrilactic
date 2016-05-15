@@ -22,6 +22,8 @@ export class Player extends PhysicsBlock {
 	private jump: Sound;
 	private bounce: Sound;
 
+	private bounceCount: number;
+
 	public constructor(
 		worldPosition: MovingPoint,
 		dimensions: Point,
@@ -33,7 +35,7 @@ export class Player extends PhysicsBlock {
 	) {
 		super(worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
 
-		let bounceCount: number = 0;
+		this.bounceCount = 0;
 
 		this.collisionComponent.onCollide.push(() => {
 			// If we were jumping, thats over now
@@ -41,7 +43,7 @@ export class Player extends PhysicsBlock {
 			this.locationComponent.rotation = 0;
 			this.jumpRotationSpeed = 0;
 			this.bounce.play();
-			bounceCount++;
+			this.bounceCount++;
 		});
 
 		let backgroundLayer: RectangleLayer = new RectangleLayer(() => {
@@ -102,7 +104,7 @@ export class Player extends PhysicsBlock {
 				return -this.locationComponent.top / 1000;
 			},
 			() => {
-				return bounceCount;
+				return this.bounceCount;
 			}
 		);
 
@@ -136,5 +138,6 @@ export class Player extends PhysicsBlock {
 		this.isJumping = false;
 		this.locationComponent.rotation = 0;
 		this.jumpRotationSpeed = 0;
+		this.bounceCount = 0;
 	}
 }

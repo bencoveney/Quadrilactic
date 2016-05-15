@@ -7,21 +7,25 @@ export class ScoreSystem extends System {
 	private _multiplier: number;
 
 	public get points(): number {
-		return this._points;
+		return ScoreSystem.round(this._points);
 	}
 
 	public get multiplier(): number {
-		return this._multiplier;
+		return ScoreSystem.round(this._multiplier);
 	}
 
 	public get totalScore(): number {
-		return this._points * this._multiplier;
+		return ScoreSystem.round(this._points * this._multiplier);
 	}
 
 	constructor() {
 		super();
 
 		this.ResetScore();
+	}
+
+	private static round(target: number): number {
+		return Math.round(target * 100) / 100;
 	}
 
 	public Run(entities: Entity[], orchestrator: Orchestrator, deltaTime: number ): void {

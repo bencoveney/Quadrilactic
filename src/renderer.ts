@@ -1,7 +1,6 @@
 import {Player} from "player";
 import {Controller} from "controller";
 import {MovingPoint, Point} from "point";
-import {Scoreboard} from "scoreboard";
 import {Background} from "background";
 import {Viewport} from "viewport";
 import {Sound} from "sound";
@@ -27,7 +26,6 @@ export class Renderer {
 	private isRunning: boolean = false;
 	private player: Player;
 	private platform: Platform;
-	private scoreboard: Scoreboard;
 	private background: Background;
 	private menu: Menu;
 	private viewport: Viewport;
@@ -78,10 +76,13 @@ export class Renderer {
 			this.volume);
 		orchestrator.Add(this.player);
 
-		let scoreDisplayFactory = (text: () => string, size: number, verticalOffset: number) => {
-			let scoreDisplayPosition = new LocationComponent(
-				0,
-				canvas.height - verticalOffset,
+		let scoreDisplayFactory: (text: () => string, size: number,
+			verticalOffset: number) => void = (text: () => string,
+			size: number, verticalOffset: number) => {
+
+			let scoreDisplayPosition: LocationComponent = new LocationComponent(
+				20,
+				canvas.height - verticalOffset - 20,
 				0,
 				0,
 				0,
@@ -98,12 +99,27 @@ export class Renderer {
 					],
 					0.8)
 			});
-		}
+		};
 
-		let scoreSystem = orchestrator.GetSystem("score") as ScoreSystem;
-		scoreDisplayFactory(() => { return scoreSystem.points.toString(); }, 200, 200);
-		scoreDisplayFactory(() => { return "x " + scoreSystem.multiplier.toString(); }, 100, 100);
-		scoreDisplayFactory(() => { return "~ " + scoreSystem.totalScore.toString(); }, 100, 0);
+		let scoreSystem: ScoreSystem = orchestrator.GetSystem("score") as ScoreSystem;
+		scoreDisplayFactory(
+			() => {
+				return scoreSystem.multiplier.toString();
+			},
+			200,
+			200);
+		scoreDisplayFactory(
+			() => {
+				return "x " + scoreSystem.points.toString();
+			},
+			100,
+			100);
+		scoreDisplayFactory(
+			() => {
+				return "~ " + scoreSystem.totalScore.toString();
+			},
+			100,
+			0);
 
 		this.background = new Background(
 			{ x: 0, y: 0 },
@@ -131,24 +147,6 @@ export class Renderer {
 			Renderer.gameWidth);
 		orchestrator.Add(this.platform);
 
-		let scoreboardPosition: MovingPoint = {
-			dX: 0,
-			dY: 0,
-			x: 20,
-			y: 370
-		};
-		let scoreboardDimensions: Point = {
-			x: 0,
-			y: 0
-		};
-		this.scoreboard = new Scoreboard(
-			this.player,
-			scoreboardPosition,
-			scoreboardDimensions,
-			"rgba(255,255,255, 0.1)"
-		);
-		orchestrator.Add(this.scoreboard);
-
 		this.menu = new Menu(
 			{
 				x: this.canvas.width,
@@ -160,16 +158,17 @@ export class Renderer {
 				this.player.Reset();
 				this.platform.Reset();
 				this.viewport.Reset();
-				this.scoreboard.Reset();
 				this.background.Reset();
 				this.isRunning = true;
+
+				scoreSystem.ResetScore();
 			},
 			this.volume
 		);
 
 		this.viewport = new Viewport(
 			this.context,
-			[this.background, this.scoreboard],
+			[this.background],
 			[],
 			[this.player, this.platform],
 			this.orchestrator
@@ -185,7 +184,7 @@ export class Renderer {
 			if (this.player.locationComponent.yPosition > -(this.viewport.offset - this.canvas.height)) {
 				this.isRunning = false;
 				this.deathSound.play();
-				this.menu.showMenu(this.scoreboard.totalPoints, this.player.fillColor);
+				this.menu.showMenu(scoreSystem.totalScore, this.player.fillColor);
 			}
 
 			if (originalOnMove) {

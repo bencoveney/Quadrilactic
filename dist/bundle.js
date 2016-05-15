@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(21), __webpack_require__(22), __webpack_require__(1), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25), __webpack_require__(26)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(20), __webpack_require__(21), __webpack_require__(1), __webpack_require__(22), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1) {
 	    var canvas = document.getElementById("viewport");
 	    var controller = new controller_1.Controller(canvas);
 	    var orchestrator = new orchestrator_1.Orchestrator([], {
@@ -126,7 +126,7 @@
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(15), __webpack_require__(16), __webpack_require__(17), __webpack_require__(4), __webpack_require__(18), __webpack_require__(20), __webpack_require__(9), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, scoreboard_1, background_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(15), __webpack_require__(16), __webpack_require__(4), __webpack_require__(17), __webpack_require__(19), __webpack_require__(9), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, background_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -155,7 +155,7 @@
 	            this.player = new player_1.Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, this.volume);
 	            orchestrator.Add(this.player);
 	            var scoreDisplayFactory = function (text, size, verticalOffset) {
-	                var scoreDisplayPosition = new locationComponent_1.LocationComponent(0, canvas.height - verticalOffset, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                var scoreDisplayPosition = new locationComponent_1.LocationComponent(20, canvas.height - verticalOffset - 20, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
 	                orchestrator.Add({
 	                    locationComponent: scoreDisplayPosition,
 	                    renderComponent: new renderComponent_1.RenderComponent(scoreDisplayPosition, [
@@ -164,9 +164,15 @@
 	                });
 	            };
 	            var scoreSystem = orchestrator.GetSystem("score");
-	            scoreDisplayFactory(function () { return scoreSystem.points.toString(); }, 200, 200);
-	            scoreDisplayFactory(function () { return "x " + scoreSystem.multiplier.toString(); }, 100, 100);
-	            scoreDisplayFactory(function () { return "~ " + scoreSystem.totalScore.toString(); }, 100, 0);
+	            scoreDisplayFactory(function () {
+	                return scoreSystem.multiplier.toString();
+	            }, 200, 200);
+	            scoreDisplayFactory(function () {
+	                return "x " + scoreSystem.points.toString();
+	            }, 100, 100);
+	            scoreDisplayFactory(function () {
+	                return "~ " + scoreSystem.totalScore.toString();
+	            }, 100, 0);
 	            this.background = new background_1.Background({ x: 0, y: 0 }, { x: this.canvas.width, y: this.canvas.height }, "#222222", this.player);
 	            var platformPosition = {
 	                dX: 2,
@@ -180,18 +186,6 @@
 	            };
 	            this.platform = new platform_1.Platform(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, this.volume, Renderer.gameWidth);
 	            orchestrator.Add(this.platform);
-	            var scoreboardPosition = {
-	                dX: 0,
-	                dY: 0,
-	                x: 20,
-	                y: 370
-	            };
-	            var scoreboardDimensions = {
-	                x: 0,
-	                y: 0
-	            };
-	            this.scoreboard = new scoreboard_1.Scoreboard(this.player, scoreboardPosition, scoreboardDimensions, "rgba(255,255,255, 0.1)");
-	            orchestrator.Add(this.scoreboard);
 	            this.menu = new menu_1.Menu({
 	                x: this.canvas.width,
 	                y: this.canvas.height
@@ -199,11 +193,11 @@
 	                _this.player.Reset();
 	                _this.platform.Reset();
 	                _this.viewport.Reset();
-	                _this.scoreboard.Reset();
 	                _this.background.Reset();
 	                _this.isRunning = true;
+	                scoreSystem.ResetScore();
 	            }, this.volume);
-	            this.viewport = new viewport_1.Viewport(this.context, [this.background, this.scoreboard], [], [this.player, this.platform], this.orchestrator);
+	            this.viewport = new viewport_1.Viewport(this.context, [this.background], [], [this.player, this.platform], this.orchestrator);
 	            this.platform.viewport = this.viewport;
 	            var originalOnMove = this.player.onMove;
 	            this.player.onMove = function (amountMoved) {
@@ -212,7 +206,7 @@
 	                if (_this.player.locationComponent.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
 	                    _this.isRunning = false;
 	                    _this.deathSound.play();
-	                    _this.menu.showMenu(_this.scoreboard.totalPoints, _this.player.fillColor);
+	                    _this.menu.showMenu(scoreSystem.totalScore, _this.player.fillColor);
 	                }
 	                if (originalOnMove) {
 	                    originalOnMove(amountMoved);
@@ -399,13 +393,13 @@
 	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
 	            var _this = this;
 	            _super.call(this, worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
-	            var bounceCount = 0;
+	            this.bounceCount = 0;
 	            this.collisionComponent.onCollide.push(function () {
 	                _this.isJumping = false;
 	                _this.locationComponent.rotation = 0;
 	                _this.jumpRotationSpeed = 0;
 	                _this.bounce.play();
-	                bounceCount++;
+	                _this.bounceCount++;
 	            });
 	            var backgroundLayer = new renderComponent_1.RectangleLayer(function () {
 	                var xHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.xSpeed)), 0).toString(16);
@@ -454,7 +448,7 @@
 	            this.scoreComponent = new scoreComponent_1.ScoreComponent(function () {
 	                return -_this.locationComponent.top / 1000;
 	            }, function () {
-	                return bounceCount;
+	                return _this.bounceCount;
 	            });
 	            this.isJumping = false;
 	            this.jump = volume.createSound("snd/jump.wav", {});
@@ -479,6 +473,7 @@
 	            this.isJumping = false;
 	            this.locationComponent.rotation = 0;
 	            this.jumpRotationSpeed = 0;
+	            this.bounceCount = 0;
 	        };
 	        Player.jumpSpeedIncrease = -8;
 	        Player.jumpRotationSlowDown = 0.1;
@@ -1175,82 +1170,6 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
-	    var Scoreboard = (function (_super) {
-	        __extends(Scoreboard, _super);
-	        function Scoreboard(player, worldPosition, dimensions, color) {
-	            var _this = this;
-	            _super.call(this, worldPosition, dimensions, color, 0);
-	            this.player = player;
-	            this.player.collisionComponent.onCollide.push(function () {
-	                _this.score = Math.round((_this.score + Scoreboard.bouncePoints) * 10) / 10;
-	            });
-	            var originalOnMove = this.player.onMove;
-	            this.player.onMove = function (amountMoved) {
-	                var currentHeight = -_this.player.locationComponent.top;
-	                if (currentHeight > _this.greatestHeightReached) {
-	                    _this.greatestHeightReached = currentHeight;
-	                    _this.multiplier = Math.round(_this.greatestHeightReached / 10) / 100;
-	                    _this.points = Math.round(_this.score * _this.multiplier * 10) / 10;
-	                }
-	                if (originalOnMove) {
-	                    originalOnMove(amountMoved);
-	                }
-	            };
-	            this.score = 0;
-	            this.greatestHeightReached = 0;
-	            this.multiplier = 0;
-	            this.points = 0;
-	        }
-	        Scoreboard.prototype.Render = function (renderContext) {
-	            renderContext.beginPath();
-	            renderContext.save();
-	            renderContext.fillStyle = this.fillColor;
-	            renderContext.font = "" + Scoreboard.fontSizeInPx + "px Oswald";
-	            renderContext.translate(this.locationComponent.centerXPosition, this.locationComponent.centerYPosition);
-	            renderContext.rotate(Scoreboard.fontRotation * Scoreboard.degrees);
-	            renderContext.translate(-this.locationComponent.centerXPosition, -this.locationComponent.centerYPosition);
-	            renderContext.fillText(this.score.toString(), this.locationComponent.xPosition, this.locationComponent.yPosition + Scoreboard.fontSizeInPx);
-	            renderContext.font = "" + (Scoreboard.fontSizeInPx / 2) + "px Oswald";
-	            renderContext.fillText("x " + this.multiplier.toString(), this.locationComponent.xPosition, this.locationComponent.yPosition + (1.5 * Scoreboard.fontSizeInPx));
-	            renderContext.globalAlpha = 0.5;
-	            renderContext.fillStyle = this.player.fillColor;
-	            renderContext.fillText("~ " + this.points.toString(), this.locationComponent.xPosition, this.locationComponent.yPosition + (2 * Scoreboard.fontSizeInPx));
-	            renderContext.restore();
-	            return [];
-	        };
-	        Object.defineProperty(Scoreboard.prototype, "totalPoints", {
-	            get: function () {
-	                return this.points;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Scoreboard.prototype.Reset = function () {
-	            this.score = 0;
-	            this.greatestHeightReached = 0;
-	            this.multiplier = 0;
-	            this.points = 0;
-	        };
-	        Scoreboard.fontSizeInPx = 200;
-	        Scoreboard.fontRotation = 0;
-	        Scoreboard.bouncePoints = 1;
-	        Scoreboard.degrees = Math.PI / 180;
-	        return Scoreboard;
-	    })(block_1.Block);
-	    exports.Scoreboard = Scoreboard;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Background = (function () {
 	        function Background(renderPosition, renderDimensions, color, player) {
@@ -1313,7 +1232,7 @@
 
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1388,10 +1307,10 @@
 
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(19), __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(18), __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
 	    var Volume = (function () {
 	        function Volume(renderDimensions, controller) {
 	            this.isAlive = true;
@@ -1491,7 +1410,7 @@
 
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1519,7 +1438,7 @@
 
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1583,7 +1502,7 @@
 
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1679,7 +1598,7 @@
 
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1740,7 +1659,7 @@
 
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1847,7 +1766,7 @@
 
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1901,7 +1820,7 @@
 
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1938,7 +1857,7 @@
 
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1955,25 +1874,28 @@
 	        }
 	        Object.defineProperty(ScoreSystem.prototype, "points", {
 	            get: function () {
-	                return this._points;
+	                return ScoreSystem.round(this._points);
 	            },
 	            enumerable: true,
 	            configurable: true
 	        });
 	        Object.defineProperty(ScoreSystem.prototype, "multiplier", {
 	            get: function () {
-	                return this._multiplier;
+	                return ScoreSystem.round(this._multiplier);
 	            },
 	            enumerable: true,
 	            configurable: true
 	        });
 	        Object.defineProperty(ScoreSystem.prototype, "totalScore", {
 	            get: function () {
-	                return this._points * this._multiplier;
+	                return ScoreSystem.round(this._points * this._multiplier);
 	            },
 	            enumerable: true,
 	            configurable: true
 	        });
+	        ScoreSystem.round = function (target) {
+	            return Math.round(target * 100) / 100;
+	        };
 	        ScoreSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
 	            var currentPoints = 0;
 	            var currentMultiplier = 0;
