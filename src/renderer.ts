@@ -165,6 +165,27 @@ export class Renderer {
 		backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
 		backgroundLayerFactory(1, 0.2, "img/stars2.png");
 
+		let upArrowPosition: LocationComponent = new LocationComponent(
+			300,
+			40,
+			120,
+			99,
+			0,
+			0,
+			0,
+			LocationType.world);
+
+		let upArrowRender: RenderComponent = new RenderComponent(
+			upArrowPosition,
+			SpriteLayer.FromPath("img/upArrow.png"),
+			0.5,
+			0.3);
+
+		orchestrator.Add({
+			locationComponent: upArrowPosition,
+			renderComponent: upArrowRender
+		});
+
 		let platformPosition: MovingPoint = {
 			dX: 2,
 			dY: 2,

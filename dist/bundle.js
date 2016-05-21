@@ -200,6 +200,12 @@
 	            backgroundLayerFactory(0, 0, "img/staticBackground.png");
 	            backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
 	            backgroundLayerFactory(1, 0.2, "img/stars2.png");
+	            var upArrowPosition = new locationComponent_1.LocationComponent(300, 40, 120, 99, 0, 0, 0, locationComponent_1.LocationType.world);
+	            var upArrowRender = new renderComponent_1.RenderComponent(upArrowPosition, renderComponent_1.SpriteLayer.FromPath("img/upArrow.png"), 0.5, 0.3);
+	            orchestrator.Add({
+	                locationComponent: upArrowPosition,
+	                renderComponent: upArrowRender
+	            });
 	            var platformPosition = {
 	                dX: 2,
 	                dY: 2,
