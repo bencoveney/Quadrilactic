@@ -36,6 +36,9 @@ export class RenderSystem extends System {
 			},
 			(entity: Entity): void => {
 				this.Draw(entity, orchestrator, deltaTime);
+			},
+			(entity: Entity): number => {
+				return entity.renderComponent.zIndex;
 			}
 		);
 	}
@@ -65,6 +68,9 @@ export class RenderSystem extends System {
 		for (let layerIndex: number = 0; layerIndex < layers.length; layerIndex++) {
 			let layer: RenderLayer = layers[layerIndex];
 
+			this._renderContext.save();
+			this.OffsetLayer(layer);
+
 			if (layer instanceof RectangleLayer) {
 				this.DrawRect(renderComponent, layer as RectangleLayer);
 			} else if (layer instanceof SpriteLayer) {
@@ -72,6 +78,8 @@ export class RenderSystem extends System {
 			} else if (layer instanceof TextLayer) {
 				this.DrawText(renderComponent, layer as TextLayer);
 			}
+
+			this._renderContext.restore();
 		}
 
 		this._renderContext.restore();
@@ -94,8 +102,14 @@ export class RenderSystem extends System {
 
 	private MoveToPosition(position: LocationComponent): void {
 		this._renderContext.translate(
-			position.xPosition,
-			position.yPosition);
+			position.xPositionValue,
+			position.yPositionValue);
+	}
+
+	private OffsetLayer(layer: RenderLayer): void {
+		this._renderContext.translate(
+			layer.offsetX,
+			layer.offsetY);
 	}
 
 	private OffsetViewport(): void {

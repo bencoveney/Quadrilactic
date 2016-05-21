@@ -57,8 +57,8 @@ export class Block implements Renderable, Entity {
 		return {
 			height: this.locationComponent.height + heightAdjustment,
 			width: this.locationComponent.width - widthAdjustment,
-			x: this.locationComponent.xPosition + (widthAdjustment / 2),
-			y: this.locationComponent.yPosition - (heightAdjustment / 2)
+			x: this.locationComponent.xPositionValue + (widthAdjustment / 2),
+			y: this.locationComponent.yPositionValue - (heightAdjustment / 2)
 		};
 	}
 
@@ -99,8 +99,8 @@ export class Block implements Renderable, Entity {
 
 	public Tick(deltaTime: number): void {
 		// Move "forward".
-		this.locationComponent.xPosition += (this.locationComponent.xSpeed * deltaTime);
-		this.locationComponent.yPosition += (this.locationComponent.ySpeed * deltaTime);
+		this.locationComponent.xPosition = this.locationComponent.xPositionValue + (this.locationComponent.xSpeed * deltaTime);
+		this.locationComponent.yPosition = this.locationComponent.yPositionValue + (this.locationComponent.ySpeed * deltaTime);
 
 		if (this.onMoveCallback) {
 			// The amount moved this tick is the same as the speed.
@@ -149,7 +149,8 @@ export class Block implements Renderable, Entity {
 						return 0;
 					}
 					return particleOpacity;
-				})
+				},
+				this.renderComponent.zIndex - 0.1)
 		};
 		orchestrator.Add(particle);
 

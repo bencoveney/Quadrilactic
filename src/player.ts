@@ -56,7 +56,7 @@ export class Player extends PhysicsBlock {
 		let downSprite: SpriteLayer = SpriteLayer.FromPath("img/faceWorried.png");
 		let hoverSprite: SpriteLayer = SpriteLayer.FromPath("img/faceChill.png");
 
-		let layerComposer: () => RenderLayer = () => {
+		let layerComposer: () => RenderLayer[] = () => {
 			let layers: RenderLayer[] = [backgroundLayer];
 
 			if (this.locationComponent.ySpeed > Player.faceSwapThreshold) {
@@ -70,7 +70,7 @@ export class Player extends PhysicsBlock {
 			return layers;
 		};
 
-		this.renderComponent = new RenderComponent(this.locationComponent, layerComposer, 1);
+		this.renderComponent = new RenderComponent(this.locationComponent, layerComposer, 1, 1);
 
 		let jump: Function = (entity: Entity, orchestrator: Orchestrator, deltaTime: number) => {
 			if (this.isJumping) {

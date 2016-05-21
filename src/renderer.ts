@@ -1,7 +1,6 @@
 import {Player} from "player";
 import {Controller} from "controller";
 import {MovingPoint, Point} from "point";
-import {Background} from "background";
 import {Viewport} from "viewport";
 import {Sound} from "sound";
 import {Menu} from "menu";
@@ -9,7 +8,7 @@ import {Volume} from "volume";
 import {Platform} from "platform";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationComponent, LocationType} from "entitySystem/locationComponent";
-import {RenderComponent, TextLayer} from "entitySystem/renderComponent";
+import {RenderComponent, RenderLayer, SpriteLayer, TextLayer} from "entitySystem/renderComponent";
 import {ScoreSystem} from "entitySystem/scoreSystem";
 
 export class Renderer {
@@ -26,7 +25,6 @@ export class Renderer {
 	private isRunning: boolean = false;
 	private player: Player;
 	private platform: Platform;
-	private background: Background;
 	private menu: Menu;
 	private viewport: Viewport;
 	private lastTimestamp: number;
@@ -97,7 +95,8 @@ export class Renderer {
 					[
 						new TextLayer(text, "ffffff", "Oswald", size),
 					],
-					0.8)
+					0.8,
+					0.5)
 			});
 		};
 
@@ -121,12 +120,50 @@ export class Renderer {
 			100,
 			0);
 
-		this.background = new Background(
-			{ x: 0, y: 0 },
-			{ x: this.canvas.width, y: this.canvas.height },
-			"#222222",
-			this.player
-		);
+		let backgroundLayerFactory: (scrollRate: number, zIndex: number, spriteUrl: string) => void =
+			(scrollRate: number, zIndex: number, spriteUrl: string) => {
+
+			let layerHeight: number = canvas.height * 2;
+
+			let backgroundLayerPosition: LocationComponent = new LocationComponent(
+				0,
+				0,
+				canvas.width,
+				layerHeight,
+				0,
+				0,
+				0,
+				LocationType.ui
+			);
+
+			let spriteLayers: RenderLayer[] = [
+				SpriteLayer.FromPath(spriteUrl),
+				SpriteLayer.FromPath(spriteUrl)
+			];
+
+			let backgroundSpritePainter: RenderComponent = new RenderComponent(
+				backgroundLayerPosition,
+				() => {
+					let layerOffset: number = (this.viewport.offset % layerHeight) * scrollRate;
+
+					spriteLayers[0].offsetY = layerOffset;
+					spriteLayers[1].offsetY = layerOffset - (layerHeight);
+
+					return spriteLayers;
+				},
+				1,
+				zIndex
+			);
+
+			orchestrator.Add({
+				locationComponent: backgroundLayerPosition,
+				renderComponent: backgroundSpritePainter
+			});
+		};
+
+		backgroundLayerFactory(0, 0, "img/staticBackground.png");
+		backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
+		backgroundLayerFactory(1, 0.2, "img/stars2.png");
 
 		let platformPosition: MovingPoint = {
 			dX: 2,
@@ -153,12 +190,10 @@ export class Renderer {
 				y: this.canvas.height
 			},
 			controller,
-			this.background,
 			() => {
 				this.player.Reset();
 				this.platform.Reset();
 				this.viewport.Reset();
-				this.background.Reset();
 				this.isRunning = true;
 
 				scoreSystem.ResetScore();
@@ -168,7 +203,7 @@ export class Renderer {
 
 		this.viewport = new Viewport(
 			this.context,
-			[this.background],
+			[],
 			[],
 			[this.player, this.platform],
 			this.orchestrator
@@ -179,7 +214,6 @@ export class Renderer {
 		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
 		this.player.onMove = (amountMoved: Point) => {
 			this.viewport.SlideUpTo(-this.player.locationComponent.yPosition + 50);
-			this.background.SlideUpTo(-this.player.locationComponent.yPosition);
 
 			if (this.player.locationComponent.yPosition > -(this.viewport.offset - this.canvas.height)) {
 				this.isRunning = false;

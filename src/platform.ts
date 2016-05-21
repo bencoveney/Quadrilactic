@@ -39,6 +39,7 @@ export class Platform extends PhysicsBlock {
 		this.renderComponent = new RenderComponent(
 			this.locationComponent,
 			new RectangleLayer(color),
+			1,
 			1
 		);
 	}

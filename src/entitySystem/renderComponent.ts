@@ -6,6 +6,7 @@ export class RenderComponent {
 	private _position: LocationComponent;
 	private _layers: RenderLayer | RenderLayer[] | Function;
 	private _opacity: number | Function;
+	private _zIndex: number;
 	private _skew: number;
 
 	get position(): LocationComponent {
@@ -23,8 +24,8 @@ export class RenderComponent {
 		let heightAdjustment: number = (skewAdjustment * this._position.height * RenderComponent.skewScale);
 
 		return new LocationComponent(
-			this._position.xPosition + (widthAdjustment / 2),
-			this._position.yPosition - (heightAdjustment / 2),
+			this._position.xPositionValue + (widthAdjustment / 2),
+			this._position.yPositionValue - (heightAdjustment / 2),
 			this._position.width - widthAdjustment,
 			this._position.height + heightAdjustment,
 			this._position.xSpeed,
@@ -47,6 +48,13 @@ export class RenderComponent {
 		}
 	}
 
+	get zIndex(): number {
+		return this._zIndex;
+	}
+	set zIndex(newValue: number) {
+		this._zIndex = newValue;
+	}
+
 	get skew(): number {
 		return this._skew;
 	}
@@ -62,18 +70,39 @@ export class RenderComponent {
 		}
 	}
 
-	constructor(position: LocationComponent, layers: RectangleLayer | RenderLayer[] | Function, opacity: number | Function) {
+	constructor(position: LocationComponent, layers: RenderLayer | RenderLayer[] | Function, opacity: number | Function, zIndex: number) {
 		this._position = position;
 		this._layers = layers;
 		this._opacity = opacity;
+		this._zIndex = zIndex;
 		this._skew = 0;
 	}
 }
 
-export interface RenderLayer {
+export abstract class RenderLayer {
+	private _offsetX: number;
+	private _offsetY: number;
+
+	public get offsetX(): number {
+		return this._offsetX;
+	}
+	public set offsetX(newValue: number) {
+		this._offsetX = newValue;
+	}
+	public get offsetY(): number {
+		return this._offsetY;
+	}
+	public set offsetY(newValue: number) {
+		this._offsetY = newValue;
+	}
+
+	constructor() {
+		this._offsetX = 0;
+		this._offsetY = 0;
+	}
 }
 
-export class RectangleLayer implements RenderLayer {
+export class RectangleLayer extends RenderLayer {
 	private _fillColor: string | Function;
 
 	get fillColor(): string | Function {
@@ -92,11 +121,13 @@ export class RectangleLayer implements RenderLayer {
 	}
 
 	constructor(fillColor: string | Function) {
+		super();
+
 		this._fillColor = fillColor;
 	}
 }
 
-export class SpriteLayer implements RenderLayer {
+export class SpriteLayer extends RenderLayer {
 	private _image: HTMLImageElement;
 
 	get image(): HTMLImageElement {
@@ -104,6 +135,8 @@ export class SpriteLayer implements RenderLayer {
 	}
 
 	constructor(image: HTMLImageElement) {
+		super();
+
 		this._image = image;
 	}
 
@@ -115,7 +148,7 @@ export class SpriteLayer implements RenderLayer {
 	}
 }
 
-export class TextLayer implements RenderLayer {
+export class TextLayer extends RenderLayer {
 	private _text: string | Function;
 	private _fillColor: string | Function;
 	private _font: string;
@@ -157,6 +190,8 @@ export class TextLayer implements RenderLayer {
 	}
 
 	constructor(text: string | Function, fillColor: string | Function, font: string, sizeInPixels: number) {
+		super();
+
 		this._text = text;
 		this._fillColor = fillColor;
 		this._font = font;

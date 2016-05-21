@@ -1,6 +1,5 @@
 import {Renderable} from "renderable";
 import {Controller} from "controller";
-import {Background} from "background";
 import {Sound} from "sound";
 import {Volume} from "volume";
 import {Sprite} from "sprite";
@@ -18,7 +17,6 @@ export class Menu implements Renderable {
 	public isAlive: boolean = true;
 
 	private renderDimensions: Point;
-	private background: Background;
 	private isMenuOpen: boolean;
 	private playButtonPosition: Point;
 	private isButtonHovered: boolean;
@@ -36,12 +34,10 @@ export class Menu implements Renderable {
 	public constructor(
 		renderDimensions: Point,
 		controller: Controller,
-		background: Background,
 		onStartGame: () => void,
 		volume: Volume
 	) {
 		this.renderDimensions = renderDimensions;
-		this.background = background;
 		this.isMenuOpen = true;
 		this.isButtonHovered = false;
 		this.controller = controller;
@@ -81,8 +77,6 @@ export class Menu implements Renderable {
 		}
 
 		this.isButtonHovered = buttonIsNowHovered;
-
-		this.background.Render(renderContext, orchestrator);
 
 		let horizontalCenter: number = (this.renderDimensions.x / 2);
 

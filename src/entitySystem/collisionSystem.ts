@@ -38,9 +38,9 @@ export class CollisionSystem extends System {
 		entityB.locationComponent.ySpeed = entityAYSpeed;
 
 		// Only simulate a horizontal bounce if the x overlap has just started
-		let entityAPreviousLeft: number = entityA.locationComponent.xPosition - entityA.locationComponent.xSpeed;
+		let entityAPreviousLeft: number = entityA.locationComponent.xPositionValue - entityA.locationComponent.xSpeed;
 		let entityAPreviousRight: number = entityAPreviousLeft + entityA.locationComponent.width;
-		let entityBPreviousLeft: number = entityB.locationComponent.xPosition - entityA.locationComponent.xSpeed;
+		let entityBPreviousLeft: number = entityB.locationComponent.xPositionValue - entityA.locationComponent.xSpeed;
 		let entityBPreviousRight: number = entityBPreviousLeft + entityB.locationComponent.width;
 
 		let wasHorizontalOverlap: boolean =

@@ -6,11 +6,20 @@ export abstract class System {
 	protected static ApplyToIndividuals(
 		entities: Entity[],
 		predicate: (entity: Entity) => boolean,
-		logic: (entity: Entity) => void
+		logic: (entity: Entity) => void,
+		sort?: (entity: Entity) => number
 	): void {
-		entities.filter((entity: Entity) => {
+		let filteredEntities: Entity[] = entities.filter((entity: Entity) => {
 			return predicate(entity);
-		}).forEach((entity: Entity) => {
+		});
+
+		if (sort) {
+			filteredEntities = filteredEntities.sort((aEntity: Entity, bEntity: Entity) => {
+				return sort(aEntity) > sort(bEntity) ? 1 : -1;
+			});
+		}
+
+		filteredEntities.forEach((entity: Entity) => {
 			logic(entity);
 		});
 	}

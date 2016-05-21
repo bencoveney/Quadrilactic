@@ -8,8 +8,8 @@ export class LocationComponent {
 	private static degrees: number = Math.PI / 180;
 
 	// Data members.
-	private _x: number;
-	private _y: number;
+	private _x: number | Function;
+	private _y: number | Function;
 	private _xSpeed: number;
 	private _ySpeed: number;
 	private _xSize: number;
@@ -18,17 +18,31 @@ export class LocationComponent {
 	private _type: LocationType;
 
 	// Position properties.
-	get xPosition(): number {
+	get xPosition(): number | Function {
 		return this._x;
 	}
-	set xPosition(newValue: number) {
+	set xPosition(newValue: number | Function) {
 		this._x = newValue;
 	}
-	get yPosition(): number {
+	get yPosition(): number | Function {
 		return this._y;
 	}
-	set yPosition(newValue: number) {
+	set yPosition(newValue: number | Function) {
 		this._y = newValue;
+	}
+	get xPositionValue(): number {
+		if (typeof this._x === "function") {
+			return (this._x as Function)() as number;
+		} else {
+			return this._x as number;
+		}
+	}
+	get yPositionValue(): number {
+		if (typeof this._y === "function") {
+			return (this._y as Function)() as number;
+		} else {
+			return this._y as number;
+		}
 	}
 
 	// Size properties.
@@ -63,22 +77,22 @@ export class LocationComponent {
 
 	// Helper properties.
 	get left(): number {
-		return this._x;
+		return this.xPositionValue;
 	}
 	get right(): number {
-		return this._x + this.width;
+		return this.xPositionValue + this.width;
 	}
 	get top(): number {
-		return this._y;
+		return this.yPositionValue;
 	}
 	get bottom(): number {
-		return this._y + this.height;
+		return this.yPositionValue + this.height;
 	}
 	get centerXPosition(): number {
-		return this._x + (this.width / 2);
+		return this.xPositionValue + (this.width / 2);
 	}
 	get centerYPosition(): number {
-		return this._y + (this.height / 2);
+		return this.yPositionValue + (this.height / 2);
 	}
 	get rotationInDegrees(): number {
 		return this.rotation * LocationComponent.degrees;
@@ -89,8 +103,8 @@ export class LocationComponent {
 	}
 
 	constructor(
-		x: number,
-		y: number,
+		x: number | Function,
+		y: number | Function,
 		width: number,
 		height: number,
 		xSpeed: number,

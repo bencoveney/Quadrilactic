@@ -1,6 +1,5 @@
 import {Point} from "point";
 import {Renderable} from "renderable";
-import {Player} from "player";
 import {Sprite} from "sprite";
 import {Orchestrator} from "entitySystem/orchestrator";
 
@@ -20,8 +19,7 @@ export class Background implements Renderable {
 	public constructor(
 		renderPosition: Point,
 		renderDimensions: Point,
-		color: string,
-		player: Player
+		color: string
 	) {
 		this.renderPosition = renderPosition;
 		this.renderDimensions = renderDimensions;
