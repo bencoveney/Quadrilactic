@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(19), __webpack_require__(20), __webpack_require__(1), __webpack_require__(21), __webpack_require__(22), __webpack_require__(23), __webpack_require__(24)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(19), __webpack_require__(20), __webpack_require__(21), __webpack_require__(1), __webpack_require__(22), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1, gameStateSystem_1) {
 	    var canvas = document.getElementById("viewport");
 	    var controller = new controller_1.Controller(canvas);
 	    var orchestrator = new orchestrator_1.Orchestrator([], {
@@ -52,7 +52,8 @@
 	    }, {
 	        "input": new inputSystem_1.InputSystem(controller),
 	        "collision": new collisionSystem_1.CollisionSystem(),
-	        "score": new scoreSystem_1.ScoreSystem()
+	        "score": new scoreSystem_1.ScoreSystem(),
+	        "gameState": new gameStateSystem_1.GameStateSystem()
 	    }, {
 	        "render": new renderSystem_1.RenderSystem(canvas.getContext("2d"))
 	    });
@@ -75,18 +76,109 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
-	    var LocationSystem = (function (_super) {
-	        __extends(LocationSystem, _super);
-	        function LocationSystem() {
-	            _super.apply(this, arguments);
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, locationComponent_1, renderComponent_1) {
+	    var RenderSystem = (function (_super) {
+	        __extends(RenderSystem, _super);
+	        function RenderSystem(renderContext) {
+	            _super.call(this);
+	            this._offsetX = 0;
+	            this._offsetY = 0;
+	            this._renderContext = renderContext;
 	        }
-	        LocationSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
-	            "noOp".toString();
+	        Object.defineProperty(RenderSystem.prototype, "offsetX", {
+	            get: function () {
+	                return this._offsetX;
+	            },
+	            set: function (newValue) {
+	                this._offsetX = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(RenderSystem.prototype, "offsetY", {
+	            get: function () {
+	                return this._offsetY;
+	            },
+	            set: function (newValue) {
+	                this._offsetY = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        RenderSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
+	            var _this = this;
+	            system_1.System.ApplyToIndividuals(entities, function (entity) {
+	                return !!entity.renderComponent;
+	            }, function (entity) {
+	                _this.Draw(entity, orchestrator, deltaTime);
+	            }, function (entity) {
+	                return entity.renderComponent.zIndex;
+	            });
 	        };
-	        return LocationSystem;
+	        RenderSystem.prototype.Draw = function (entity, orchestrator, deltaTime) {
+	            if (!entity.renderComponent) {
+	                return;
+	            }
+	            this._renderContext.save();
+	            var renderComponent = entity.renderComponent;
+	            this._renderContext.globalAlpha = renderComponent.opacityValue;
+	            if (renderComponent.position.type === locationComponent_1.LocationType.world) {
+	                this.OffsetViewport();
+	            }
+	            this.RotateAroundCenter(renderComponent.position);
+	            this.MoveToPosition(renderComponent.position);
+	            var layers = renderComponent.layers;
+	            for (var layerIndex = 0; layerIndex < layers.length; layerIndex++) {
+	                var layer = layers[layerIndex];
+	                this._renderContext.save();
+	                this.OffsetLayer(layer);
+	                if (layer instanceof renderComponent_1.RectangleLayer) {
+	                    this.DrawRect(renderComponent, layer);
+	                }
+	                else if (layer instanceof renderComponent_1.SpriteLayer) {
+	                    this.DrawSprite(renderComponent, layer);
+	                }
+	                else if (layer instanceof renderComponent_1.TextLayer) {
+	                    this.DrawText(renderComponent, layer);
+	                }
+	                this._renderContext.restore();
+	            }
+	            this._renderContext.restore();
+	        };
+	        RenderSystem.prototype.RotateAroundCenter = function (position) {
+	            this._renderContext.translate(position.centerXPosition, position.centerYPosition);
+	            this._renderContext.rotate(position.rotationInDegrees);
+	            this._renderContext.translate(-position.centerXPosition, -position.centerYPosition);
+	        };
+	        RenderSystem.prototype.MoveToPosition = function (position) {
+	            this._renderContext.translate(position.xPositionValue, position.yPositionValue);
+	        };
+	        RenderSystem.prototype.OffsetLayer = function (layer) {
+	            this._renderContext.translate(layer.offsetX, layer.offsetY);
+	        };
+	        RenderSystem.prototype.OffsetViewport = function () {
+	            this._renderContext.translate(this._offsetX, this._offsetY);
+	        };
+	        RenderSystem.prototype.DrawRect = function (renderComponent, rectangleLayer) {
+	            var skewedPosition = renderComponent.skewedPosition;
+	            this._renderContext.beginPath();
+	            this._renderContext.rect(0, 0, skewedPosition.width, skewedPosition.height);
+	            this._renderContext.fillStyle = rectangleLayer.fillColorValue;
+	            this._renderContext.fill();
+	            this._renderContext.closePath();
+	        };
+	        RenderSystem.prototype.DrawSprite = function (renderComponent, spriteLayer) {
+	            var skewedPosition = renderComponent.skewedPosition;
+	            this._renderContext.drawImage(spriteLayer.image, 0, 0, spriteLayer.image.width, spriteLayer.image.height, 0, 0, skewedPosition.width, skewedPosition.height);
+	        };
+	        RenderSystem.prototype.DrawText = function (renderComponent, textLayer) {
+	            this._renderContext.font = textLayer.sizeInPixels.toString() + "px " + textLayer.font;
+	            this._renderContext.fillStyle = textLayer.fillColorValue;
+	            this._renderContext.fillText(textLayer.textValue, 0, 0);
+	        };
+	        return RenderSystem;
 	    })(system_1.System);
-	    exports.LocationSystem = LocationSystem;
+	    exports.RenderSystem = RenderSystem;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
@@ -130,447 +222,6 @@
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(4), __webpack_require__(13), __webpack_require__(14), __webpack_require__(16), __webpack_require__(18), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
-	    var Renderer = (function () {
-	        function Renderer(canvas, controller, orchestrator) {
-	            var _this = this;
-	            this.isRunning = false;
-	            this.canvas = canvas;
-	            this.context = canvas.getContext("2d");
-	            this.controller = controller;
-	            this.orchestrator = orchestrator;
-	            this.volume = new volume_1.Volume({
-	                x: this.canvas.width,
-	                y: this.canvas.height
-	            }, controller);
-	            this.backgroundMusic = this.volume.createSound("snd/music.wav", { isLooping: true });
-	            this.backgroundMusic.play();
-	            this.deathSound = this.volume.createSound("snd/death.wav", {});
-	            var playerPosition = {
-	                dX: 2,
-	                dY: -2,
-	                x: 30,
-	                y: 110
-	            };
-	            var playerDimensions = {
-	                x: 30,
-	                y: 30
-	            };
-	            this.player = new player_1.Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, this.volume);
-	            orchestrator.Add(this.player);
-	            var scoreDisplayFactory = function (text, size, verticalOffset) {
-	                var scoreDisplayPosition = new locationComponent_1.LocationComponent(20, canvas.height - verticalOffset - 20, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
-	                orchestrator.Add({
-	                    locationComponent: scoreDisplayPosition,
-	                    renderComponent: new renderComponent_1.RenderComponent(scoreDisplayPosition, [
-	                        new renderComponent_1.TextLayer(text, "ffffff", "Oswald", size),
-	                    ], 0.8, 0.5)
-	                });
-	            };
-	            var scoreSystem = orchestrator.GetSystem("score");
-	            scoreDisplayFactory(function () {
-	                return scoreSystem.multiplier.toString();
-	            }, 200, 200);
-	            scoreDisplayFactory(function () {
-	                return "x " + scoreSystem.points.toString();
-	            }, 100, 100);
-	            scoreDisplayFactory(function () {
-	                return "~ " + scoreSystem.totalScore.toString();
-	            }, 100, 0);
-	            var backgroundLayerFactory = function (scrollRate, zIndex, spriteUrl) {
-	                var layerHeight = canvas.height * 2;
-	                var backgroundLayerPosition = new locationComponent_1.LocationComponent(0, 0, canvas.width, layerHeight, 0, 0, 0, locationComponent_1.LocationType.ui);
-	                var spriteLayers = [
-	                    renderComponent_1.SpriteLayer.FromPath(spriteUrl),
-	                    renderComponent_1.SpriteLayer.FromPath(spriteUrl)
-	                ];
-	                var backgroundSpritePainter = new renderComponent_1.RenderComponent(backgroundLayerPosition, function () {
-	                    var layerOffset = (_this.viewport.offset % layerHeight) * scrollRate;
-	                    spriteLayers[0].offsetY = layerOffset;
-	                    spriteLayers[1].offsetY = layerOffset - (layerHeight);
-	                    return spriteLayers;
-	                }, 1, zIndex);
-	                orchestrator.Add({
-	                    locationComponent: backgroundLayerPosition,
-	                    renderComponent: backgroundSpritePainter
-	                });
-	            };
-	            backgroundLayerFactory(0, 0, "img/staticBackground.png");
-	            backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
-	            backgroundLayerFactory(1, 0.2, "img/stars2.png");
-	            var upArrowPosition = new locationComponent_1.LocationComponent(300, 40, 120, 99, 0, 0, 0, locationComponent_1.LocationType.world);
-	            var upArrowRender = new renderComponent_1.RenderComponent(upArrowPosition, renderComponent_1.SpriteLayer.FromPath("img/upArrow.png"), 0.5, 0.3);
-	            orchestrator.Add({
-	                locationComponent: upArrowPosition,
-	                renderComponent: upArrowRender
-	            });
-	            var platformPosition = {
-	                dX: 2,
-	                dY: 2,
-	                x: 30,
-	                y: 690
-	            };
-	            var platformDimensions = {
-	                x: 90,
-	                y: 20
-	            };
-	            this.platform = new platform_1.Platform(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, this.volume, Renderer.gameWidth);
-	            orchestrator.Add(this.platform);
-	            this.menu = new menu_1.Menu({
-	                x: this.canvas.width,
-	                y: this.canvas.height
-	            }, controller, function () {
-	                _this.player.Reset();
-	                _this.platform.Reset();
-	                _this.viewport.Reset();
-	                _this.isRunning = true;
-	                scoreSystem.ResetScore();
-	            }, this.volume);
-	            this.viewport = new viewport_1.Viewport(this.context, [], [], [this.player, this.platform], this.orchestrator);
-	            this.platform.viewport = this.viewport;
-	            var originalOnMove = this.player.onMove;
-	            this.player.onMove = function (amountMoved) {
-	                _this.viewport.SlideUpTo(-_this.player.locationComponent.yPosition + 50);
-	                if (_this.player.locationComponent.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
-	                    _this.isRunning = false;
-	                    _this.deathSound.play();
-	                    _this.menu.showMenu(scoreSystem.totalScore, _this.player.fillColor);
-	                }
-	                if (originalOnMove) {
-	                    originalOnMove(amountMoved);
-	                }
-	            };
-	        }
-	        Renderer.prototype.Start = function () {
-	            var _this = this;
-	            requestAnimationFrame(function (time) { _this.Tick(time); });
-	        };
-	        Renderer.prototype.Tick = function (timestamp) {
-	            var _this = this;
-	            var deltaTime = this.lastTimestamp ? (timestamp - this.lastTimestamp) : 0;
-	            var scaledTime = deltaTime / Renderer.timescale;
-	            this.lastTimestamp = timestamp;
-	            this.lastFps = Math.round(1000 / deltaTime);
-	            this.Draw();
-	            this.orchestrator.Tick(1);
-	            if (this.isRunning === true) {
-	                this.player.Tick(scaledTime);
-	                this.platform.Tick(scaledTime);
-	            }
-	            this.controller.clearClick();
-	            requestAnimationFrame(function (time) { _this.Tick(time); });
-	        };
-	        Renderer.prototype.Draw = function () {
-	            if (this.isRunning) {
-	                this.viewport.Render(this.lastFps);
-	            }
-	            else {
-	                this.menu.Render(this.context, this.orchestrator);
-	            }
-	            this.volume.Render(this.context, this.orchestrator);
-	        };
-	        Renderer.defaultGravity = 0.2;
-	        Renderer.gameWidth = 480;
-	        Renderer.timescale = 16;
-	        return Renderer;
-	    })();
-	    exports.Renderer = Renderer;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(8), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
-	    var Player = (function (_super) {
-	        __extends(Player, _super);
-	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
-	            var _this = this;
-	            _super.call(this, worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
-	            this.bounceCount = 0;
-	            this.collisionComponent.onCollide.push(function () {
-	                _this.isJumping = false;
-	                _this.locationComponent.rotation = 0;
-	                _this.jumpRotationSpeed = 0;
-	                _this.bounce.play();
-	                _this.bounceCount++;
-	            });
-	            var backgroundLayer = new renderComponent_1.RectangleLayer(function () {
-	                var xHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.xSpeed)), 0).toString(16);
-	                var yHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.ySpeed)), 0).toString(16);
-	                return "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
-	            });
-	            var upSprite = renderComponent_1.SpriteLayer.FromPath("img/faceHappy.png");
-	            var downSprite = renderComponent_1.SpriteLayer.FromPath("img/faceWorried.png");
-	            var hoverSprite = renderComponent_1.SpriteLayer.FromPath("img/faceChill.png");
-	            var layerComposer = function () {
-	                var layers = [backgroundLayer];
-	                if (_this.locationComponent.ySpeed > Player.faceSwapThreshold) {
-	                    layers.push(downSprite);
-	                }
-	                else if (_this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
-	                    layers.push(upSprite);
-	                }
-	                else {
-	                    layers.push(hoverSprite);
-	                }
-	                return layers;
-	            };
-	            this.renderComponent = new renderComponent_1.RenderComponent(this.locationComponent, layerComposer, 1, 1);
-	            var jump = function (entity, orchestrator, deltaTime) {
-	                if (_this.isJumping) {
-	                    return;
-	                }
-	                _this.jump.play();
-	                _this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
-	                _this.isJumping = true;
-	                _this.jumpRotationSpeed = _this.direction === "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
-	            };
-	            var moveLeft = function (entity, orchestrator, deltaTime) {
-	                _this.locationComponent.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
-	            };
-	            var moveRight = function (entity, orchestrator, deltaTime) {
-	                _this.locationComponent.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
-	            };
-	            this.inputComponent.getKeyHandler("up").push(jump);
-	            this.inputComponent.getKeyHandler("space").push(jump);
-	            this.inputComponent.getKeyHandler("w").push(jump);
-	            this.inputComponent.getKeyHandler("left").push(moveLeft);
-	            this.inputComponent.getKeyHandler("a").push(moveLeft);
-	            this.inputComponent.getKeyHandler("right").push(moveRight);
-	            this.inputComponent.getKeyHandler("d").push(moveRight);
-	            this.scoreComponent = new scoreComponent_1.ScoreComponent(function () {
-	                return -_this.locationComponent.top / 1000;
-	            }, function () {
-	                return _this.bounceCount;
-	            });
-	            this.isJumping = false;
-	            this.jump = volume.createSound("snd/jump.wav", {});
-	            this.bounce = volume.createSound("snd/blip3.wav", {});
-	        }
-	        Player.prototype.Tick = function (deltaTime) {
-	            _super.prototype.Tick.call(this, deltaTime);
-	            this.locationComponent.rotation += (this.jumpRotationSpeed * deltaTime);
-	            if (this.jumpRotationSpeed > 0) {
-	                this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
-	            }
-	            else if (this.jumpRotationSpeed < 0) {
-	                this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
-	            }
-	            this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
-	        };
-	        Player.prototype.Render = function (renderContext, orchestrator) {
-	            return _super.prototype.Render.call(this, renderContext, orchestrator);
-	        };
-	        Player.prototype.Reset = function () {
-	            _super.prototype.Reset.call(this);
-	            this.isJumping = false;
-	            this.locationComponent.rotation = 0;
-	            this.jumpRotationSpeed = 0;
-	            this.bounceCount = 0;
-	        };
-	        Player.jumpSpeedIncrease = -8;
-	        Player.jumpRotationSlowDown = 0.1;
-	        Player.initialJumpRotationSpeed = 15;
-	        Player.horizontalSpeedIncrease = 0.5;
-	        Player.faceSwapThreshold = 3.5;
-	        return Player;
-	    })(physicsBlock_1.PhysicsBlock);
-	    exports.Player = Player;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
-	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-	    function __() { this.constructor = d; }
-	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
-	    var PhysicsBlock = (function (_super) {
-	        __extends(PhysicsBlock, _super);
-	        function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, xSpeedLimit, worldWidth) {
-	            var _this = this;
-	            _super.call(this, worldPosition, dimensions, color, xSpeedLimit);
-	            this.internalGravity = gravity;
-	            this.worldWidth = worldWidth;
-	            this.rebound = volume.createSound("snd/blip.wav", {});
-	            this.collisionComponent.onCollide.push(function () {
-	                _this.skew += 10;
-	            });
-	        }
-	        Object.defineProperty(PhysicsBlock.prototype, "gravity", {
-	            get: function () {
-	                return this.internalGravity;
-	            },
-	            set: function (newValue) {
-	                this.internalGravity = newValue;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        PhysicsBlock.prototype.Tick = function (deltaTime) {
-	            _super.prototype.Tick.call(this, deltaTime);
-	            if (this.locationComponent.right > this.worldWidth) {
-	                this.rebound.play();
-	                this.skew += 3;
-	                this.locationComponent.xPosition = this.worldWidth - this.locationComponent.width;
-	                this.locationComponent.xSpeed = -Math.abs(this.locationComponent.xSpeed);
-	            }
-	            if (this.locationComponent.left < 0) {
-	                this.rebound.play();
-	                this.locationComponent.xPosition = 0;
-	                this.skew += 3;
-	                this.locationComponent.xSpeed = Math.abs(this.locationComponent.xSpeed);
-	            }
-	            this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
-	        };
-	        PhysicsBlock.prototype.Render = function (renderContext, orchestrator) {
-	            return _super.prototype.Render.call(this, renderContext, orchestrator);
-	        };
-	        PhysicsBlock.prototype.Reset = function () {
-	            _super.prototype.Reset.call(this);
-	        };
-	        return PhysicsBlock;
-	    })(block_1.Block);
-	    exports.PhysicsBlock = PhysicsBlock;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(8), __webpack_require__(9), __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
-	    var Block = (function () {
-	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
-	            this.isAlive = true;
-	            this.locationComponent = new locationComponent_1.LocationComponent(worldPosition.x, worldPosition.y, dimensions.x, dimensions.y, worldPosition.dX, worldPosition.dY, 0);
-	            this.collisionComponent = new collisionComponent_1.CollisionComponent(this.locationComponent);
-	            this.inputComponent = new inputComponent_1.InputComponent();
-	            this.internalColor = color;
-	            this.horizontalSpeedLimit = xSpeedLimit;
-	            this.verticalSpeedLimit = Block.verticalSpeedLimit;
-	            this.initialWorldPosition = {
-	                dX: worldPosition.dX,
-	                dY: worldPosition.dY,
-	                x: worldPosition.x,
-	                y: worldPosition.y
-	            };
-	            this.skew = 0;
-	        }
-	        Object.defineProperty(Block.prototype, "fillColor", {
-	            get: function () {
-	                return this.internalColor;
-	            },
-	            set: function (newValue) {
-	                this.internalColor = newValue;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Object.defineProperty(Block.prototype, "onMove", {
-	            get: function () {
-	                return this.onMoveCallback;
-	            },
-	            set: function (newValue) {
-	                this.onMoveCallback = newValue;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Object.defineProperty(Block.prototype, "skewedPosition", {
-	            get: function () {
-	                var skewAdjustment = this.skew === 0 ? 0 : Math.sin(this.skew);
-	                skewAdjustment = skewAdjustment * this.skew;
-	                var widthAdjustment = (skewAdjustment * this.locationComponent.width * Block.skewScale);
-	                var heightAdjustment = (skewAdjustment * this.locationComponent.height * Block.skewScale);
-	                return {
-	                    height: this.locationComponent.height + heightAdjustment,
-	                    width: this.locationComponent.width - widthAdjustment,
-	                    x: this.locationComponent.xPositionValue + (widthAdjustment / 2),
-	                    y: this.locationComponent.yPositionValue - (heightAdjustment / 2)
-	                };
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Object.defineProperty(Block.prototype, "direction", {
-	            get: function () {
-	                return this.locationComponent.xSpeed >= 0 ? "right" : "left";
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Block.prototype.Tick = function (deltaTime) {
-	            this.locationComponent.xPosition = this.locationComponent.xPositionValue + (this.locationComponent.xSpeed * deltaTime);
-	            this.locationComponent.yPosition = this.locationComponent.yPositionValue + (this.locationComponent.ySpeed * deltaTime);
-	            if (this.onMoveCallback) {
-	                this.onMoveCallback({ x: this.locationComponent.xSpeed, y: this.locationComponent.ySpeed });
-	            }
-	            this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime));
-	            this.verticalSpeedLimit += Block.verticalSpeedLimitDelta * deltaTime;
-	            this.locationComponent.ySpeed = Math.min(this.locationComponent.ySpeed, this.verticalSpeedLimit);
-	            this.locationComponent.ySpeed = Math.max(this.locationComponent.ySpeed, -this.verticalSpeedLimit);
-	            this.locationComponent.xSpeed = Math.min(this.locationComponent.xSpeed, this.horizontalSpeedLimit);
-	            this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit);
-	        };
-	        Block.prototype.Render = function (renderContext, orchestrator) {
-	            var particlePosition = this.locationComponent.Duplicate();
-	            particlePosition.xSpeed = 0;
-	            particlePosition.ySpeed = 0;
-	            var anyColor = "red";
-	            this.renderComponent.layers.forEach(function (layer) {
-	                var possibleRectangleLayer = layer;
-	                if (possibleRectangleLayer.fillColorValue) {
-	                    anyColor = possibleRectangleLayer.fillColorValue;
-	                }
-	            });
-	            var particleOpacity = 0.2;
-	            var particle = {
-	                locationComponent: particlePosition,
-	                renderComponent: new renderComponent_1.RenderComponent(particlePosition, new renderComponent_1.RectangleLayer(anyColor), function () {
-	                    particleOpacity -= 0.01;
-	                    if (particleOpacity <= 0) {
-	                        orchestrator.Remove(particle);
-	                        return 0;
-	                    }
-	                    return particleOpacity;
-	                }, this.renderComponent.zIndex - 0.1)
-	            };
-	            orchestrator.Add(particle);
-	            return [];
-	        };
-	        Block.prototype.Reset = function () {
-	            this.locationComponent.xPosition = this.initialWorldPosition.x;
-	            this.locationComponent.yPosition = this.initialWorldPosition.y;
-	            this.locationComponent.xSpeed = this.initialWorldPosition.dX;
-	            this.locationComponent.ySpeed = this.initialWorldPosition.dY;
-	            this.verticalSpeedLimit = Block.verticalSpeedLimit;
-	        };
-	        Block.verticalSpeedLimit = 10;
-	        Block.verticalSpeedLimitDelta = 0.01;
-	        Block.skewScale = 0.07;
-	        Block.skewReduction = 0.3;
-	        return Block;
-	    })();
-	    exports.Block = Block;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -747,7 +398,7 @@
 
 
 /***/ },
-/* 8 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -755,7 +406,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1) {
 	    var RenderComponent = (function () {
 	        function RenderComponent(position, layers, opacity, zIndex) {
 	            this._position = position;
@@ -990,6 +641,461 @@
 	        return TextLayer;
 	    })(RenderLayer);
 	    exports.TextLayer = TextLayer;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(13), __webpack_require__(14), __webpack_require__(16), __webpack_require__(18), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
+	    var Renderer = (function () {
+	        function Renderer(canvas, controller, orchestrator) {
+	            var _this = this;
+	            this.isRunning = false;
+	            this.canvas = canvas;
+	            this.context = canvas.getContext("2d");
+	            this.controller = controller;
+	            this.orchestrator = orchestrator;
+	            this.gameStateSystem = orchestrator.GetSystem("gameState");
+	            this.volume = new volume_1.Volume({
+	                x: this.canvas.width,
+	                y: this.canvas.height
+	            }, controller);
+	            this.backgroundMusic = this.volume.createSound("snd/music.wav", { isLooping: true });
+	            this.backgroundMusic.play();
+	            this.deathSound = this.volume.createSound("snd/death.wav", {});
+	            var scoreSystem = orchestrator.GetSystem("score");
+	            this.gameStateSystem.OnGameState = function (removables) {
+	                var playerPosition = {
+	                    dX: 2,
+	                    dY: -2,
+	                    x: 30,
+	                    y: 110
+	                };
+	                var playerDimensions = {
+	                    x: 30,
+	                    y: 30
+	                };
+	                _this.player = new player_1.Player(playerPosition, playerDimensions, "#FF0000", controller, Renderer.defaultGravity, Renderer.gameWidth, _this.volume);
+	                removables.push(_this.player);
+	                orchestrator.Add(_this.player);
+	                var scoreDisplayFactory = function (text, size, verticalOffset) {
+	                    var scoreDisplayPosition = new locationComponent_1.LocationComponent(20, canvas.height - verticalOffset - 20, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                    var entity = {
+	                        locationComponent: scoreDisplayPosition,
+	                        renderComponent: new renderComponent_1.RenderComponent(scoreDisplayPosition, [
+	                            new renderComponent_1.TextLayer(text, "ffffff", "Oswald", size),
+	                        ], 0.8, 0.5)
+	                    };
+	                    removables.push(entity);
+	                    orchestrator.Add(entity);
+	                };
+	                scoreDisplayFactory(function () {
+	                    return scoreSystem.multiplier.toString();
+	                }, 200, 200);
+	                scoreDisplayFactory(function () {
+	                    return "x " + scoreSystem.points.toString();
+	                }, 100, 100);
+	                scoreDisplayFactory(function () {
+	                    return "~ " + scoreSystem.totalScore.toString();
+	                }, 100, 0);
+	                var backgroundLayerFactory = function (scrollRate, zIndex, spriteUrl) {
+	                    var layerHeight = canvas.height * 2;
+	                    var backgroundLayerPosition = new locationComponent_1.LocationComponent(0, 0, canvas.width, layerHeight, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                    var spriteLayers = [
+	                        renderComponent_1.SpriteLayer.FromPath(spriteUrl),
+	                        renderComponent_1.SpriteLayer.FromPath(spriteUrl)
+	                    ];
+	                    var backgroundSpritePainter = new renderComponent_1.RenderComponent(backgroundLayerPosition, function () {
+	                        var layerOffset = (_this.viewport.offset % layerHeight) * scrollRate;
+	                        spriteLayers[0].offsetY = layerOffset;
+	                        spriteLayers[1].offsetY = layerOffset - (layerHeight);
+	                        return spriteLayers;
+	                    }, 1, zIndex);
+	                    var entity = {
+	                        locationComponent: backgroundLayerPosition,
+	                        renderComponent: backgroundSpritePainter
+	                    };
+	                    removables.push(entity);
+	                    orchestrator.Add(entity);
+	                };
+	                backgroundLayerFactory(0, 0, "img/staticBackground.png");
+	                backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
+	                backgroundLayerFactory(1, 0.2, "img/stars2.png");
+	                var upArrowPosition = new locationComponent_1.LocationComponent(300, 40, 120, 99, 0, 0, 0, locationComponent_1.LocationType.world);
+	                var upArrowRender = new renderComponent_1.RenderComponent(upArrowPosition, renderComponent_1.SpriteLayer.FromPath("img/upArrow.png"), 0.5, 0.3);
+	                var upArrowEntity = {
+	                    locationComponent: upArrowPosition,
+	                    renderComponent: upArrowRender
+	                };
+	                removables.push(upArrowEntity);
+	                orchestrator.Add(upArrowEntity);
+	                var platformPosition = {
+	                    dX: 2,
+	                    dY: 2,
+	                    x: 30,
+	                    y: 690
+	                };
+	                var platformDimensions = {
+	                    x: 90,
+	                    y: 20
+	                };
+	                _this.platform = new platform_1.Platform(platformPosition, platformDimensions, "#FFFFFF", -Renderer.defaultGravity, _this.volume, Renderer.gameWidth);
+	                removables.push(_this.platform);
+	                orchestrator.Add(_this.platform);
+	                _this.platform.viewport = _this.viewport;
+	                var originalOnMove = _this.player.onMove;
+	                _this.player.onMove = function (amountMoved) {
+	                    _this.viewport.SlideUpTo(-_this.player.locationComponent.yPosition + 50);
+	                    if (_this.player.locationComponent.yPosition > -(_this.viewport.offset - _this.canvas.height)) {
+	                        _this.isRunning = false;
+	                        _this.deathSound.play();
+	                        _this.gameStateSystem.EndGame();
+	                        _this.menu.showMenu(scoreSystem.totalScore, _this.player.fillColor);
+	                    }
+	                    if (originalOnMove) {
+	                        originalOnMove(amountMoved);
+	                    }
+	                };
+	            };
+	            this.gameStateSystem.OnMenuState = function (removables) {
+	                "todo".toString();
+	            };
+	            this.menu = new menu_1.Menu({
+	                x: this.canvas.width,
+	                y: this.canvas.height
+	            }, controller, function () {
+	                _this.viewport.Reset();
+	                _this.isRunning = true;
+	                _this.gameStateSystem.StartGame();
+	                scoreSystem.ResetScore();
+	            }, this.volume);
+	            this.viewport = new viewport_1.Viewport(this.context, [], [], [], this.orchestrator);
+	        }
+	        Renderer.prototype.Start = function () {
+	            var _this = this;
+	            requestAnimationFrame(function (time) { _this.Tick(time); });
+	        };
+	        Renderer.prototype.Tick = function (timestamp) {
+	            var _this = this;
+	            var deltaTime = this.lastTimestamp ? (timestamp - this.lastTimestamp) : 0;
+	            var scaledTime = deltaTime / Renderer.timescale;
+	            this.lastTimestamp = timestamp;
+	            this.lastFps = Math.round(1000 / deltaTime);
+	            this.Draw();
+	            this.orchestrator.Tick(1);
+	            if (this.isRunning === true) {
+	                this.player.Tick(scaledTime);
+	                this.platform.Tick(scaledTime);
+	            }
+	            this.controller.clearClick();
+	            requestAnimationFrame(function (time) { _this.Tick(time); });
+	        };
+	        Renderer.prototype.Draw = function () {
+	            if (this.isRunning) {
+	                this.viewport.Render(this.lastFps);
+	            }
+	            else {
+	                this.menu.Render(this.context, this.orchestrator);
+	            }
+	            this.volume.Render(this.context, this.orchestrator);
+	        };
+	        Renderer.defaultGravity = 0.2;
+	        Renderer.gameWidth = 480;
+	        Renderer.timescale = 16;
+	        return Renderer;
+	    })();
+	    exports.Renderer = Renderer;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(4), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
+	    var Player = (function (_super) {
+	        __extends(Player, _super);
+	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
+	            var _this = this;
+	            _super.call(this, worldPosition, dimensions, color, gravity, volume, 7, worldWidth);
+	            this.bounceCount = 0;
+	            this.collisionComponent.onCollide.push(function () {
+	                _this.isJumping = false;
+	                _this.locationComponent.rotation = 0;
+	                _this.jumpRotationSpeed = 0;
+	                _this.bounce.play();
+	                _this.bounceCount++;
+	            });
+	            var backgroundLayer = new renderComponent_1.RectangleLayer(function () {
+	                var xHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.xSpeed)), 0).toString(16);
+	                var yHexidecimal = Math.max(Math.round(15 - Math.abs(_this.locationComponent.ySpeed)), 0).toString(16);
+	                return "#" + yHexidecimal + yHexidecimal + "ff" + xHexidecimal + xHexidecimal;
+	            });
+	            var upSprite = renderComponent_1.SpriteLayer.FromPath("img/faceHappy.png");
+	            var downSprite = renderComponent_1.SpriteLayer.FromPath("img/faceWorried.png");
+	            var hoverSprite = renderComponent_1.SpriteLayer.FromPath("img/faceChill.png");
+	            var layerComposer = function () {
+	                var layers = [backgroundLayer];
+	                if (_this.locationComponent.ySpeed > Player.faceSwapThreshold) {
+	                    layers.push(downSprite);
+	                }
+	                else if (_this.locationComponent.ySpeed < -Player.faceSwapThreshold) {
+	                    layers.push(upSprite);
+	                }
+	                else {
+	                    layers.push(hoverSprite);
+	                }
+	                return layers;
+	            };
+	            this.renderComponent = new renderComponent_1.RenderComponent(this.locationComponent, layerComposer, 1, 1);
+	            var jump = function (entity, orchestrator, deltaTime) {
+	                if (_this.isJumping) {
+	                    return;
+	                }
+	                _this.jump.play();
+	                _this.locationComponent.ySpeed = Player.jumpSpeedIncrease * deltaTime;
+	                _this.isJumping = true;
+	                _this.jumpRotationSpeed = _this.direction === "right" ? Player.initialJumpRotationSpeed : -Player.initialJumpRotationSpeed;
+	            };
+	            var moveLeft = function (entity, orchestrator, deltaTime) {
+	                _this.locationComponent.xSpeed -= (Player.horizontalSpeedIncrease * deltaTime);
+	            };
+	            var moveRight = function (entity, orchestrator, deltaTime) {
+	                _this.locationComponent.xSpeed += (Player.horizontalSpeedIncrease * deltaTime);
+	            };
+	            this.inputComponent.getKeyHandler("up").push(jump);
+	            this.inputComponent.getKeyHandler("space").push(jump);
+	            this.inputComponent.getKeyHandler("w").push(jump);
+	            this.inputComponent.getKeyHandler("left").push(moveLeft);
+	            this.inputComponent.getKeyHandler("a").push(moveLeft);
+	            this.inputComponent.getKeyHandler("right").push(moveRight);
+	            this.inputComponent.getKeyHandler("d").push(moveRight);
+	            this.scoreComponent = new scoreComponent_1.ScoreComponent(function () {
+	                return -_this.locationComponent.top / 1000;
+	            }, function () {
+	                return _this.bounceCount;
+	            });
+	            this.isJumping = false;
+	            this.jump = volume.createSound("snd/jump.wav", {});
+	            this.bounce = volume.createSound("snd/blip3.wav", {});
+	        }
+	        Player.prototype.Tick = function (deltaTime) {
+	            _super.prototype.Tick.call(this, deltaTime);
+	            this.locationComponent.rotation += (this.jumpRotationSpeed * deltaTime);
+	            if (this.jumpRotationSpeed > 0) {
+	                this.jumpRotationSpeed = Math.max(0, this.jumpRotationSpeed - Player.jumpRotationSlowDown);
+	            }
+	            else if (this.jumpRotationSpeed < 0) {
+	                this.jumpRotationSpeed = Math.min(0, this.jumpRotationSpeed + Player.jumpRotationSlowDown);
+	            }
+	            this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
+	        };
+	        Player.prototype.Render = function (renderContext, orchestrator) {
+	            return _super.prototype.Render.call(this, renderContext, orchestrator);
+	        };
+	        Player.prototype.Reset = function () {
+	            _super.prototype.Reset.call(this);
+	            this.isJumping = false;
+	            this.locationComponent.rotation = 0;
+	            this.jumpRotationSpeed = 0;
+	            this.bounceCount = 0;
+	        };
+	        Player.jumpSpeedIncrease = -8;
+	        Player.jumpRotationSlowDown = 0.1;
+	        Player.initialJumpRotationSpeed = 15;
+	        Player.horizontalSpeedIncrease = 0.5;
+	        Player.faceSwapThreshold = 3.5;
+	        return Player;
+	    })(physicsBlock_1.PhysicsBlock);
+	    exports.Player = Player;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
+	    var PhysicsBlock = (function (_super) {
+	        __extends(PhysicsBlock, _super);
+	        function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, xSpeedLimit, worldWidth) {
+	            var _this = this;
+	            _super.call(this, worldPosition, dimensions, color, xSpeedLimit);
+	            this.internalGravity = gravity;
+	            this.worldWidth = worldWidth;
+	            this.rebound = volume.createSound("snd/blip.wav", {});
+	            this.collisionComponent.onCollide.push(function () {
+	                _this.skew += 10;
+	            });
+	        }
+	        Object.defineProperty(PhysicsBlock.prototype, "gravity", {
+	            get: function () {
+	                return this.internalGravity;
+	            },
+	            set: function (newValue) {
+	                this.internalGravity = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        PhysicsBlock.prototype.Tick = function (deltaTime) {
+	            _super.prototype.Tick.call(this, deltaTime);
+	            if (this.locationComponent.right > this.worldWidth) {
+	                this.rebound.play();
+	                this.skew += 3;
+	                this.locationComponent.xPosition = this.worldWidth - this.locationComponent.width;
+	                this.locationComponent.xSpeed = -Math.abs(this.locationComponent.xSpeed);
+	            }
+	            if (this.locationComponent.left < 0) {
+	                this.rebound.play();
+	                this.locationComponent.xPosition = 0;
+	                this.skew += 3;
+	                this.locationComponent.xSpeed = Math.abs(this.locationComponent.xSpeed);
+	            }
+	            this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
+	        };
+	        PhysicsBlock.prototype.Render = function (renderContext, orchestrator) {
+	            return _super.prototype.Render.call(this, renderContext, orchestrator);
+	        };
+	        PhysicsBlock.prototype.Reset = function () {
+	            _super.prototype.Reset.call(this);
+	        };
+	        return PhysicsBlock;
+	    })(block_1.Block);
+	    exports.PhysicsBlock = PhysicsBlock;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(9), __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
+	    var Block = (function () {
+	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
+	            this.isAlive = true;
+	            this.locationComponent = new locationComponent_1.LocationComponent(worldPosition.x, worldPosition.y, dimensions.x, dimensions.y, worldPosition.dX, worldPosition.dY, 0);
+	            this.collisionComponent = new collisionComponent_1.CollisionComponent(this.locationComponent);
+	            this.inputComponent = new inputComponent_1.InputComponent();
+	            this.internalColor = color;
+	            this.horizontalSpeedLimit = xSpeedLimit;
+	            this.verticalSpeedLimit = Block.verticalSpeedLimit;
+	            this.initialWorldPosition = {
+	                dX: worldPosition.dX,
+	                dY: worldPosition.dY,
+	                x: worldPosition.x,
+	                y: worldPosition.y
+	            };
+	            this.skew = 0;
+	        }
+	        Object.defineProperty(Block.prototype, "fillColor", {
+	            get: function () {
+	                return this.internalColor;
+	            },
+	            set: function (newValue) {
+	                this.internalColor = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(Block.prototype, "onMove", {
+	            get: function () {
+	                return this.onMoveCallback;
+	            },
+	            set: function (newValue) {
+	                this.onMoveCallback = newValue;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(Block.prototype, "skewedPosition", {
+	            get: function () {
+	                var skewAdjustment = this.skew === 0 ? 0 : Math.sin(this.skew);
+	                skewAdjustment = skewAdjustment * this.skew;
+	                var widthAdjustment = (skewAdjustment * this.locationComponent.width * Block.skewScale);
+	                var heightAdjustment = (skewAdjustment * this.locationComponent.height * Block.skewScale);
+	                return {
+	                    height: this.locationComponent.height + heightAdjustment,
+	                    width: this.locationComponent.width - widthAdjustment,
+	                    x: this.locationComponent.xPositionValue + (widthAdjustment / 2),
+	                    y: this.locationComponent.yPositionValue - (heightAdjustment / 2)
+	                };
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(Block.prototype, "direction", {
+	            get: function () {
+	                return this.locationComponent.xSpeed >= 0 ? "right" : "left";
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Block.prototype.Tick = function (deltaTime) {
+	            this.locationComponent.xPosition = this.locationComponent.xPositionValue + (this.locationComponent.xSpeed * deltaTime);
+	            this.locationComponent.yPosition = this.locationComponent.yPositionValue + (this.locationComponent.ySpeed * deltaTime);
+	            if (this.onMoveCallback) {
+	                this.onMoveCallback({ x: this.locationComponent.xSpeed, y: this.locationComponent.ySpeed });
+	            }
+	            this.skew = Math.max(0, this.skew - (Block.skewReduction * deltaTime));
+	            this.verticalSpeedLimit += Block.verticalSpeedLimitDelta * deltaTime;
+	            this.locationComponent.ySpeed = Math.min(this.locationComponent.ySpeed, this.verticalSpeedLimit);
+	            this.locationComponent.ySpeed = Math.max(this.locationComponent.ySpeed, -this.verticalSpeedLimit);
+	            this.locationComponent.xSpeed = Math.min(this.locationComponent.xSpeed, this.horizontalSpeedLimit);
+	            this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit);
+	        };
+	        Block.prototype.Render = function (renderContext, orchestrator) {
+	            var particlePosition = this.locationComponent.Duplicate();
+	            particlePosition.xSpeed = 0;
+	            particlePosition.ySpeed = 0;
+	            var anyColor = "red";
+	            this.renderComponent.layers.forEach(function (layer) {
+	                var possibleRectangleLayer = layer;
+	                if (possibleRectangleLayer.fillColorValue) {
+	                    anyColor = possibleRectangleLayer.fillColorValue;
+	                }
+	            });
+	            var particleOpacity = 0.2;
+	            var particle = {
+	                locationComponent: particlePosition,
+	                renderComponent: new renderComponent_1.RenderComponent(particlePosition, new renderComponent_1.RectangleLayer(anyColor), function () {
+	                    particleOpacity -= 0.01;
+	                    if (particleOpacity <= 0) {
+	                        orchestrator.Remove(particle);
+	                        return 0;
+	                    }
+	                    return particleOpacity;
+	                }, this.renderComponent.zIndex - 0.1)
+	            };
+	            orchestrator.Add(particle);
+	            return [];
+	        };
+	        Block.prototype.Reset = function () {
+	            this.locationComponent.xPosition = this.initialWorldPosition.x;
+	            this.locationComponent.yPosition = this.initialWorldPosition.y;
+	            this.locationComponent.xSpeed = this.initialWorldPosition.dX;
+	            this.locationComponent.ySpeed = this.initialWorldPosition.dY;
+	            this.verticalSpeedLimit = Block.verticalSpeedLimit;
+	        };
+	        Block.verticalSpeedLimit = 10;
+	        Block.verticalSpeedLimitDelta = 0.01;
+	        Block.skewScale = 0.07;
+	        Block.skewReduction = 0.3;
+	        return Block;
+	    })();
+	    exports.Block = Block;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
@@ -1483,7 +1589,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
 	    var Platform = (function (_super) {
 	        __extends(Platform, _super);
 	        function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
@@ -1704,109 +1810,18 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1, locationComponent_1, renderComponent_1) {
-	    var RenderSystem = (function (_super) {
-	        __extends(RenderSystem, _super);
-	        function RenderSystem(renderContext) {
-	            _super.call(this);
-	            this._offsetX = 0;
-	            this._offsetY = 0;
-	            this._renderContext = renderContext;
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	    var LocationSystem = (function (_super) {
+	        __extends(LocationSystem, _super);
+	        function LocationSystem() {
+	            _super.apply(this, arguments);
 	        }
-	        Object.defineProperty(RenderSystem.prototype, "offsetX", {
-	            get: function () {
-	                return this._offsetX;
-	            },
-	            set: function (newValue) {
-	                this._offsetX = newValue;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Object.defineProperty(RenderSystem.prototype, "offsetY", {
-	            get: function () {
-	                return this._offsetY;
-	            },
-	            set: function (newValue) {
-	                this._offsetY = newValue;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        RenderSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
-	            var _this = this;
-	            system_1.System.ApplyToIndividuals(entities, function (entity) {
-	                return !!entity.renderComponent;
-	            }, function (entity) {
-	                _this.Draw(entity, orchestrator, deltaTime);
-	            }, function (entity) {
-	                return entity.renderComponent.zIndex;
-	            });
+	        LocationSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
+	            "noOp".toString();
 	        };
-	        RenderSystem.prototype.Draw = function (entity, orchestrator, deltaTime) {
-	            if (!entity.renderComponent) {
-	                return;
-	            }
-	            this._renderContext.save();
-	            var renderComponent = entity.renderComponent;
-	            this._renderContext.globalAlpha = renderComponent.opacityValue;
-	            if (renderComponent.position.type === locationComponent_1.LocationType.world) {
-	                this.OffsetViewport();
-	            }
-	            this.RotateAroundCenter(renderComponent.position);
-	            this.MoveToPosition(renderComponent.position);
-	            var layers = renderComponent.layers;
-	            for (var layerIndex = 0; layerIndex < layers.length; layerIndex++) {
-	                var layer = layers[layerIndex];
-	                this._renderContext.save();
-	                this.OffsetLayer(layer);
-	                if (layer instanceof renderComponent_1.RectangleLayer) {
-	                    this.DrawRect(renderComponent, layer);
-	                }
-	                else if (layer instanceof renderComponent_1.SpriteLayer) {
-	                    this.DrawSprite(renderComponent, layer);
-	                }
-	                else if (layer instanceof renderComponent_1.TextLayer) {
-	                    this.DrawText(renderComponent, layer);
-	                }
-	                this._renderContext.restore();
-	            }
-	            this._renderContext.restore();
-	        };
-	        RenderSystem.prototype.RotateAroundCenter = function (position) {
-	            this._renderContext.translate(position.centerXPosition, position.centerYPosition);
-	            this._renderContext.rotate(position.rotationInDegrees);
-	            this._renderContext.translate(-position.centerXPosition, -position.centerYPosition);
-	        };
-	        RenderSystem.prototype.MoveToPosition = function (position) {
-	            this._renderContext.translate(position.xPositionValue, position.yPositionValue);
-	        };
-	        RenderSystem.prototype.OffsetLayer = function (layer) {
-	            this._renderContext.translate(layer.offsetX, layer.offsetY);
-	        };
-	        RenderSystem.prototype.OffsetViewport = function () {
-	            this._renderContext.translate(this._offsetX, this._offsetY);
-	        };
-	        RenderSystem.prototype.DrawRect = function (renderComponent, rectangleLayer) {
-	            var skewedPosition = renderComponent.skewedPosition;
-	            this._renderContext.beginPath();
-	            this._renderContext.rect(0, 0, skewedPosition.width, skewedPosition.height);
-	            this._renderContext.fillStyle = rectangleLayer.fillColorValue;
-	            this._renderContext.fill();
-	            this._renderContext.closePath();
-	        };
-	        RenderSystem.prototype.DrawSprite = function (renderComponent, spriteLayer) {
-	            var skewedPosition = renderComponent.skewedPosition;
-	            this._renderContext.drawImage(spriteLayer.image, 0, 0, spriteLayer.image.width, spriteLayer.image.height, 0, 0, skewedPosition.width, skewedPosition.height);
-	        };
-	        RenderSystem.prototype.DrawText = function (renderComponent, textLayer) {
-	            this._renderContext.font = textLayer.sizeInPixels.toString() + "px " + textLayer.font;
-	            this._renderContext.fillStyle = textLayer.fillColorValue;
-	            this._renderContext.fillText(textLayer.textValue, 0, 0);
-	        };
-	        return RenderSystem;
+	        return LocationSystem;
 	    })(system_1.System);
-	    exports.RenderSystem = RenderSystem;
+	    exports.LocationSystem = LocationSystem;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
@@ -1964,6 +1979,80 @@
 	        return ScoreSystem;
 	    })(system_1.System);
 	    exports.ScoreSystem = ScoreSystem;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	    (function (GameState) {
+	        GameState[GameState["Menu"] = 1] = "Menu";
+	        GameState[GameState["Game"] = 2] = "Game";
+	    })(exports.GameState || (exports.GameState = {}));
+	    var GameState = exports.GameState;
+	    var GameStateSystem = (function (_super) {
+	        __extends(GameStateSystem, _super);
+	        function GameStateSystem() {
+	            _super.call(this);
+	            this._removables = [];
+	            this._state = GameState.Menu;
+	        }
+	        Object.defineProperty(GameStateSystem.prototype, "OnMenuState", {
+	            get: function () {
+	                return this._onMenuState;
+	            },
+	            set: function (newHandler) {
+	                this._onMenuState = newHandler;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Object.defineProperty(GameStateSystem.prototype, "OnGameState", {
+	            get: function () {
+	                return this._onGameState;
+	            },
+	            set: function (newHandler) {
+	                this._onGameState = newHandler;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        GameStateSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
+	            var nextState = this._nextState;
+	            this._nextState = undefined;
+	            if (this._state === nextState || !nextState) {
+	                return;
+	            }
+	            this._state = nextState;
+	            orchestrator.Remove(this._removables);
+	            this._removables = [];
+	            switch (nextState) {
+	                case GameState.Game:
+	                    this._onGameState(this._removables);
+	                    break;
+	                case GameState.Menu:
+	                    this._onMenuState(this._removables);
+	                    break;
+	                default:
+	                    break;
+	            }
+	        };
+	        GameStateSystem.prototype.StartGame = function () {
+	            this._nextState = GameState.Game;
+	        };
+	        GameStateSystem.prototype.EndGame = function () {
+	            this._nextState = GameState.Menu;
+	        };
+	        return GameStateSystem;
+	    })(system_1.System);
+	    exports.GameStateSystem = GameStateSystem;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 

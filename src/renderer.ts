@@ -10,6 +10,8 @@ import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationComponent, LocationType} from "entitySystem/locationComponent";
 import {RenderComponent, RenderLayer, SpriteLayer, TextLayer} from "entitySystem/renderComponent";
 import {ScoreSystem} from "entitySystem/scoreSystem";
+import {GameStateSystem} from "entitySystem/gameStateSystem";
+import {Entity} from "entitySystem/entity";
 
 export class Renderer {
 	// Constants
@@ -35,12 +37,14 @@ export class Renderer {
 	private controller: Controller;
 
 	private orchestrator: Orchestrator;
+	private gameStateSystem: GameStateSystem;
 
 	constructor(canvas: HTMLCanvasElement, controller: Controller, orchestrator: Orchestrator) {
 		this.canvas = canvas;
 		this.context = canvas.getContext("2d");
 		this.controller = controller;
 		this.orchestrator = orchestrator;
+		this.gameStateSystem = orchestrator.GetSystem("gameState") as GameStateSystem;
 
 		this.volume = new Volume(
 			{
@@ -54,156 +58,188 @@ export class Renderer {
 
 		this.deathSound = this.volume.createSound("snd/death.wav", {});
 
-		let playerPosition: MovingPoint = {
-			dX: 2,
-			dY: -2,
-			x: 30,
-			y: 110
-		};
-		let playerDimensions: Point = {
-			x: 30,
-			y: 30
-		};
-		this.player = new Player(
-			playerPosition,
-			playerDimensions,
-			"#FF0000",
-			controller,
-			Renderer.defaultGravity,
-			Renderer.gameWidth,
-			this.volume);
-		orchestrator.Add(this.player);
-
-		let scoreDisplayFactory: (text: () => string, size: number,
-			verticalOffset: number) => void = (text: () => string,
-			size: number, verticalOffset: number) => {
-
-			let scoreDisplayPosition: LocationComponent = new LocationComponent(
-				20,
-				canvas.height - verticalOffset - 20,
-				0,
-				0,
-				0,
-				0,
-				0,
-				LocationType.ui);
-
-			orchestrator.Add({
-				locationComponent: scoreDisplayPosition,
-				renderComponent: new RenderComponent(
-					scoreDisplayPosition,
-					[
-						new TextLayer(text, "ffffff", "Oswald", size),
-					],
-					0.8,
-					0.5)
-			});
-		};
-
 		let scoreSystem: ScoreSystem = orchestrator.GetSystem("score") as ScoreSystem;
-		scoreDisplayFactory(
-			() => {
-				return scoreSystem.multiplier.toString();
-			},
-			200,
-			200);
-		scoreDisplayFactory(
-			() => {
-				return "x " + scoreSystem.points.toString();
-			},
-			100,
-			100);
-		scoreDisplayFactory(
-			() => {
-				return "~ " + scoreSystem.totalScore.toString();
-			},
-			100,
-			0);
 
-		let backgroundLayerFactory: (scrollRate: number, zIndex: number, spriteUrl: string) => void =
-			(scrollRate: number, zIndex: number, spriteUrl: string) => {
+		this.gameStateSystem.OnGameState = (removables: Entity[]) => {
+			let playerPosition: MovingPoint = {
+				dX: 2,
+				dY: -2,
+				x: 30,
+				y: 110
+			};
+			let playerDimensions: Point = {
+				x: 30,
+				y: 30
+			};
+			this.player = new Player(
+				playerPosition,
+				playerDimensions,
+				"#FF0000",
+				controller,
+				Renderer.defaultGravity,
+				Renderer.gameWidth,
+				this.volume);
+			removables.push(this.player);
+			orchestrator.Add(this.player);
 
-			let layerHeight: number = canvas.height * 2;
+			let scoreDisplayFactory: (text: () => string, size: number,
+				verticalOffset: number) => void = (text: () => string,
+				size: number, verticalOffset: number) => {
 
-			let backgroundLayerPosition: LocationComponent = new LocationComponent(
-				0,
-				0,
-				canvas.width,
-				layerHeight,
-				0,
-				0,
-				0,
-				LocationType.ui
-			);
+				let scoreDisplayPosition: LocationComponent = new LocationComponent(
+					20,
+					canvas.height - verticalOffset - 20,
+					0,
+					0,
+					0,
+					0,
+					0,
+					LocationType.ui);
 
-			let spriteLayers: RenderLayer[] = [
-				SpriteLayer.FromPath(spriteUrl),
-				SpriteLayer.FromPath(spriteUrl)
-			];
+				let entity: Entity = {
+					locationComponent: scoreDisplayPosition,
+					renderComponent: new RenderComponent(
+						scoreDisplayPosition,
+						[
+							new TextLayer(text, "ffffff", "Oswald", size),
+						],
+						0.8,
+						0.5)
+				};
+				removables.push(entity);
+				orchestrator.Add(entity);
+			};
 
-			let backgroundSpritePainter: RenderComponent = new RenderComponent(
-				backgroundLayerPosition,
+			scoreDisplayFactory(
 				() => {
-					let layerOffset: number = (this.viewport.offset % layerHeight) * scrollRate;
-
-					spriteLayers[0].offsetY = layerOffset;
-					spriteLayers[1].offsetY = layerOffset - (layerHeight);
-
-					return spriteLayers;
+					return scoreSystem.multiplier.toString();
 				},
-				1,
-				zIndex
-			);
+				200,
+				200);
+			scoreDisplayFactory(
+				() => {
+					return "x " + scoreSystem.points.toString();
+				},
+				100,
+				100);
+			scoreDisplayFactory(
+				() => {
+					return "~ " + scoreSystem.totalScore.toString();
+				},
+				100,
+				0);
 
-			orchestrator.Add({
-				locationComponent: backgroundLayerPosition,
-				renderComponent: backgroundSpritePainter
-			});
+			let backgroundLayerFactory: (scrollRate: number, zIndex: number, spriteUrl: string) => void =
+				(scrollRate: number, zIndex: number, spriteUrl: string) => {
+
+				let layerHeight: number = canvas.height * 2;
+
+				let backgroundLayerPosition: LocationComponent = new LocationComponent(
+					0,
+					0,
+					canvas.width,
+					layerHeight,
+					0,
+					0,
+					0,
+					LocationType.ui
+				);
+
+				let spriteLayers: RenderLayer[] = [
+					SpriteLayer.FromPath(spriteUrl),
+					SpriteLayer.FromPath(spriteUrl)
+				];
+
+				let backgroundSpritePainter: RenderComponent = new RenderComponent(
+					backgroundLayerPosition,
+					() => {
+						let layerOffset: number = (this.viewport.offset % layerHeight) * scrollRate;
+
+						spriteLayers[0].offsetY = layerOffset;
+						spriteLayers[1].offsetY = layerOffset - (layerHeight);
+
+						return spriteLayers;
+					},
+					1,
+					zIndex
+				);
+
+				let entity: Entity = {
+					locationComponent: backgroundLayerPosition,
+					renderComponent: backgroundSpritePainter
+				};
+				removables.push(entity);
+				orchestrator.Add(entity);
+			};
+
+			backgroundLayerFactory(0, 0, "img/staticBackground.png");
+			backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
+			backgroundLayerFactory(1, 0.2, "img/stars2.png");
+
+			let upArrowPosition: LocationComponent = new LocationComponent(
+				300,
+				40,
+				120,
+				99,
+				0,
+				0,
+				0,
+				LocationType.world);
+
+			let upArrowRender: RenderComponent = new RenderComponent(
+				upArrowPosition,
+				SpriteLayer.FromPath("img/upArrow.png"),
+				0.5,
+				0.3);
+
+			let upArrowEntity: Entity = {
+				locationComponent: upArrowPosition,
+				renderComponent: upArrowRender
+			};
+			removables.push(upArrowEntity);
+			orchestrator.Add(upArrowEntity);
+
+			let platformPosition: MovingPoint = {
+				dX: 2,
+				dY: 2,
+				x: 30,
+				y: 690
+			};
+			let platformDimensions: Point = {
+				x: 90,
+				y: 20
+			};
+			this.platform = new Platform(
+				platformPosition,
+				platformDimensions,
+				"#FFFFFF",
+				-Renderer.defaultGravity,
+				this.volume,
+				Renderer.gameWidth);
+			removables.push(this.platform);
+			orchestrator.Add(this.platform);
+			this.platform.viewport = this.viewport;
+
+			let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
+			this.player.onMove = (amountMoved: Point) => {
+				this.viewport.SlideUpTo(-this.player.locationComponent.yPosition + 50);
+
+				if (this.player.locationComponent.yPosition > -(this.viewport.offset - this.canvas.height)) {
+					this.isRunning = false;
+					this.deathSound.play();
+					this.gameStateSystem.EndGame();
+					this.menu.showMenu(scoreSystem.totalScore, this.player.fillColor);
+				}
+
+				if (originalOnMove) {
+					originalOnMove(amountMoved);
+				}
+			};
 		};
 
-		backgroundLayerFactory(0, 0, "img/staticBackground.png");
-		backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
-		backgroundLayerFactory(1, 0.2, "img/stars2.png");
-
-		let upArrowPosition: LocationComponent = new LocationComponent(
-			300,
-			40,
-			120,
-			99,
-			0,
-			0,
-			0,
-			LocationType.world);
-
-		let upArrowRender: RenderComponent = new RenderComponent(
-			upArrowPosition,
-			SpriteLayer.FromPath("img/upArrow.png"),
-			0.5,
-			0.3);
-
-		orchestrator.Add({
-			locationComponent: upArrowPosition,
-			renderComponent: upArrowRender
-		});
-
-		let platformPosition: MovingPoint = {
-			dX: 2,
-			dY: 2,
-			x: 30,
-			y: 690
+		this.gameStateSystem.OnMenuState = (removables: Entity[]) => {
+			"todo".toString();
 		};
-		let platformDimensions: Point = {
-			x: 90,
-			y: 20
-		};
-		this.platform = new Platform(
-			platformPosition,
-			platformDimensions,
-			"#FFFFFF",
-			-Renderer.defaultGravity,
-			this.volume,
-			Renderer.gameWidth);
-		orchestrator.Add(this.platform);
 
 		this.menu = new Menu(
 			{
@@ -212,11 +248,10 @@ export class Renderer {
 			},
 			controller,
 			() => {
-				this.player.Reset();
-				this.platform.Reset();
 				this.viewport.Reset();
 				this.isRunning = true;
 
+				this.gameStateSystem.StartGame();
 				scoreSystem.ResetScore();
 			},
 			this.volume
@@ -226,26 +261,9 @@ export class Renderer {
 			this.context,
 			[],
 			[],
-			[this.player, this.platform],
+			[],
 			this.orchestrator
 		);
-
-		this.platform.viewport = this.viewport;
-
-		let originalOnMove: (amountMoved: Point) => void = this.player.onMove;
-		this.player.onMove = (amountMoved: Point) => {
-			this.viewport.SlideUpTo(-this.player.locationComponent.yPosition + 50);
-
-			if (this.player.locationComponent.yPosition > -(this.viewport.offset - this.canvas.height)) {
-				this.isRunning = false;
-				this.deathSound.play();
-				this.menu.showMenu(scoreSystem.totalScore, this.player.fillColor);
-			}
-
-			if (originalOnMove) {
-				originalOnMove(amountMoved);
-			}
-		};
 	}
 
 	public Start(): void {
@@ -265,7 +283,6 @@ export class Renderer {
 		if (this.isRunning === true) {
 			this.player.Tick(scaledTime);
 			this.platform.Tick(scaledTime);
-			// Collider.processCollisions([this.player, this.platform]);
 		}
 
 		this.controller.clearClick();

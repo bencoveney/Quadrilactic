@@ -6,6 +6,7 @@ import {RenderSystem} from "entitySystem/renderSystem";
 import {CollisionSystem} from "entitySystem/collisionSystem";
 import {InputSystem} from "entitySystem/inputSystem";
 import {ScoreSystem} from "entitySystem/scoreSystem";
+import {GameStateSystem} from "entitySystem/gameStateSystem";
 
 let canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement;
 
@@ -19,7 +20,8 @@ let orchestrator: Orchestrator = new Orchestrator(
 	{
 		"input": new InputSystem(controller),
 		"collision": new CollisionSystem(),
-		"score": new ScoreSystem()
+		"score": new ScoreSystem(),
+		"gameState": new GameStateSystem()
 	},
 	{
 		"render": new RenderSystem(canvas.getContext("2d"))
