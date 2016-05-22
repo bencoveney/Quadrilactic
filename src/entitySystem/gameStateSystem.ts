@@ -53,7 +53,9 @@ export class GameStateSystem extends System {
 		this._state = nextState;
 
 		// Remove any specified entities.
-		orchestrator.Remove(this._removables);
+		this._removables.forEach((entity: Entity) => {
+			orchestrator.Remove(entity);
+		});
 		this._removables = [];
 
 		switch (nextState) {

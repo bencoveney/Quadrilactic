@@ -666,6 +666,28 @@
 	            this.backgroundMusic.play();
 	            this.deathSound = this.volume.createSound("snd/death.wav", {});
 	            var scoreSystem = orchestrator.GetSystem("score");
+	            var backgroundLayerFactory = function (scrollRate, zIndex, spriteUrl) {
+	                var layerHeight = canvas.height * 2;
+	                var backgroundLayerPosition = new locationComponent_1.LocationComponent(0, 0, canvas.width, layerHeight, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                var spriteLayers = [
+	                    renderComponent_1.SpriteLayer.FromPath(spriteUrl),
+	                    renderComponent_1.SpriteLayer.FromPath(spriteUrl)
+	                ];
+	                var backgroundSpritePainter = new renderComponent_1.RenderComponent(backgroundLayerPosition, function () {
+	                    var layerOffset = (_this.viewport.offset % layerHeight) * scrollRate;
+	                    spriteLayers[0].offsetY = layerOffset;
+	                    spriteLayers[1].offsetY = layerOffset - (layerHeight);
+	                    return spriteLayers;
+	                }, 1, zIndex);
+	                var entity = {
+	                    locationComponent: backgroundLayerPosition,
+	                    renderComponent: backgroundSpritePainter
+	                };
+	                orchestrator.Add(entity);
+	            };
+	            backgroundLayerFactory(0, 0, "img/staticBackground.png");
+	            backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
+	            backgroundLayerFactory(1, 0.2, "img/stars2.png");
 	            this.gameStateSystem.OnGameState = function (removables) {
 	                var playerPosition = {
 	                    dX: 2,
@@ -700,29 +722,6 @@
 	                scoreDisplayFactory(function () {
 	                    return "~ " + scoreSystem.totalScore.toString();
 	                }, 100, 0);
-	                var backgroundLayerFactory = function (scrollRate, zIndex, spriteUrl) {
-	                    var layerHeight = canvas.height * 2;
-	                    var backgroundLayerPosition = new locationComponent_1.LocationComponent(0, 0, canvas.width, layerHeight, 0, 0, 0, locationComponent_1.LocationType.ui);
-	                    var spriteLayers = [
-	                        renderComponent_1.SpriteLayer.FromPath(spriteUrl),
-	                        renderComponent_1.SpriteLayer.FromPath(spriteUrl)
-	                    ];
-	                    var backgroundSpritePainter = new renderComponent_1.RenderComponent(backgroundLayerPosition, function () {
-	                        var layerOffset = (_this.viewport.offset % layerHeight) * scrollRate;
-	                        spriteLayers[0].offsetY = layerOffset;
-	                        spriteLayers[1].offsetY = layerOffset - (layerHeight);
-	                        return spriteLayers;
-	                    }, 1, zIndex);
-	                    var entity = {
-	                        locationComponent: backgroundLayerPosition,
-	                        renderComponent: backgroundSpritePainter
-	                    };
-	                    removables.push(entity);
-	                    orchestrator.Add(entity);
-	                };
-	                backgroundLayerFactory(0, 0, "img/staticBackground.png");
-	                backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
-	                backgroundLayerFactory(1, 0.2, "img/stars2.png");
 	                var upArrowPosition = new locationComponent_1.LocationComponent(300, 40, 120, 99, 0, 0, 0, locationComponent_1.LocationType.world);
 	                var upArrowRender = new renderComponent_1.RenderComponent(upArrowPosition, renderComponent_1.SpriteLayer.FromPath("img/upArrow.png"), 0.5, 0.3);
 	                var upArrowEntity = {
@@ -2031,7 +2030,9 @@
 	                return;
 	            }
 	            this._state = nextState;
-	            orchestrator.Remove(this._removables);
+	            this._removables.forEach(function (entity) {
+	                orchestrator.Remove(entity);
+	            });
 	            this._removables = [];
 	            switch (nextState) {
 	                case GameState.Game:

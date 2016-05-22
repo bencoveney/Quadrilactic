@@ -60,6 +60,52 @@ export class Renderer {
 
 		let scoreSystem: ScoreSystem = orchestrator.GetSystem("score") as ScoreSystem;
 
+		let backgroundLayerFactory: (scrollRate: number, zIndex: number, spriteUrl: string) => void =
+			(scrollRate: number, zIndex: number, spriteUrl: string) => {
+
+			let layerHeight: number = canvas.height * 2;
+
+			let backgroundLayerPosition: LocationComponent = new LocationComponent(
+				0,
+				0,
+				canvas.width,
+				layerHeight,
+				0,
+				0,
+				0,
+				LocationType.ui
+			);
+
+			let spriteLayers: RenderLayer[] = [
+				SpriteLayer.FromPath(spriteUrl),
+				SpriteLayer.FromPath(spriteUrl)
+			];
+
+			let backgroundSpritePainter: RenderComponent = new RenderComponent(
+				backgroundLayerPosition,
+				() => {
+					let layerOffset: number = (this.viewport.offset % layerHeight) * scrollRate;
+
+					spriteLayers[0].offsetY = layerOffset;
+					spriteLayers[1].offsetY = layerOffset - (layerHeight);
+
+					return spriteLayers;
+				},
+				1,
+				zIndex
+			);
+
+			let entity: Entity = {
+				locationComponent: backgroundLayerPosition,
+				renderComponent: backgroundSpritePainter
+			};
+			orchestrator.Add(entity);
+		};
+
+		backgroundLayerFactory(0, 0, "img/staticBackground.png");
+		backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
+		backgroundLayerFactory(1, 0.2, "img/stars2.png");
+
 		this.gameStateSystem.OnGameState = (removables: Entity[]) => {
 			let playerPosition: MovingPoint = {
 				dX: 2,
@@ -128,53 +174,6 @@ export class Renderer {
 				},
 				100,
 				0);
-
-			let backgroundLayerFactory: (scrollRate: number, zIndex: number, spriteUrl: string) => void =
-				(scrollRate: number, zIndex: number, spriteUrl: string) => {
-
-				let layerHeight: number = canvas.height * 2;
-
-				let backgroundLayerPosition: LocationComponent = new LocationComponent(
-					0,
-					0,
-					canvas.width,
-					layerHeight,
-					0,
-					0,
-					0,
-					LocationType.ui
-				);
-
-				let spriteLayers: RenderLayer[] = [
-					SpriteLayer.FromPath(spriteUrl),
-					SpriteLayer.FromPath(spriteUrl)
-				];
-
-				let backgroundSpritePainter: RenderComponent = new RenderComponent(
-					backgroundLayerPosition,
-					() => {
-						let layerOffset: number = (this.viewport.offset % layerHeight) * scrollRate;
-
-						spriteLayers[0].offsetY = layerOffset;
-						spriteLayers[1].offsetY = layerOffset - (layerHeight);
-
-						return spriteLayers;
-					},
-					1,
-					zIndex
-				);
-
-				let entity: Entity = {
-					locationComponent: backgroundLayerPosition,
-					renderComponent: backgroundSpritePainter
-				};
-				removables.push(entity);
-				orchestrator.Add(entity);
-			};
-
-			backgroundLayerFactory(0, 0, "img/staticBackground.png");
-			backgroundLayerFactory(0.5, 0.1, "img/stars1.png");
-			backgroundLayerFactory(1, 0.2, "img/stars2.png");
 
 			let upArrowPosition: LocationComponent = new LocationComponent(
 				300,
