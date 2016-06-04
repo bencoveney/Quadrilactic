@@ -3,6 +3,7 @@ import {System} from "entitySystem/system";
 import {Orchestrator} from "entitySystem/orchestrator";
 
 export enum GameState {
+	None = 0,
 	Menu = 1,
 	Game = 2
 }
@@ -36,7 +37,8 @@ export class GameStateSystem extends System {
 	constructor() {
 		super();
 
-		this._state = GameState.Menu;
+		this._state     = GameState.None;
+		this._nextState = GameState.Menu;
 	}
 
 	public Run(entities: Entity[], orchestrator: Orchestrator, deltaTime: number): void {

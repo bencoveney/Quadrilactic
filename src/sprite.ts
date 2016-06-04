@@ -1,8 +1,7 @@
-import {Renderable} from "renderable";
 import {Point} from "point";
 import {Orchestrator} from "entitySystem/orchestrator";
 
-export class Sprite implements Renderable {
+export class Sprite {
 	public isAlive: boolean = true;
 	private image: HTMLImageElement;
 	private internalDimensions: Point;
@@ -18,7 +17,7 @@ export class Sprite implements Renderable {
 		this.internalDimensions = dimensions;
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): void {
 		renderContext.drawImage(
 			this.image,
 			// Source dimensions
@@ -31,7 +30,5 @@ export class Sprite implements Renderable {
 			0,
 			this.internalDimensions.x,
 			this.internalDimensions.y);
-
-		return [];
 	}
 }

@@ -164,6 +164,10 @@ export class RenderSystem extends System {
 
 		this._renderContext.fillStyle = textLayer.fillColorValue;
 
+		if (textLayer.isCentered) {
+			this._renderContext.textAlign = "center";
+		}
+
 		this._renderContext.fillText(textLayer.textValue, 0, 0);
 	}
 }

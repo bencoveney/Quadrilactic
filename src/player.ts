@@ -1,7 +1,6 @@
 import {Controller} from "controller";
 import {PhysicsBlock} from "physicsBlock";
 import {MovingPoint, Point} from "point";
-import {Renderable} from "renderable";
 import {Sound} from "sound";
 import {Volume} from "volume";
 import {Orchestrator} from "entitySystem/orchestrator";
@@ -126,10 +125,6 @@ export class Player extends PhysicsBlock {
 		}
 
 		this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
-	}
-
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
-		return super.Render(renderContext, orchestrator);
 	}
 
 	public Reset(): void {

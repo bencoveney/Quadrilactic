@@ -1,9 +1,7 @@
 import {Block} from "block";
 import {MovingPoint, Point} from "point";
-import {Renderable} from "renderable";
 import {Sound} from "sound";
 import {Volume} from "volume";
-import {Orchestrator} from "entitySystem/orchestrator";
 
 export class PhysicsBlock extends Block {
 
@@ -65,10 +63,6 @@ export class PhysicsBlock extends Block {
 
 		// Apply acceleration due to gravity
 		this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
-	}
-
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
-		return super.Render(renderContext, orchestrator);
 	}
 
 	public Reset(): void {

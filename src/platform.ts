@@ -1,6 +1,5 @@
 import {PhysicsBlock} from "physicsBlock";
 import {MovingPoint, Point} from "point";
-import {Renderable} from "renderable";
 import {Viewport} from "viewport";
 import {Volume} from "volume";
 import {Orchestrator} from "entitySystem/orchestrator";
@@ -52,10 +51,8 @@ export class Platform extends PhysicsBlock {
 		super.Tick(deltaTime);
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
-		if (this.offscreenAmount <= 0) {
-			return super.Render(renderContext, orchestrator);
-		} else {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): void {
+		if (this.offscreenAmount > 0) {
 			renderContext.save();
 
 			renderContext.fillStyle = this.fillColor;
@@ -77,8 +74,6 @@ export class Platform extends PhysicsBlock {
 			);
 
 			renderContext.restore();
-
-			return [];
 		}
 	}
 }

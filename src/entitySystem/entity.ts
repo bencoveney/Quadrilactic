@@ -3,6 +3,7 @@ import {RenderComponent} from "entitySystem/renderComponent";
 import {CollisionComponent} from "entitySystem/collisionComponent";
 import {InputComponent} from "entitySystem/inputComponent";
 import {ScoreComponent} from "entitySystem/scoreComponent";
+import {EmitterComponent} from "entitySystem/emitterComponent";
 
 export interface Entity {
 	locationComponent?: LocationComponent;
@@ -10,4 +11,5 @@ export interface Entity {
 	collisionComponent?: CollisionComponent;
 	inputComponent?: InputComponent;
 	scoreComponent?: ScoreComponent;
+	emitterComponent?: EmitterComponent;
 }

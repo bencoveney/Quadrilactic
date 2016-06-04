@@ -1,11 +1,10 @@
-import {Renderable} from "renderable";
 import {Controller} from "controller";
 import {Sound, SoundOptions} from "sound";
 import {Point} from "point";
 import {Sprite} from "sprite";
 import {Orchestrator} from "entitySystem/orchestrator";
 
-export class Volume implements Renderable {
+export class Volume {
 	private static opacityDecay: number =  0.02;
 	private static fadedOpacity: number = 0.4;
 	public isAlive: boolean = true;
@@ -52,7 +51,7 @@ export class Volume implements Renderable {
 		this.volumeChanged = this.createSound("snd/volume.wav", {});
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): void {
 		let mouseClick: Point = this.controller.getClickPosition();
 		if (mouseClick && this.isPointOnButton(mouseClick)) {
 			this.changeVolume();
@@ -101,8 +100,6 @@ export class Volume implements Renderable {
 		}
 
 		renderContext.restore();
-
-		return [];
 	}
 
 	public createSound(path: string, options: SoundOptions): Sound	{

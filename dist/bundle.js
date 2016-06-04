@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(19), __webpack_require__(20), __webpack_require__(21), __webpack_require__(1), __webpack_require__(22), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1, gameStateSystem_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(20), __webpack_require__(21), __webpack_require__(22), __webpack_require__(1), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25), __webpack_require__(26), __webpack_require__(27)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1, gameStateSystem_1, emitterSystem_1) {
 	    var canvas = document.getElementById("viewport");
 	    var controller = new controller_1.Controller(canvas);
 	    var orchestrator = new orchestrator_1.Orchestrator([], {
@@ -53,7 +53,8 @@
 	        "input": new inputSystem_1.InputSystem(controller),
 	        "collision": new collisionSystem_1.CollisionSystem(),
 	        "score": new scoreSystem_1.ScoreSystem(),
-	        "gameState": new gameStateSystem_1.GameStateSystem()
+	        "gameState": new gameStateSystem_1.GameStateSystem(),
+	        "emitter": new emitterSystem_1.EmitterSystem()
 	    }, {
 	        "render": new renderSystem_1.RenderSystem(canvas.getContext("2d"))
 	    });
@@ -174,6 +175,9 @@
 	        RenderSystem.prototype.DrawText = function (renderComponent, textLayer) {
 	            this._renderContext.font = textLayer.sizeInPixels.toString() + "px " + textLayer.font;
 	            this._renderContext.fillStyle = textLayer.fillColorValue;
+	            if (textLayer.isCentered) {
+	                this._renderContext.textAlign = "center";
+	            }
 	            this._renderContext.fillText(textLayer.textValue, 0, 0);
 	        };
 	        return RenderSystem;
@@ -576,12 +580,14 @@
 	    exports.SpriteLayer = SpriteLayer;
 	    var TextLayer = (function (_super) {
 	        __extends(TextLayer, _super);
-	        function TextLayer(text, fillColor, font, sizeInPixels) {
+	        function TextLayer(text, fillColor, font, sizeInPixels, isCentered) {
+	            if (isCentered === void 0) { isCentered = false; }
 	            _super.call(this);
 	            this._text = text;
 	            this._fillColor = fillColor;
 	            this._font = font;
 	            this._sizeInPixels = sizeInPixels;
+	            this._isCentered = isCentered;
 	        }
 	        Object.defineProperty(TextLayer.prototype, "text", {
 	            get: function () {
@@ -638,6 +644,13 @@
 	            enumerable: true,
 	            configurable: true
 	        });
+	        Object.defineProperty(TextLayer.prototype, "isCentered", {
+	            get: function () {
+	                return this._isCentered;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
 	        return TextLayer;
 	    })(RenderLayer);
 	    exports.TextLayer = TextLayer;
@@ -648,7 +661,7 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(13), __webpack_require__(14), __webpack_require__(16), __webpack_require__(18), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(14), __webpack_require__(15), __webpack_require__(17), __webpack_require__(19), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -759,7 +772,15 @@
 	                };
 	            };
 	            this.gameStateSystem.OnMenuState = function (removables) {
-	                "todo".toString();
+	                var menuOpacity = 1;
+	                var titlePosition = new locationComponent_1.LocationComponent((Renderer.gameWidth / 2), 140, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                var titleRender = new renderComponent_1.RenderComponent(titlePosition, new renderComponent_1.TextLayer("Quadrilactic", "#FFFFFF", "Oswald", 90, true), function () { return menuOpacity; }, 1);
+	                var titleText = {
+	                    locationComponent: titlePosition,
+	                    renderComponent: titleRender
+	                };
+	                removables.push(titleText);
+	                orchestrator.Add(titleText);
 	            };
 	            this.menu = new menu_1.Menu({
 	                x: this.canvas.width,
@@ -770,7 +791,7 @@
 	                _this.gameStateSystem.StartGame();
 	                scoreSystem.ResetScore();
 	            }, this.volume);
-	            this.viewport = new viewport_1.Viewport(this.context, [], [], [], this.orchestrator);
+	            this.viewport = new viewport_1.Viewport(this.context, this.orchestrator);
 	        }
 	        Renderer.prototype.Start = function () {
 	            var _this = this;
@@ -818,7 +839,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(4), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(4), __webpack_require__(13)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
 	    var Player = (function (_super) {
 	        __extends(Player, _super);
 	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
@@ -896,9 +917,6 @@
 	            }
 	            this.locationComponent.rotation += this.locationComponent.xSpeed / 2;
 	        };
-	        Player.prototype.Render = function (renderContext, orchestrator) {
-	            return _super.prototype.Render.call(this, renderContext, orchestrator);
-	        };
 	        Player.prototype.Reset = function () {
 	            _super.prototype.Reset.call(this);
 	            this.isJumping = false;
@@ -965,9 +983,6 @@
 	            }
 	            this.locationComponent.ySpeed += (this.internalGravity * deltaTime);
 	        };
-	        PhysicsBlock.prototype.Render = function (renderContext, orchestrator) {
-	            return _super.prototype.Render.call(this, renderContext, orchestrator);
-	        };
 	        PhysicsBlock.prototype.Reset = function () {
 	            _super.prototype.Reset.call(this);
 	        };
@@ -981,13 +996,38 @@
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(9), __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(9), __webpack_require__(11), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1, emitterComponent_1) {
 	    var Block = (function () {
 	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
-	            this.isAlive = true;
+	            var _this = this;
 	            this.locationComponent = new locationComponent_1.LocationComponent(worldPosition.x, worldPosition.y, dimensions.x, dimensions.y, worldPosition.dX, worldPosition.dY, 0);
 	            this.collisionComponent = new collisionComponent_1.CollisionComponent(this.locationComponent);
 	            this.inputComponent = new inputComponent_1.InputComponent();
+	            this.emitterComponent = new emitterComponent_1.EmitterComponent(function (orchestrator) {
+	                var particlePosition = _this.locationComponent.Duplicate();
+	                particlePosition.xSpeed = 0;
+	                particlePosition.ySpeed = 0;
+	                var anyColor = "red";
+	                _this.renderComponent.layers.forEach(function (layer) {
+	                    var possibleRectangleLayer = layer;
+	                    if (possibleRectangleLayer.fillColorValue) {
+	                        anyColor = possibleRectangleLayer.fillColorValue;
+	                    }
+	                });
+	                var particleOpacity = 0.2;
+	                var particle = {
+	                    locationComponent: particlePosition,
+	                    renderComponent: new renderComponent_1.RenderComponent(particlePosition, new renderComponent_1.RectangleLayer(anyColor), function () {
+	                        particleOpacity -= 0.01;
+	                        if (particleOpacity <= 0) {
+	                            orchestrator.Remove(particle);
+	                            return 0;
+	                        }
+	                        return particleOpacity;
+	                    }, _this.renderComponent.zIndex - 0.1)
+	                };
+	                orchestrator.Add(particle);
+	            });
 	            this.internalColor = color;
 	            this.horizontalSpeedLimit = xSpeedLimit;
 	            this.verticalSpeedLimit = Block.verticalSpeedLimit;
@@ -1054,32 +1094,6 @@
 	            this.locationComponent.ySpeed = Math.max(this.locationComponent.ySpeed, -this.verticalSpeedLimit);
 	            this.locationComponent.xSpeed = Math.min(this.locationComponent.xSpeed, this.horizontalSpeedLimit);
 	            this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit);
-	        };
-	        Block.prototype.Render = function (renderContext, orchestrator) {
-	            var particlePosition = this.locationComponent.Duplicate();
-	            particlePosition.xSpeed = 0;
-	            particlePosition.ySpeed = 0;
-	            var anyColor = "red";
-	            this.renderComponent.layers.forEach(function (layer) {
-	                var possibleRectangleLayer = layer;
-	                if (possibleRectangleLayer.fillColorValue) {
-	                    anyColor = possibleRectangleLayer.fillColorValue;
-	                }
-	            });
-	            var particleOpacity = 0.2;
-	            var particle = {
-	                locationComponent: particlePosition,
-	                renderComponent: new renderComponent_1.RenderComponent(particlePosition, new renderComponent_1.RectangleLayer(anyColor), function () {
-	                    particleOpacity -= 0.01;
-	                    if (particleOpacity <= 0) {
-	                        orchestrator.Remove(particle);
-	                        return 0;
-	                    }
-	                    return particleOpacity;
-	                }, this.renderComponent.zIndex - 0.1)
-	            };
-	            orchestrator.Add(particle);
-	            return [];
 	        };
 	        Block.prototype.Reset = function () {
 	            this.locationComponent.xPosition = this.initialWorldPosition.x;
@@ -1192,6 +1206,31 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var EmitterComponent = (function () {
+	        function EmitterComponent(emitter) {
+	            this._emitter = emitter;
+	        }
+	        Object.defineProperty(EmitterComponent.prototype, "emitter", {
+	            get: function () {
+	                return this._emitter;
+	            },
+	            set: function (newEmitter) {
+	                this._emitter = newEmitter;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        return EmitterComponent;
+	    })();
+	    exports.EmitterComponent = EmitterComponent;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
 	    var ScoreComponent = (function () {
 	        function ScoreComponent(points, multiplier) {
 	            this._points = points;
@@ -1248,18 +1287,13 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
 	    var Viewport = (function () {
-	        function Viewport(renderContext, fixedRenderables, backgroundRenderables, foregroundRenderables, orchestrator) {
+	        function Viewport(renderContext, orchestrator) {
 	            this.renderContext = renderContext;
-	            this.fixedRenderables = fixedRenderables;
-	            this.backgroundRenderables = backgroundRenderables;
-	            this.foregroundRenderables = foregroundRenderables;
-	            this.initialBackgroundRenderables = [].concat(backgroundRenderables);
-	            this.initialForegroundRenderables = [].concat(foregroundRenderables);
 	            this.renderOffset = 0;
 	            this.orchestrator = orchestrator;
 	        }
@@ -1287,15 +1321,6 @@
 	            }
 	        };
 	        Viewport.prototype.Render = function (fps) {
-	            this.renderContext.save();
-	            this.renderContext.translate(0, this.renderOffset);
-	            this.backgroundRenderables = this.RenderSubSet(this.backgroundRenderables);
-	            this.renderContext.restore();
-	            this.fixedRenderables = this.RenderSubSet(this.fixedRenderables);
-	            this.renderContext.save();
-	            this.renderContext.translate(0, this.renderOffset);
-	            this.foregroundRenderables = this.RenderSubSet(this.foregroundRenderables);
-	            this.renderContext.restore();
 	            if (fps) {
 	                this.renderContext.fillStyle = "#FFFFFF";
 	                this.renderContext.fillText("FPS: " + fps.toString(), 0, 10);
@@ -1304,17 +1329,6 @@
 	        Viewport.prototype.Reset = function () {
 	            this.renderOffset = 0;
 	            this.orchestrator.GetSystem("render").offsetY = 0;
-	            this.backgroundRenderables = [].concat(this.initialBackgroundRenderables);
-	            this.foregroundRenderables = [].concat(this.initialForegroundRenderables);
-	        };
-	        Viewport.prototype.RenderSubSet = function (subSet) {
-	            var newRenderables = subSet;
-	            for (var i = 0; i < subSet.length; i++) {
-	                newRenderables = subSet[i].Render(this.renderContext, this.orchestrator).concat(newRenderables);
-	            }
-	            return newRenderables.filter(function (renderable) {
-	                return renderable.isAlive;
-	            });
 	        };
 	        return Viewport;
 	    })();
@@ -1323,13 +1337,12 @@
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(16)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
 	    var Menu = (function () {
 	        function Menu(renderDimensions, controller, onStartGame, volume) {
-	            this.isAlive = true;
 	            this.renderDimensions = renderDimensions;
 	            this.isMenuOpen = true;
 	            this.isButtonHovered = false;
@@ -1392,7 +1405,6 @@
 	            this.controlDiagram.Render(renderContext, orchestrator);
 	            renderContext.restore();
 	            this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
-	            return [];
 	        };
 	        Menu.prototype.showMenu = function (totalPoints, scoreColor) {
 	            this.isMenuOpen = true;
@@ -1420,7 +1432,7 @@
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1440,7 +1452,6 @@
 	        });
 	        Sprite.prototype.Render = function (renderContext, orchestrator) {
 	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
-	            return [];
 	        };
 	        return Sprite;
 	    })();
@@ -1449,10 +1460,10 @@
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(17), __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(18), __webpack_require__(16)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
 	    var Volume = (function () {
 	        function Volume(renderDimensions, controller) {
 	            this.isAlive = true;
@@ -1518,7 +1529,6 @@
 	                    break;
 	            }
 	            renderContext.restore();
-	            return [];
 	        };
 	        Volume.prototype.createSound = function (path, options) {
 	            var newSound = new sound_1.Sound(path, options);
@@ -1552,7 +1562,7 @@
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1580,7 +1590,7 @@
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1621,10 +1631,7 @@
 	            _super.prototype.Tick.call(this, deltaTime);
 	        };
 	        Platform.prototype.Render = function (renderContext, orchestrator) {
-	            if (this.offscreenAmount <= 0) {
-	                return _super.prototype.Render.call(this, renderContext, orchestrator);
-	            }
-	            else {
+	            if (this.offscreenAmount > 0) {
 	                renderContext.save();
 	                renderContext.fillStyle = this.fillColor;
 	                renderContext.globalAlpha = 0.2;
@@ -1632,7 +1639,6 @@
 	                renderContext.globalAlpha = 1;
 	                renderContext.fillRect(this.locationComponent.left, this.bottomOfScreen - this.locationComponent.height, ((this.offscreenAmount / 10) % this.locationComponent.width), this.locationComponent.height);
 	                renderContext.restore();
-	                return [];
 	            }
 	        };
 	        Platform.platformSpeedIncrease = 1000;
@@ -1644,7 +1650,7 @@
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1740,7 +1746,7 @@
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1801,7 +1807,7 @@
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1825,7 +1831,7 @@
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1879,7 +1885,7 @@
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1916,7 +1922,7 @@
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1982,7 +1988,7 @@
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1992,6 +1998,7 @@
 	};
 	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
 	    (function (GameState) {
+	        GameState[GameState["None"] = 0] = "None";
 	        GameState[GameState["Menu"] = 1] = "Menu";
 	        GameState[GameState["Game"] = 2] = "Game";
 	    })(exports.GameState || (exports.GameState = {}));
@@ -2001,7 +2008,8 @@
 	        function GameStateSystem() {
 	            _super.call(this);
 	            this._removables = [];
-	            this._state = GameState.Menu;
+	            this._state = GameState.None;
+	            this._nextState = GameState.Menu;
 	        }
 	        Object.defineProperty(GameStateSystem.prototype, "OnMenuState", {
 	            get: function () {
@@ -2054,6 +2062,38 @@
 	        return GameStateSystem;
 	    })(system_1.System);
 	    exports.GameStateSystem = GameStateSystem;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, system_1) {
+	    var EmitterSystem = (function (_super) {
+	        __extends(EmitterSystem, _super);
+	        function EmitterSystem() {
+	            _super.call(this);
+	        }
+	        EmitterSystem.prototype.Run = function (entities, orchestrator, deltaTime) {
+	            var _this = this;
+	            system_1.System.ApplyToIndividuals(entities, function (entity) {
+	                return !!entity.emitterComponent;
+	            }, function (entity) {
+	                _this.Emit(entity, orchestrator, deltaTime);
+	            });
+	        };
+	        EmitterSystem.prototype.Emit = function (entity, orchestrator, deltaTime) {
+	            entity.emitterComponent.emitter(orchestrator, deltaTime);
+	        };
+	        return EmitterSystem;
+	    })(system_1.System);
+	    exports.EmitterSystem = EmitterSystem;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 

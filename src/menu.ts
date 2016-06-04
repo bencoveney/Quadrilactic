@@ -1,4 +1,3 @@
-import {Renderable} from "renderable";
 import {Controller} from "controller";
 import {Sound} from "sound";
 import {Volume} from "volume";
@@ -6,15 +5,13 @@ import {Sprite} from "sprite";
 import {Point} from "point";
 import {Orchestrator} from "entitySystem/orchestrator";
 
-export class Menu implements Renderable {
+export class Menu {
 	private static titleFontSizeInPx: number = 90;
 	private static scoreFontSizeInPx: number = 50;
 	private static playFontSizeInPx: number = 50;
 	private static buttonWidth: number = 225;
 	private static buttonHeight: number = 100;
 	private static fadeInRate: number = 0.02;
-
-	public isAlive: boolean = true;
 
 	private renderDimensions: Point;
 	private isMenuOpen: boolean;
@@ -58,7 +55,7 @@ export class Menu implements Renderable {
 		this.controlDiagram = new Sprite("img/controls.png", { x: 390, y: 237 });
 	}
 
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
+	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): void {
 		let mouseClick: Point = this.controller.getClickPosition();
 		if ((mouseClick && this.isPointOnButton(mouseClick))
 			|| this.controller.isKeyPressed("enter")
@@ -127,8 +124,6 @@ export class Menu implements Renderable {
 		renderContext.restore();
 
 		this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
-
-		return [];
 	}
 
 	public showMenu(totalPoints: number, scoreColor: string): void {

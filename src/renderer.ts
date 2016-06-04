@@ -237,7 +237,38 @@ export class Renderer {
 		};
 
 		this.gameStateSystem.OnMenuState = (removables: Entity[]) => {
-			"todo".toString();
+
+			let menuOpacity: number = 1;
+
+			let titlePosition: LocationComponent = new LocationComponent(
+				(Renderer.gameWidth / 2),
+				140,
+				0,
+				0,
+				0,
+				0,
+				0,
+				LocationType.ui
+			);
+
+			let titleRender: RenderComponent = new RenderComponent(
+				titlePosition,
+				new TextLayer(
+					"Quadrilactic",
+					"#FFFFFF",
+					"Oswald",
+					90,
+					true),
+				() => menuOpacity,
+				1);
+
+			let titleText: Entity = {
+				locationComponent: titlePosition,
+				renderComponent: titleRender
+			};
+
+			removables.push(titleText);
+			orchestrator.Add(titleText);
 		};
 
 		this.menu = new Menu(
@@ -258,9 +289,6 @@ export class Renderer {
 
 		this.viewport = new Viewport(
 			this.context,
-			[],
-			[],
-			[],
 			this.orchestrator
 		);
 	}

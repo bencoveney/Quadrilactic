@@ -153,6 +153,7 @@ export class TextLayer extends RenderLayer {
 	private _fillColor: string | Function;
 	private _font: string;
 	private _sizeInPixels: number;
+	private _isCentered: boolean;
 
 	get text(): string | Function {
 		return this._text;
@@ -189,12 +190,23 @@ export class TextLayer extends RenderLayer {
 		return this._sizeInPixels;
 	}
 
-	constructor(text: string | Function, fillColor: string | Function, font: string, sizeInPixels: number) {
+	get isCentered(): boolean {
+		return this._isCentered;
+	}
+
+	constructor(
+		text: string | Function,
+		fillColor: string | Function,
+		font: string,
+		sizeInPixels: number,
+		isCentered: boolean = false
+	) {
 		super();
 
 		this._text = text;
 		this._fillColor = fillColor;
 		this._font = font;
 		this._sizeInPixels = sizeInPixels;
+		this._isCentered = isCentered;
 	}
 }

@@ -1,5 +1,4 @@
 import {MovingPoint, Point, Rectangle} from "point";
-import {Renderable} from "renderable";
 import {Entity} from "entitySystem/entity";
 import {LocationComponent} from "entitySystem/locationComponent";
 import {RenderComponent, RenderLayer, RectangleLayer} from "entitySystem/renderComponent";
@@ -7,15 +6,14 @@ import {Orchestrator} from "entitySystem/orchestrator";
 import {CollisionComponent} from "entitySystem/collisionComponent";
 import {InputComponent} from "entitySystem/inputComponent";
 import {ScoreComponent} from "entitySystem/scoreComponent";
+import {EmitterComponent} from "entitySystem/emitterComponent";
 
-export class Block implements Renderable, Entity {
+export class Block implements Entity {
 	// Constants
 	private static verticalSpeedLimit: number = 10;
 	private static verticalSpeedLimitDelta: number = 0.01;
 	private static skewScale: number = 0.07;
 	private static skewReduction: number= 0.3;
-
-	public isAlive: boolean = true;
 
 	protected skew: number;
 
@@ -24,6 +22,7 @@ export class Block implements Renderable, Entity {
 	public inputComponent: InputComponent;
 	public renderComponent: RenderComponent;
 	public scoreComponent: ScoreComponent;
+	public emitterComponent: EmitterComponent;
 
 	// Private members
 	private internalColor: string;
@@ -82,6 +81,44 @@ export class Block implements Renderable, Entity {
 
 		this.inputComponent = new InputComponent();
 
+		this.emitterComponent = new EmitterComponent((orchestrator: Orchestrator) => {
+
+			let particlePosition: LocationComponent = this.locationComponent.Duplicate();
+			particlePosition.xSpeed = 0;
+			particlePosition.ySpeed = 0;
+
+			let anyColor: string = "red";
+			this.renderComponent.layers.forEach((layer: RenderLayer) => {
+				let possibleRectangleLayer: RectangleLayer = layer as RectangleLayer;
+
+				if (possibleRectangleLayer.fillColorValue) {
+					anyColor = possibleRectangleLayer.fillColorValue;
+				}
+			});
+
+			let particleOpacity: number = 0.2;
+			let particle: Entity = {
+				locationComponent: particlePosition,
+				renderComponent: new RenderComponent(
+					particlePosition,
+					new RectangleLayer(anyColor),
+					(): number => {
+						// Fade out.
+						particleOpacity -= 0.01;
+
+						// Delete if too faded.
+						if (particleOpacity <= 0) {
+							orchestrator.Remove(particle);
+							return 0;
+						}
+						return particleOpacity;
+					},
+					this.renderComponent.zIndex - 0.1)
+			};
+
+			orchestrator.Add(particle);
+		});
+
 		this.internalColor = color;
 		this.horizontalSpeedLimit = xSpeedLimit;
 
@@ -116,45 +153,6 @@ export class Block implements Renderable, Entity {
 		this.locationComponent.ySpeed = Math.max(this.locationComponent.ySpeed, -this.verticalSpeedLimit);
 		this.locationComponent.xSpeed = Math.min(this.locationComponent.xSpeed, this.horizontalSpeedLimit );
 		this.locationComponent.xSpeed = Math.max(this.locationComponent.xSpeed, -this.horizontalSpeedLimit );
-	}
-
-	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): Renderable[] {
-
-		let particlePosition: LocationComponent = this.locationComponent.Duplicate();
-		particlePosition.xSpeed = 0;
-		particlePosition.ySpeed = 0;
-
-		let anyColor: string = "red";
-		this.renderComponent.layers.forEach((layer: RenderLayer) => {
-			let possibleRectangleLayer: RectangleLayer = layer as RectangleLayer;
-
-			if (possibleRectangleLayer.fillColorValue) {
-				anyColor = possibleRectangleLayer.fillColorValue;
-			}
-		});
-
-		let particleOpacity: number = 0.2;
-		let particle: Entity = {
-			locationComponent: particlePosition,
-			renderComponent: new RenderComponent(
-				particlePosition,
-				new RectangleLayer(anyColor),
-				(): number => {
-					// Fade out.
-					particleOpacity -= 0.01;
-
-					// Delete if too faded.
-					if (particleOpacity <= 0) {
-						orchestrator.Remove(particle);
-						return 0;
-					}
-					return particleOpacity;
-				},
-				this.renderComponent.zIndex - 0.1)
-		};
-		orchestrator.Add(particle);
-
-		return [];
 	}
 
 	public Reset(): void {
