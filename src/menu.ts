@@ -1,13 +1,10 @@
 import {Controller} from "controller";
 import {Sound} from "sound";
 import {Volume} from "volume";
-import {Sprite} from "sprite";
 import {Point} from "point";
 import {Orchestrator} from "entitySystem/orchestrator";
 
 export class Menu {
-	private static titleFontSizeInPx: number = 90;
-	private static scoreFontSizeInPx: number = 50;
 	private static playFontSizeInPx: number = 50;
 	private static buttonWidth: number = 225;
 	private static buttonHeight: number = 100;
@@ -25,8 +22,6 @@ export class Menu {
 	private buttonHover: Sound;
 	private buttonUnhover: Sound;
 	private buttonClick: Sound;
-	private controlPosition: Point;
-	private controlDiagram: Sprite;
 
 	public constructor(
 		renderDimensions: Point,
@@ -50,9 +45,6 @@ export class Menu {
 		this.buttonHover = volume.createSound("snd/button_on.wav", {});
 		this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
 		this.buttonClick = volume.createSound("snd/button_click.wav", {});
-
-		this.controlPosition = { x: 45, y: 300};
-		this.controlDiagram = new Sprite("img/controls.png", { x: 390, y: 237 });
 	}
 
 	public Render(renderContext: CanvasRenderingContext2D, orchestrator: Orchestrator): void {
@@ -77,25 +69,6 @@ export class Menu {
 
 		let horizontalCenter: number = (this.renderDimensions.x / 2);
 
-		renderContext.save();
-
-		renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
-		renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
-		renderContext.textAlign = "center";
-		renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
-
-		if (this.lastPoints) {
-			renderContext.save();
-
-			renderContext.font = "" + Menu.scoreFontSizeInPx + "px Oswald";
-			renderContext.fillStyle = this.scoreColor;
-			renderContext.globalAlpha = this.opacity;
-			renderContext.textAlign = "center";
-			renderContext.fillText("Score: " + this.lastPoints, horizontalCenter, Menu.titleFontSizeInPx + Menu.scoreFontSizeInPx + 70);
-
-			renderContext.restore();
-		}
-
 		if (this.isButtonHovered) {
 			renderContext.fillRect(
 				this.playButtonPosition.x,
@@ -115,13 +88,6 @@ export class Menu {
 		renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
 		renderContext.textAlign = "center";
 		renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
-
-		// Draw the controls
-		renderContext.globalAlpha = this.opacity;
-		renderContext.translate(this.controlPosition.x, this.controlPosition.y);
-		this.controlDiagram.Render(renderContext, orchestrator);
-
-		renderContext.restore();
 
 		this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
 	}

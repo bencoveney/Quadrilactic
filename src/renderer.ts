@@ -269,6 +269,69 @@ export class Renderer {
 
 			removables.push(titleText);
 			orchestrator.Add(titleText);
+
+			let scorePosition: LocationComponent = new LocationComponent(
+				(Renderer.gameWidth / 2),
+				210,
+				0,
+				0,
+				0,
+				0,
+				0,
+				LocationType.ui);
+
+			let currentScore: number = (orchestrator.GetSystem("score") as ScoreSystem).totalScore;
+
+			let scoreRender: RenderComponent = new RenderComponent(
+				scorePosition,
+				() => {
+					let result: RenderLayer[] = [];
+
+					if (currentScore > 0) {
+						result.push(new TextLayer(
+							"Score: " + currentScore,
+							"#FFFFFF",
+							"Oswald",
+							50,
+							true));
+					}
+
+					return result;
+				},
+				() => menuOpacity,
+				1);
+
+			let scoreText: Entity = {
+				locationComponent: scorePosition,
+				renderComponent: scoreRender
+			};
+
+			removables.push(scoreText);
+			orchestrator.Add(scoreText);
+
+			let instructionsPosition: LocationComponent = new LocationComponent(
+				45,
+				300,
+				390,
+				237,
+				0,
+				0,
+				0,
+				LocationType.ui);
+
+			let instructionsRender: RenderComponent = new RenderComponent(
+				instructionsPosition,
+				SpriteLayer.FromPath("img/controls.png"),
+				() => menuOpacity,
+				1);
+
+			let instructionsImage: Entity = {
+				locationComponent: instructionsPosition,
+				renderComponent: instructionsRender
+			};
+
+			removables.push(instructionsImage);
+			orchestrator.Add(instructionsImage);
 		};
 
 		this.menu = new Menu(

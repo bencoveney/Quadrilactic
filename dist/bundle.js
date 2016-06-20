@@ -178,6 +178,9 @@
 	            if (textLayer.isCentered) {
 	                this._renderContext.textAlign = "center";
 	            }
+	            else {
+	                this._renderContext.textAlign = "left";
+	            }
 	            this._renderContext.fillText(textLayer.textValue, 0, 0);
 	        };
 	        return RenderSystem;
@@ -661,7 +664,7 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(14), __webpack_require__(15), __webpack_require__(17), __webpack_require__(19), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(14), __webpack_require__(15), __webpack_require__(16), __webpack_require__(19), __webpack_require__(3), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -781,6 +784,29 @@
 	                };
 	                removables.push(titleText);
 	                orchestrator.Add(titleText);
+	                var scorePosition = new locationComponent_1.LocationComponent((Renderer.gameWidth / 2), 210, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                var currentScore = orchestrator.GetSystem("score").totalScore;
+	                var scoreRender = new renderComponent_1.RenderComponent(scorePosition, function () {
+	                    var result = [];
+	                    if (currentScore > 0) {
+	                        result.push(new renderComponent_1.TextLayer("Score: " + currentScore, "#FFFFFF", "Oswald", 50, true));
+	                    }
+	                    return result;
+	                }, function () { return menuOpacity; }, 1);
+	                var scoreText = {
+	                    locationComponent: scorePosition,
+	                    renderComponent: scoreRender
+	                };
+	                removables.push(scoreText);
+	                orchestrator.Add(scoreText);
+	                var instructionsPosition = new locationComponent_1.LocationComponent(45, 300, 390, 237, 0, 0, 0, locationComponent_1.LocationType.ui);
+	                var instructionsRender = new renderComponent_1.RenderComponent(instructionsPosition, renderComponent_1.SpriteLayer.FromPath("img/controls.png"), function () { return menuOpacity; }, 1);
+	                var instructionsImage = {
+	                    locationComponent: instructionsPosition,
+	                    renderComponent: instructionsRender
+	                };
+	                removables.push(instructionsImage);
+	                orchestrator.Add(instructionsImage);
 	            };
 	            this.menu = new menu_1.Menu({
 	                x: this.canvas.width,
@@ -1340,7 +1366,7 @@
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(16)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
 	    var Menu = (function () {
 	        function Menu(renderDimensions, controller, onStartGame, volume) {
 	            this.renderDimensions = renderDimensions;
@@ -1356,8 +1382,6 @@
 	            this.buttonHover = volume.createSound("snd/button_on.wav", {});
 	            this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
 	            this.buttonClick = volume.createSound("snd/button_click.wav", {});
-	            this.controlPosition = { x: 45, y: 300 };
-	            this.controlDiagram = new sprite_1.Sprite("img/controls.png", { x: 390, y: 237 });
 	        }
 	        Menu.prototype.Render = function (renderContext, orchestrator) {
 	            var mouseClick = this.controller.getClickPosition();
@@ -1376,20 +1400,6 @@
 	            }
 	            this.isButtonHovered = buttonIsNowHovered;
 	            var horizontalCenter = (this.renderDimensions.x / 2);
-	            renderContext.save();
-	            renderContext.font = "" + Menu.titleFontSizeInPx + "px Oswald";
-	            renderContext.fillStyle = "rgba(255,255,255," + this.opacity + ")";
-	            renderContext.textAlign = "center";
-	            renderContext.fillText("Quadrilactic", horizontalCenter, Menu.titleFontSizeInPx + 50);
-	            if (this.lastPoints) {
-	                renderContext.save();
-	                renderContext.font = "" + Menu.scoreFontSizeInPx + "px Oswald";
-	                renderContext.fillStyle = this.scoreColor;
-	                renderContext.globalAlpha = this.opacity;
-	                renderContext.textAlign = "center";
-	                renderContext.fillText("Score: " + this.lastPoints, horizontalCenter, Menu.titleFontSizeInPx + Menu.scoreFontSizeInPx + 70);
-	                renderContext.restore();
-	            }
 	            if (this.isButtonHovered) {
 	                renderContext.fillRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
 	            }
@@ -1400,10 +1410,6 @@
 	            renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
 	            renderContext.textAlign = "center";
 	            renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
-	            renderContext.globalAlpha = this.opacity;
-	            renderContext.translate(this.controlPosition.x, this.controlPosition.y);
-	            this.controlDiagram.Render(renderContext, orchestrator);
-	            renderContext.restore();
 	            this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
 	        };
 	        Menu.prototype.showMenu = function (totalPoints, scoreColor) {
@@ -1419,8 +1425,6 @@
 	                && point.y > this.playButtonPosition.y
 	                && point.y < this.playButtonPosition.y + Menu.buttonHeight;
 	        };
-	        Menu.titleFontSizeInPx = 90;
-	        Menu.scoreFontSizeInPx = 50;
 	        Menu.playFontSizeInPx = 50;
 	        Menu.buttonWidth = 225;
 	        Menu.buttonHeight = 100;
@@ -1435,35 +1439,7 @@
 /* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Sprite = (function () {
-	        function Sprite(imagePath, dimensions) {
-	            this.isAlive = true;
-	            this.image = new Image();
-	            this.image.src = imagePath;
-	            this.dimensions = dimensions;
-	        }
-	        Object.defineProperty(Sprite.prototype, "dimensions", {
-	            set: function (dimensions) {
-	                this.internalDimensions = dimensions;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Sprite.prototype.Render = function (renderContext, orchestrator) {
-	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
-	        };
-	        return Sprite;
-	    })();
-	    exports.Sprite = Sprite;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(18), __webpack_require__(16)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(17), __webpack_require__(18)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
 	    var Volume = (function () {
 	        function Volume(renderDimensions, controller) {
 	            this.isAlive = true;
@@ -1562,7 +1538,7 @@
 
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1586,6 +1562,34 @@
 	        return Sound;
 	    })();
 	    exports.Sound = Sound;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var Sprite = (function () {
+	        function Sprite(imagePath, dimensions) {
+	            this.isAlive = true;
+	            this.image = new Image();
+	            this.image.src = imagePath;
+	            this.dimensions = dimensions;
+	        }
+	        Object.defineProperty(Sprite.prototype, "dimensions", {
+	            set: function (dimensions) {
+	                this.internalDimensions = dimensions;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Sprite.prototype.Render = function (renderContext, orchestrator) {
+	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
+	        };
+	        return Sprite;
+	    })();
+	    exports.Sprite = Sprite;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
