@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(20), __webpack_require__(21), __webpack_require__(22), __webpack_require__(1), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25), __webpack_require__(26), __webpack_require__(27)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1, gameStateSystem_1, emitterSystem_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5), __webpack_require__(19), __webpack_require__(20), __webpack_require__(21), __webpack_require__(1), __webpack_require__(22), __webpack_require__(23), __webpack_require__(24), __webpack_require__(25), __webpack_require__(26)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, renderer_1, controller_1, orchestrator_1, locationSystem_1, renderSystem_1, collisionSystem_1, inputSystem_1, scoreSystem_1, gameStateSystem_1, emitterSystem_1) {
 	    var canvas = document.getElementById("viewport");
 	    var controller = new controller_1.Controller(canvas);
 	    var orchestrator = new orchestrator_1.Orchestrator([], {
@@ -487,12 +487,11 @@
 	        });
 	        Object.defineProperty(RenderComponent.prototype, "layers", {
 	            get: function () {
-	                if (typeof this._layers === "function") {
-	                    return this._layers();
+	                var currentLayers = this._layers;
+	                if (typeof currentLayers === "function") {
+	                    currentLayers = currentLayers();
 	                }
-	                else {
-	                    return [].concat(this._layers);
-	                }
+	                return [].concat(currentLayers);
 	            },
 	            enumerable: true,
 	            configurable: true
@@ -664,7 +663,7 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(9), __webpack_require__(17), __webpack_require__(18), __webpack_require__(6), __webpack_require__(19), __webpack_require__(3), __webpack_require__(4), __webpack_require__(14)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, menu_1, volume_1, platform_1, locationComponent_1, renderComponent_1, inputComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6), __webpack_require__(14), __webpack_require__(15), __webpack_require__(18), __webpack_require__(3), __webpack_require__(4), __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, player_1, viewport_1, volume_1, platform_1, locationComponent_1, renderComponent_1, inputComponent_1) {
 	    var Renderer = (function () {
 	        function Renderer(canvas, controller, orchestrator) {
 	            var _this = this;
@@ -767,7 +766,6 @@
 	                        _this.isRunning = false;
 	                        _this.deathSound.play();
 	                        _this.gameStateSystem.EndGame();
-	                        _this.menu.showMenu(scoreSystem.totalScore, _this.player.fillColor);
 	                    }
 	                    if (originalOnMove) {
 	                        originalOnMove(amountMoved);
@@ -775,9 +773,16 @@
 	                };
 	            };
 	            this.gameStateSystem.OnMenuState = function (removables) {
-	                var menuOpacity = 1;
+	                var menuOpacityValue = 0;
+	                var menuOpacityTween = 0.02;
+	                var menuOpacity = function () {
+	                    return function () {
+	                        menuOpacityValue = Math.min(menuOpacityValue + menuOpacityTween, 1);
+	                        return menuOpacityValue;
+	                    };
+	                };
 	                var titlePosition = new locationComponent_1.LocationComponent((Renderer.gameWidth / 2), 140, 0, 0, 0, 0, 0, locationComponent_1.LocationType.ui);
-	                var titleRender = new renderComponent_1.RenderComponent(titlePosition, new renderComponent_1.TextLayer("Quadrilactic", "#FFFFFF", "Oswald", 90, true), function () { return menuOpacity; }, 1);
+	                var titleRender = new renderComponent_1.RenderComponent(titlePosition, new renderComponent_1.TextLayer("Quadrilactic", "#FFFFFF", "Oswald", 90, true), menuOpacity(), 1);
 	                var titleText = {
 	                    locationComponent: titlePosition,
 	                    renderComponent: titleRender
@@ -792,7 +797,7 @@
 	                        result.push(new renderComponent_1.TextLayer("Score: " + currentScore, "#FFFFFF", "Oswald", 50, true));
 	                    }
 	                    return result;
-	                }, function () { return menuOpacity; }, 1);
+	                }, menuOpacity(), 1);
 	                var scoreText = {
 	                    locationComponent: scorePosition,
 	                    renderComponent: scoreRender
@@ -800,7 +805,7 @@
 	                removables.push(scoreText);
 	                orchestrator.Add(scoreText);
 	                var instructionsPosition = new locationComponent_1.LocationComponent(45, 300, 390, 237, 0, 0, 0, locationComponent_1.LocationType.ui);
-	                var instructionsRender = new renderComponent_1.RenderComponent(instructionsPosition, renderComponent_1.SpriteLayer.FromPath("img/controls.png"), function () { return menuOpacity; }, 1);
+	                var instructionsRender = new renderComponent_1.RenderComponent(instructionsPosition, renderComponent_1.SpriteLayer.FromPath("img/controls.png"), menuOpacity(), 1);
 	                var instructionsImage = {
 	                    locationComponent: instructionsPosition,
 	                    renderComponent: instructionsRender
@@ -814,17 +819,32 @@
 	                var playButtonTextSize = 50;
 	                var playButtonForegroundColor = "#000000";
 	                var playButtonBackgroundColor = "#FFFFFF";
+	                var buttonHover = _this.volume.createSound("snd/button_on.wav", {});
+	                var buttonUnhover = _this.volume.createSound("snd/button_off.wav", {});
+	                var buttonClick = _this.volume.createSound("snd/button_click.wav", {});
 	                var playBackgroundPosition = new locationComponent_1.LocationComponent(playButtonLeft, playButtonTop, playButtonWidth, playButtonHeight, 0, 0, 0, locationComponent_1.LocationType.ui);
 	                var playBackgroundRender = new renderComponent_1.RenderComponent(playBackgroundPosition, [
 	                    new renderComponent_1.RectangleLayer(function () { return playButtonBackgroundColor; })
-	                ], function () { return menuOpacity; }, 1);
+	                ], menuOpacity(), 1);
 	                var playBackgroundInput = new inputComponent_1.InputComponent();
 	                playBackgroundInput.onMouseOver.push(function () {
 	                    playButtonBackgroundColor = "#FF0000";
+	                    buttonHover.play();
 	                });
 	                playBackgroundInput.onMouseOut.push(function () {
 	                    playButtonBackgroundColor = "#FFFFFF";
+	                    buttonUnhover.play();
 	                });
+	                var startGame = function () {
+	                    buttonClick.play();
+	                    _this.viewport.Reset();
+	                    _this.isRunning = true;
+	                    _this.gameStateSystem.StartGame();
+	                    scoreSystem.ResetScore();
+	                };
+	                playBackgroundInput.getKeyHandler("e").push(startGame);
+	                playBackgroundInput.getKeyHandler("enter").push(startGame);
+	                playBackgroundInput.onMouseClick.push(startGame);
 	                var playBackground = {
 	                    inputComponent: playBackgroundInput,
 	                    locationComponent: playBackgroundPosition,
@@ -835,7 +855,7 @@
 	                var playTextPosition = new locationComponent_1.LocationComponent(Renderer.gameWidth / 2, playButtonTop + 70, playButtonWidth, playButtonHeight, 0, 0, 0, locationComponent_1.LocationType.ui);
 	                var playTextRender = new renderComponent_1.RenderComponent(playTextPosition, [
 	                    new renderComponent_1.TextLayer("Play", function () { return playButtonForegroundColor; }, "Oswald", playButtonTextSize, true)
-	                ], function () { return menuOpacity; }, 1);
+	                ], menuOpacity(), 1);
 	                var playText = {
 	                    locationComponent: playTextPosition,
 	                    renderComponent: playTextRender
@@ -843,15 +863,6 @@
 	                removables.push(playText);
 	                orchestrator.Add(playText);
 	            };
-	            this.menu = new menu_1.Menu({
-	                x: this.canvas.width,
-	                y: this.canvas.height
-	            }, controller, function () {
-	                _this.viewport.Reset();
-	                _this.isRunning = true;
-	                _this.gameStateSystem.StartGame();
-	                scoreSystem.ResetScore();
-	            }, this.volume);
 	            this.viewport = new viewport_1.Viewport(this.context, this.orchestrator);
 	        }
 	        Renderer.prototype.Start = function () {
@@ -876,9 +887,6 @@
 	            if (this.isRunning) {
 	                this.viewport.Render(this.lastFps);
 	            }
-	            else {
-	                this.menu.Render(this.context, this.orchestrator);
-	            }
 	            this.volume.Render(this.context, this.orchestrator);
 	        };
 	        Renderer.defaultGravity = 0.2;
@@ -894,170 +902,12 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
-	    var Volume = (function () {
-	        function Volume(renderDimensions, controller) {
-	            this.isAlive = true;
-	            this.controller = controller;
-	            this.soundButtonPosition = {
-	                x: renderDimensions.x - 40,
-	                y: 10
-	            };
-	            this.soundButtonDimensions = {
-	                x: 30,
-	                y: 30
-	            };
-	            this.opacity = Volume.fadedOpacity;
-	            this.level = parseInt(localStorage.getItem("volumePosition") || 2, 10);
-	            this.volume0 = new sprite_1.Sprite("img/volume0.png", this.soundButtonDimensions);
-	            this.volume1 = new sprite_1.Sprite("img/volume1.png", this.soundButtonDimensions);
-	            this.volume2 = new sprite_1.Sprite("img/volume2.png", this.soundButtonDimensions);
-	            this.volume3 = new sprite_1.Sprite("img/volume3.png", this.soundButtonDimensions);
-	            this.volume4 = new sprite_1.Sprite("img/volume4.png", this.soundButtonDimensions);
-	            this.isVolumeKeyPressed = false;
-	            this.sounds = [];
-	            this.volumeChanged = this.createSound("snd/volume.wav", {});
-	        }
-	        Volume.prototype.Render = function (renderContext, orchestrator) {
-	            var mouseClick = this.controller.getClickPosition();
-	            if (mouseClick && this.isPointOnButton(mouseClick)) {
-	                this.changeVolume();
-	            }
-	            if (this.isPointOnButton(this.controller.getMousePosition())) {
-	                this.opacity = 1;
-	            }
-	            if (this.controller.isKeyPressed(["m", "v"])) {
-	                if (!this.isVolumeKeyPressed) {
-	                    this.changeVolume();
-	                    this.isVolumeKeyPressed = true;
-	                }
-	            }
-	            else {
-	                this.isVolumeKeyPressed = false;
-	            }
-	            this.opacity = Math.max(this.opacity - Volume.opacityDecay, Volume.fadedOpacity);
-	            renderContext.save();
-	            renderContext.globalAlpha = this.opacity;
-	            renderContext.translate(this.soundButtonPosition.x, this.soundButtonPosition.y);
-	            switch (this.level) {
-	                case 0:
-	                    this.volume0.Render(renderContext, orchestrator);
-	                    break;
-	                case 1:
-	                    this.volume1.Render(renderContext, orchestrator);
-	                    break;
-	                case 2:
-	                    this.volume2.Render(renderContext, orchestrator);
-	                    break;
-	                case 3:
-	                    this.volume3.Render(renderContext, orchestrator);
-	                    break;
-	                case 4:
-	                    this.volume4.Render(renderContext, orchestrator);
-	                    break;
-	                default:
-	                    this.volume4.Render(renderContext, orchestrator);
-	                    break;
-	            }
-	            renderContext.restore();
-	        };
-	        Volume.prototype.createSound = function (path, options) {
-	            var newSound = new sound_1.Sound(path, options);
-	            newSound.volume = this.level / 5;
-	            this.sounds.push(newSound);
-	            return newSound;
-	        };
-	        Volume.prototype.isPointOnButton = function (point) {
-	            return point
-	                && point.x > this.soundButtonPosition.x
-	                && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
-	                && point.y > this.soundButtonPosition.y
-	                && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
-	        };
-	        Volume.prototype.changeVolume = function () {
-	            var _this = this;
-	            this.opacity = 1;
-	            this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
-	            localStorage.setItem("volumePosition", this.level.toString());
-	            this.sounds.forEach(function (sound) {
-	                sound.volume = _this.level / 5;
-	            });
-	            this.volumeChanged.play();
-	        };
-	        Volume.opacityDecay = 0.02;
-	        Volume.fadedOpacity = 0.4;
-	        return Volume;
-	    })();
-	    exports.Volume = Volume;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Sound = (function () {
-	        function Sound(path, options) {
-	            this.sound = new Audio(path);
-	            this.sound.volume = options.volume || Sound.defaultVolume;
-	            this.sound.loop = options.isLooping === true;
-	        }
-	        Sound.prototype.play = function () {
-	            this.sound.play();
-	        };
-	        Object.defineProperty(Sound.prototype, "volume", {
-	            set: function (newVolume) {
-	                this.sound.volume = newVolume;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Sound.defaultVolume = 0.3;
-	        return Sound;
-	    })();
-	    exports.Sound = Sound;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Sprite = (function () {
-	        function Sprite(imagePath, dimensions) {
-	            this.isAlive = true;
-	            this.image = new Image();
-	            this.image.src = imagePath;
-	            this.dimensions = dimensions;
-	        }
-	        Object.defineProperty(Sprite.prototype, "dimensions", {
-	            set: function (dimensions) {
-	                this.internalDimensions = dimensions;
-	            },
-	            enumerable: true,
-	            configurable: true
-	        });
-	        Sprite.prototype.Render = function (renderContext, orchestrator) {
-	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
-	        };
-	        return Sprite;
-	    })();
-	    exports.Sprite = Sprite;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10), __webpack_require__(4), __webpack_require__(16)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(4), __webpack_require__(13)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1, scoreComponent_1) {
 	    var Player = (function (_super) {
 	        __extends(Player, _super);
 	        function Player(worldPosition, dimensions, color, controller, gravity, worldWidth, volume) {
@@ -1154,7 +1004,7 @@
 
 
 /***/ },
-/* 10 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1162,7 +1012,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(11)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, block_1) {
 	    var PhysicsBlock = (function (_super) {
 	        __extends(PhysicsBlock, _super);
 	        function PhysicsBlock(worldPosition, dimensions, color, gravity, volume, xSpeedLimit, worldWidth) {
@@ -1211,10 +1061,10 @@
 
 
 /***/ },
-/* 11 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(12), __webpack_require__(14), __webpack_require__(15)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1, emitterComponent_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(3), __webpack_require__(4), __webpack_require__(9), __webpack_require__(11), __webpack_require__(12)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, locationComponent_1, renderComponent_1, collisionComponent_1, inputComponent_1, emitterComponent_1) {
 	    var Block = (function () {
 	        function Block(worldPosition, dimensions, color, xSpeedLimit) {
 	            var _this = this;
@@ -1331,10 +1181,10 @@
 
 
 /***/ },
-/* 12 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(13)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
 	    var CollisionComponent = (function () {
 	        function CollisionComponent(position) {
 	            this._onCollide = new callbackArray_1.CallbackArray();
@@ -1364,7 +1214,7 @@
 
 
 /***/ },
-/* 13 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1390,10 +1240,10 @@
 
 
 /***/ },
-/* 14 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(13)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, callbackArray_1) {
 	    var InputComponent = (function () {
 	        function InputComponent() {
 	            this._keyHandlers = {};
@@ -1464,7 +1314,7 @@
 
 
 /***/ },
-/* 15 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1489,7 +1339,7 @@
 
 
 /***/ },
-/* 16 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1549,7 +1399,7 @@
 
 
 /***/ },
-/* 17 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1599,80 +1449,165 @@
 
 
 /***/ },
-/* 18 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
-	    var Menu = (function () {
-	        function Menu(renderDimensions, controller, onStartGame, volume) {
-	            this.renderDimensions = renderDimensions;
-	            this.isMenuOpen = true;
-	            this.isButtonHovered = false;
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(16), __webpack_require__(17)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, sound_1, sprite_1) {
+	    var Volume = (function () {
+	        function Volume(renderDimensions, controller) {
+	            this.isAlive = true;
 	            this.controller = controller;
-	            this.onStartGame = onStartGame;
-	            this.opacity = 0;
-	            this.playButtonPosition = {
-	                x: (renderDimensions.x - Menu.buttonWidth) / 2,
-	                y: (renderDimensions.y - (Menu.buttonHeight * 2)) + 0.5
+	            this.soundButtonPosition = {
+	                x: renderDimensions.x - 40,
+	                y: 10
 	            };
-	            this.buttonHover = volume.createSound("snd/button_on.wav", {});
-	            this.buttonUnhover = volume.createSound("snd/button_off.wav", {});
-	            this.buttonClick = volume.createSound("snd/button_click.wav", {});
+	            this.soundButtonDimensions = {
+	                x: 30,
+	                y: 30
+	            };
+	            this.opacity = Volume.fadedOpacity;
+	            this.level = parseInt(localStorage.getItem("volumePosition") || 2, 10);
+	            this.volume0 = new sprite_1.Sprite("img/volume0.png", this.soundButtonDimensions);
+	            this.volume1 = new sprite_1.Sprite("img/volume1.png", this.soundButtonDimensions);
+	            this.volume2 = new sprite_1.Sprite("img/volume2.png", this.soundButtonDimensions);
+	            this.volume3 = new sprite_1.Sprite("img/volume3.png", this.soundButtonDimensions);
+	            this.volume4 = new sprite_1.Sprite("img/volume4.png", this.soundButtonDimensions);
+	            this.isVolumeKeyPressed = false;
+	            this.sounds = [];
+	            this.volumeChanged = this.createSound("snd/volume.wav", {});
 	        }
-	        Menu.prototype.Render = function (renderContext, orchestrator) {
+	        Volume.prototype.Render = function (renderContext, orchestrator) {
 	            var mouseClick = this.controller.getClickPosition();
-	            if ((mouseClick && this.isPointOnButton(mouseClick))
-	                || this.controller.isKeyPressed("enter")
-	                || this.controller.isKeyPressed("e")) {
-	                this.buttonClick.play();
-	                this.onStartGame();
+	            if (mouseClick && this.isPointOnButton(mouseClick)) {
+	                this.changeVolume();
 	            }
-	            var buttonIsNowHovered = this.isPointOnButton(this.controller.getMousePosition());
-	            if (buttonIsNowHovered && !this.isButtonHovered) {
-	                this.buttonHover.play();
+	            if (this.isPointOnButton(this.controller.getMousePosition())) {
+	                this.opacity = 1;
 	            }
-	            else if (!buttonIsNowHovered && this.isButtonHovered) {
-	                this.buttonUnhover.play();
+	            if (this.controller.isKeyPressed(["m", "v"])) {
+	                if (!this.isVolumeKeyPressed) {
+	                    this.changeVolume();
+	                    this.isVolumeKeyPressed = true;
+	                }
 	            }
-	            this.isButtonHovered = buttonIsNowHovered;
-	            var horizontalCenter = (this.renderDimensions.x / 2);
-	            if (this.isButtonHovered) {
-	                renderContext.fillRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
+	            else {
+	                this.isVolumeKeyPressed = false;
 	            }
-	            renderContext.strokeStyle = "rgba(255,255,255," + this.opacity + ")";
-	            renderContext.lineWidth = 3;
-	            renderContext.strokeRect(this.playButtonPosition.x, this.playButtonPosition.y, Menu.buttonWidth, Menu.buttonHeight);
-	            renderContext.font = "" + Menu.playFontSizeInPx + "px Oswald";
-	            renderContext.fillStyle = (this.isButtonHovered ? "rgba(0,0,0," : "rgba(255,255,255,") + this.opacity + ")";
-	            renderContext.textAlign = "center";
-	            renderContext.fillText("Play", horizontalCenter, (Menu.playFontSizeInPx * 1.45) + this.playButtonPosition.y);
-	            this.opacity = Math.min(1, this.opacity + Menu.fadeInRate);
+	            this.opacity = Math.max(this.opacity - Volume.opacityDecay, Volume.fadedOpacity);
+	            renderContext.save();
+	            renderContext.globalAlpha = this.opacity;
+	            renderContext.translate(this.soundButtonPosition.x, this.soundButtonPosition.y);
+	            switch (this.level) {
+	                case 0:
+	                    this.volume0.Render(renderContext, orchestrator);
+	                    break;
+	                case 1:
+	                    this.volume1.Render(renderContext, orchestrator);
+	                    break;
+	                case 2:
+	                    this.volume2.Render(renderContext, orchestrator);
+	                    break;
+	                case 3:
+	                    this.volume3.Render(renderContext, orchestrator);
+	                    break;
+	                case 4:
+	                    this.volume4.Render(renderContext, orchestrator);
+	                    break;
+	                default:
+	                    this.volume4.Render(renderContext, orchestrator);
+	                    break;
+	            }
+	            renderContext.restore();
 	        };
-	        Menu.prototype.showMenu = function (totalPoints, scoreColor) {
-	            this.isMenuOpen = true;
-	            this.opacity = 0;
-	            this.lastPoints = totalPoints;
-	            this.scoreColor = scoreColor;
+	        Volume.prototype.createSound = function (path, options) {
+	            var newSound = new sound_1.Sound(path, options);
+	            newSound.volume = this.level / 5;
+	            this.sounds.push(newSound);
+	            return newSound;
 	        };
-	        Menu.prototype.isPointOnButton = function (point) {
+	        Volume.prototype.isPointOnButton = function (point) {
 	            return point
-	                && point.x > this.playButtonPosition.x
-	                && point.x < this.playButtonPosition.x + Menu.buttonWidth
-	                && point.y > this.playButtonPosition.y
-	                && point.y < this.playButtonPosition.y + Menu.buttonHeight;
+	                && point.x > this.soundButtonPosition.x
+	                && point.x < this.soundButtonPosition.x + this.soundButtonDimensions.x
+	                && point.y > this.soundButtonPosition.y
+	                && point.y < this.soundButtonPosition.y + this.soundButtonDimensions.y;
 	        };
-	        Menu.playFontSizeInPx = 50;
-	        Menu.buttonWidth = 225;
-	        Menu.buttonHeight = 100;
-	        Menu.fadeInRate = 0.02;
-	        return Menu;
+	        Volume.prototype.changeVolume = function () {
+	            var _this = this;
+	            this.opacity = 1;
+	            this.level = Math.round(this.level >= 4 ? 0 : this.level + 1);
+	            localStorage.setItem("volumePosition", this.level.toString());
+	            this.sounds.forEach(function (sound) {
+	                sound.volume = _this.level / 5;
+	            });
+	            this.volumeChanged.play();
+	        };
+	        Volume.opacityDecay = 0.02;
+	        Volume.fadedOpacity = 0.4;
+	        return Volume;
 	    })();
-	    exports.Menu = Menu;
+	    exports.Volume = Volume;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
 
 /***/ },
-/* 19 */
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var Sound = (function () {
+	        function Sound(path, options) {
+	            this.sound = new Audio(path);
+	            this.sound.volume = options.volume || Sound.defaultVolume;
+	            this.sound.loop = options.isLooping === true;
+	        }
+	        Sound.prototype.play = function () {
+	            this.sound.play();
+	        };
+	        Object.defineProperty(Sound.prototype, "volume", {
+	            set: function (newVolume) {
+	                this.sound.volume = newVolume;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Sound.defaultVolume = 0.3;
+	        return Sound;
+	    })();
+	    exports.Sound = Sound;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
+	    var Sprite = (function () {
+	        function Sprite(imagePath, dimensions) {
+	            this.isAlive = true;
+	            this.image = new Image();
+	            this.image.src = imagePath;
+	            this.dimensions = dimensions;
+	        }
+	        Object.defineProperty(Sprite.prototype, "dimensions", {
+	            set: function (dimensions) {
+	                this.internalDimensions = dimensions;
+	            },
+	            enumerable: true,
+	            configurable: true
+	        });
+	        Sprite.prototype.Render = function (renderContext, orchestrator) {
+	            renderContext.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.internalDimensions.x, this.internalDimensions.y);
+	        };
+	        return Sprite;
+	    })();
+	    exports.Sprite = Sprite;
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ },
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1680,7 +1615,7 @@
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(10), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7), __webpack_require__(4)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, physicsBlock_1, renderComponent_1) {
 	    var Platform = (function (_super) {
 	        __extends(Platform, _super);
 	        function Platform(worldPosition, dimensions, color, gravity, volume, worldWidth) {
@@ -1732,7 +1667,7 @@
 
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1828,7 +1763,7 @@
 
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -1889,7 +1824,7 @@
 
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1913,7 +1848,7 @@
 
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -1967,7 +1902,7 @@
 
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -2040,7 +1975,7 @@
 
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -2106,7 +2041,7 @@
 
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {
@@ -2184,7 +2119,7 @@
 
 
 /***/ },
-/* 27 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __extends = (this && this.__extends) || function (d, b) {

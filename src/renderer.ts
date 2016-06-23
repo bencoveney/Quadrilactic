@@ -3,7 +3,6 @@ import {Controller} from "controller";
 import {MovingPoint, Point} from "point";
 import {Viewport} from "viewport";
 import {Sound} from "sound";
-import {Menu} from "menu";
 import {Volume} from "volume";
 import {Platform} from "platform";
 import {Orchestrator} from "entitySystem/orchestrator";
@@ -28,7 +27,6 @@ export class Renderer {
 	private isRunning: boolean = false;
 	private player: Player;
 	private platform: Platform;
-	private menu: Menu;
 	private viewport: Viewport;
 	private lastTimestamp: number;
 	private lastFps: number;
@@ -228,7 +226,6 @@ export class Renderer {
 					this.isRunning = false;
 					this.deathSound.play();
 					this.gameStateSystem.EndGame();
-					this.menu.showMenu(scoreSystem.totalScore, this.player.fillColor);
 				}
 
 				if (originalOnMove) {
@@ -239,7 +236,14 @@ export class Renderer {
 
 		this.gameStateSystem.OnMenuState = (removables: Entity[]) => {
 
-			let menuOpacity: number = 1;
+			let menuOpacityValue: number = 0;
+			let menuOpacityTween: number = 0.02;
+			let menuOpacity: () => () => number = () => {
+				return () => {
+					menuOpacityValue = Math.min(menuOpacityValue + menuOpacityTween, 1);
+					return menuOpacityValue;
+				};
+			};
 
 			let titlePosition: LocationComponent = new LocationComponent(
 				(Renderer.gameWidth / 2),
@@ -260,7 +264,7 @@ export class Renderer {
 					"Oswald",
 					90,
 					true),
-				() => menuOpacity,
+				menuOpacity(),
 				1);
 
 			let titleText: Entity = {
@@ -299,7 +303,7 @@ export class Renderer {
 
 					return result;
 				},
-				() => menuOpacity,
+				menuOpacity(),
 				1);
 
 			let scoreText: Entity = {
@@ -323,7 +327,7 @@ export class Renderer {
 			let instructionsRender: RenderComponent = new RenderComponent(
 				instructionsPosition,
 				SpriteLayer.FromPath("img/controls.png"),
-				() => menuOpacity,
+				menuOpacity(),
 				1);
 
 			let instructionsImage: Entity = {
@@ -343,6 +347,10 @@ export class Renderer {
 			let playButtonForegroundColor: string = "#000000";
 			let playButtonBackgroundColor: string = "#FFFFFF";
 
+			let buttonHover: Sound = this.volume.createSound("snd/button_on.wav", {});
+			let buttonUnhover: Sound = this.volume.createSound("snd/button_off.wav", {});
+			let buttonClick: Sound = this.volume.createSound("snd/button_click.wav", {});
+
 			let playBackgroundPosition: LocationComponent = new LocationComponent(
 				playButtonLeft,
 				playButtonTop,
@@ -358,16 +366,31 @@ export class Renderer {
 				[
 					new RectangleLayer(() => playButtonBackgroundColor)
 				],
-				() => menuOpacity,
+				menuOpacity(),
 				1);
 
 			let playBackgroundInput: InputComponent = new InputComponent();
 			playBackgroundInput.onMouseOver.push(() => {
 				playButtonBackgroundColor = "#FF0000";
+				buttonHover.play();
 			});
 			playBackgroundInput.onMouseOut.push(() => {
 				playButtonBackgroundColor = "#FFFFFF";
+				buttonUnhover.play();
 			});
+
+			let startGame: () => void = () => {
+				buttonClick.play();
+
+				this.viewport.Reset();
+				this.isRunning = true;
+
+				this.gameStateSystem.StartGame();
+				scoreSystem.ResetScore();
+			};
+			playBackgroundInput.getKeyHandler("e").push(startGame);
+			playBackgroundInput.getKeyHandler("enter").push(startGame);
+			playBackgroundInput.onMouseClick.push(startGame);
 
 			let playBackground: Entity = {
 				inputComponent: playBackgroundInput,
@@ -398,7 +421,7 @@ export class Renderer {
 						playButtonTextSize,
 						true)
 				],
-				() => menuOpacity,
+				menuOpacity(),
 				1);
 
 			let playText: Entity = {
@@ -409,22 +432,6 @@ export class Renderer {
 			removables.push(playText);
 			orchestrator.Add(playText);
 		};
-
-		this.menu = new Menu(
-			{
-				x: this.canvas.width,
-				y: this.canvas.height
-			},
-			controller,
-			() => {
-				this.viewport.Reset();
-				this.isRunning = true;
-
-				this.gameStateSystem.StartGame();
-				scoreSystem.ResetScore();
-			},
-			this.volume
-		);
 
 		this.viewport = new Viewport(
 			this.context,
@@ -457,8 +464,6 @@ export class Renderer {
 	private Draw(): void {
 		if (this.isRunning) {
 			this.viewport.Render(this.lastFps);
-		} else {
-			this.menu.Render(this.context, this.orchestrator);
 		}
 
 		this.volume.Render(this.context, this.orchestrator);

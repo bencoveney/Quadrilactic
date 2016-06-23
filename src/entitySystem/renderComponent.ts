@@ -1,11 +1,14 @@
 import {LocationComponent} from "entitySystem/locationComponent";
 
+type Resolvable<T> = T | (() => T);
+type MultiResolvable<T> = Resolvable<T> | Resolvable<T[]>
+
 export class RenderComponent {
 	private static skewScale: number = 0.07;
 
 	private _position: LocationComponent;
-	private _layers: RenderLayer | RenderLayer[] | Function;
-	private _opacity: number | Function;
+	private _layers: MultiResolvable<RenderLayer>;
+	private _opacity: Resolvable<number>;
 	private _zIndex: number;
 	private _skew: number;
 
@@ -33,16 +36,16 @@ export class RenderComponent {
 			this._position.rotation);
 	}
 
-	get opacity(): number | Function {
+	get opacity(): Resolvable<number> {
 		return this._opacity;
 	}
-	set opacity(newValue: number | Function) {
+	set opacity(newValue: Resolvable<number>) {
 		this._opacity = newValue;
 	}
 
 	get opacityValue(): number {
 		if (typeof this._opacity === "function") {
-			return (this._opacity as Function)() as number;
+			return (this._opacity as (() => number))() as number;
 		} else {
 			return this._opacity as number;
 		}
@@ -63,14 +66,16 @@ export class RenderComponent {
 	}
 
 	get layers(): RenderLayer[] {
-		if (typeof this._layers === "function") {
-			return (this._layers as Function)() as RenderLayer[];
-		} else {
-			return [].concat(this._layers) as RenderLayer[];
+		let currentLayers: MultiResolvable<RenderLayer> = this._layers;
+
+		if (typeof currentLayers === "function") {
+			currentLayers = (currentLayers as any as Function)() as RenderLayer[];
 		}
+
+		return [].concat(currentLayers) as RenderLayer[];
 	}
 
-	constructor(position: LocationComponent, layers: RenderLayer | RenderLayer[] | Function, opacity: number | Function, zIndex: number) {
+	constructor(position: LocationComponent, layers: MultiResolvable<RenderLayer>, opacity: Resolvable<number>, zIndex: number) {
 		this._position = position;
 		this._layers = layers;
 		this._opacity = opacity;
