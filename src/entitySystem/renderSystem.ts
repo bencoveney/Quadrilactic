@@ -166,8 +166,7 @@ export class RenderSystem extends System {
 
 		if (textLayer.isCentered) {
 			this._renderContext.textAlign = "center";
-		}
-		else {
+		} else {
 			this._renderContext.textAlign = "left";
 		}
 

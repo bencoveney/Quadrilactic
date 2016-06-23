@@ -8,10 +8,11 @@ import {Volume} from "volume";
 import {Platform} from "platform";
 import {Orchestrator} from "entitySystem/orchestrator";
 import {LocationComponent, LocationType} from "entitySystem/locationComponent";
-import {RenderComponent, RenderLayer, SpriteLayer, TextLayer} from "entitySystem/renderComponent";
+import {RenderComponent, RenderLayer, SpriteLayer, TextLayer, RectangleLayer} from "entitySystem/renderComponent";
 import {ScoreSystem} from "entitySystem/scoreSystem";
 import {GameStateSystem} from "entitySystem/gameStateSystem";
 import {Entity} from "entitySystem/entity";
+import {InputComponent} from "entitySystem/inputComponent";
 
 export class Renderer {
 	// Constants
@@ -332,6 +333,81 @@ export class Renderer {
 
 			removables.push(instructionsImage);
 			orchestrator.Add(instructionsImage);
+
+			let playButtonWidth: number = 225;
+			let playButtonHeight: number = 100;
+			let playButtonLeft: number = (Renderer.gameWidth / 2) - (playButtonWidth / 2);
+			let playButtonTop: number = 600;
+			let playButtonTextSize: number = 50;
+
+			let playButtonForegroundColor: string = "#000000";
+			let playButtonBackgroundColor: string = "#FFFFFF";
+
+			let playBackgroundPosition: LocationComponent = new LocationComponent(
+				playButtonLeft,
+				playButtonTop,
+				playButtonWidth,
+				playButtonHeight,
+				0,
+				0,
+				0,
+				LocationType.ui);
+
+			let playBackgroundRender: RenderComponent = new RenderComponent(
+				playBackgroundPosition,
+				[
+					new RectangleLayer(() => playButtonBackgroundColor)
+				],
+				() => menuOpacity,
+				1);
+
+			let playBackgroundInput: InputComponent = new InputComponent();
+			playBackgroundInput.onMouseOver.push(() => {
+				playButtonBackgroundColor = "#FF0000";
+			});
+			playBackgroundInput.onMouseOut.push(() => {
+				playButtonBackgroundColor = "#FFFFFF";
+			});
+
+			let playBackground: Entity = {
+				inputComponent: playBackgroundInput,
+				locationComponent: playBackgroundPosition,
+				renderComponent: playBackgroundRender
+			};
+
+			removables.push(playBackground);
+			orchestrator.Add(playBackground);
+
+			let playTextPosition: LocationComponent = new LocationComponent(
+				Renderer.gameWidth / 2,
+				playButtonTop + 70,
+				playButtonWidth,
+				playButtonHeight,
+				0,
+				0,
+				0,
+				LocationType.ui);
+
+			let playTextRender: RenderComponent = new RenderComponent(
+				playTextPosition,
+				[
+					new TextLayer(
+						"Play",
+						() => playButtonForegroundColor,
+						"Oswald",
+						playButtonTextSize,
+						true)
+				],
+				() => menuOpacity,
+				1);
+
+			let playText: Entity = {
+				locationComponent: playTextPosition,
+				renderComponent: playTextRender
+			};
+
+			removables.push(playText);
+			orchestrator.Add(playText);
 		};
 
 		this.menu = new Menu(
@@ -374,8 +450,6 @@ export class Renderer {
 			this.player.Tick(scaledTime);
 			this.platform.Tick(scaledTime);
 		}
-
-		this.controller.clearClick();
 
 		requestAnimationFrame((time: number) => { this.Tick(time); });
 	}
